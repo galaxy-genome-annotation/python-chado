@@ -38,8 +38,6 @@ class ChadoInstance(object):
 
         self.debug = debug
 
-        self.jobs = JobsClient(self)
-
     def __str__(self):
         return '<ChadoInstance at %s>' % self.dbhost
 
