@@ -27,7 +27,7 @@ if __name__ == '__main__':
     res = ci.session.query(Analysis).filter_by(name = args.name)
 
     if res.count() > 0:
-        raise Exception("Found a preexisting analysis with the same attributes in the database %s" % (self._engine.url))
+        raise Exception("Found a preexisting analysis with the same attributes in the database %s" % (ci._engine.url))
 
     date = datetime.today()
     if args.date_executed:
