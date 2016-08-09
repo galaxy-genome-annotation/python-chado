@@ -29,7 +29,7 @@ def ChadoAuth(parser):
 
 class ChadoInstance(object):
 
-    def __init__(self, dbhost, dbname, dbuser, dbpass, dbschema):
+    def __init__(self, dbhost, dbname, dbuser, dbpass, dbschema, debug):
         self.dbhost = dbhost
         self.dbname = dbname
         self.dbuser = dbuser
