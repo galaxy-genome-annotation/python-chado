@@ -20,7 +20,7 @@ class Cv(object):
     pass
 
 def ChadoAuth(parser):
-    parser.add_argument('-h', '--dbhost', required=True, help='Database Host')
+    parser.add_argument('-o', '--dbhost', required=True, help='Database Host')
     parser.add_argument('-n', '--dbname', required=True, help='Database Name')
     parser.add_argument('-u', '--dbuser', help='Database Username')
     parser.add_argument('-p', '--dbpass', help='Database Password')
