@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import json
 import argparse
-from chado import ChadoAuth, ChadoInstance, Organism
+from chado import ChadoAuth, ChadoInstance, Analysis
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Create a new analysis')

@@ -54,7 +54,7 @@ class ChadoInstance(object):
         self._reflect_tables()
 
     def _test_db_access(self):
-        tables = self._engine.table_names()
+        tables = self._engine.table_names(schema=self.dbschema)
         if ('analysis' not in tables or 'feature' not in tables):
             raise Exception("Could not find Chado tables in db %s" % (self._engine.url))
 
