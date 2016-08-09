@@ -42,5 +42,5 @@ if __name__ == '__main__':
     newa.sourceversion = args.source_version
     newa.sourceuri = args.source_uri
     newa.timeexecuted = date
-    session.add(newa)
-    session.commit()
+    ci.session.add(newa)
+    ci.session.commit()
