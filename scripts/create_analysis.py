@@ -30,8 +30,8 @@ if __name__ == '__main__':
         raise Exception("Found a preexisting analysis with the same attributes in the database %s" % (self._engine.url))
 
     date = datetime.today()
-    if args.args_executed:
-        date = datetime.strptime(args.args_executed, '%Y-%m-%d')
+    if args.date_executed:
+        date = datetime.strptime(args.date_executed, '%Y-%m-%d')
 
     newa = Analysis()
     newa.name = args.name
