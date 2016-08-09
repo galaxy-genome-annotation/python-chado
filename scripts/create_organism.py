@@ -33,3 +33,5 @@ if __name__ == '__main__':
     org.comment = args.description
     ci.session.add(org)
     ci.session.commit()
+
+    print "New organism created with ID: %s" % org.organism_id

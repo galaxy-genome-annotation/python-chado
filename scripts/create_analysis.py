@@ -44,3 +44,5 @@ if __name__ == '__main__':
     newa.timeexecuted = date
     ci.session.add(newa)
     ci.session.commit()
+
+    print "New analysis created with ID: %s" % newa.organism_id
