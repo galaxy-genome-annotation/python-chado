@@ -15,22 +15,21 @@ if __name__ == '__main__':
     ChadoAuth(parser)
     args = parser.parse_args()
 
-    ci = ChadoInstance(args.dbhost, args.dbname, args.dbuser, args.dbpass, args.dbschema)
+    ci = ChadoInstance(args.dbhost, args.dbname, args.dbuser, args.dbpass, args.dbschema, args.debug)
 
     ci.connect()
 
     # check if the organism exists
     res = ci.session.query(Organism).filter_by(common_name = args.common)
-    found_org = (res.count() > 0)
 
-    if not found_org:
-        org = Organism()
-        org.abbreviation = args.abbr
-        org.genus = args.genus
-        org.species = args.species
-        org.common_name = args.common
-        org.comment = args.description
-        session.add(org)
-        session.commit()
-    else:
-        raise Exception("Found a preexisting organism with the same attributes in the database %s" % (self._engine.url))
+    if (res.count() > 0):
+        raise Exception("Found a preexisting organism with the same attributes in the database %s" % (ci._engine.url))
+
+    org = Organism()
+    org.abbreviation = args.abbr
+    org.genus = args.genus
+    org.species = args.species
+    org.common_name = args.common
+    org.comment = args.description
+    ci.session.add(org)
+    ci.session.commit()
