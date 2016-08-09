@@ -44,9 +44,9 @@ class ChadoInstance(object):
     def connect(self):
 
         self._engine = create_engine('postgresql://%s:%s@%s/%s' % (self.dbuser, self.dbpass, self.dbhost, self.dbname), echo=self.debug)
-        self._metadata = MetaData(engine)
+        self._metadata = MetaData(_engine)
 
-        Session = sessionmaker(bind=engine)
+        Session = sessionmaker(bind=_engine)
         self.session = Session()
 
         self._test_db_access()
