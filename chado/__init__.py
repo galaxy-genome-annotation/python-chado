@@ -2,22 +2,22 @@ from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import mapper, sessionmaker
 
 class Analysis(object):
-pass
+    pass
 
 class Organism(object):
-pass
+    pass
 
 class Dbxref(object):
-pass
+    pass
 
 class Cvterm(object):
-pass
+    pass
 
 class Db(object):
-pass
+    pass
 
 class Cv(object):
-pass
+    pass
 
 def ChadoAuth(parser):
     parser.add_argument('-h', '--dbhost', required=True, help='Database Host')
