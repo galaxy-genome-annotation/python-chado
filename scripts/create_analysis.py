@@ -45,4 +45,4 @@ if __name__ == '__main__':
     ci.session.add(newa)
     ci.session.commit()
 
-    print "New analysis created with ID: %s" % newa.organism_id
+    print "New analysis created with ID: %s" % newa.analysis_id
