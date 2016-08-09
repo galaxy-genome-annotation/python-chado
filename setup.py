@@ -10,7 +10,7 @@ setup(
     author="Anthony Bretaudeau",
     author_email="anthony.bretaudeau@inra.fr",
     url="https://github.com/abretaud/python-chado",
-    install_requires=['sqlalchemy>=2.4.3'],
+    install_requires=['sqlalchemy'],
     packages=find_packages(),
     license='MIT',
     platforms="Posix; MacOS X; Windows",
