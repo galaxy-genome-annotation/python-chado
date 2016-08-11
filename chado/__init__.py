@@ -4,6 +4,9 @@ from sqlalchemy.orm import mapper, sessionmaker
 class Analysis(object):
     pass
 
+class AnalysisProperty(object):
+    pass
+
 class Organism(object):
     pass
 
@@ -63,6 +66,8 @@ class ChadoInstance(object):
         # Try to reflect tables
         analysis = Table('analysis', self._metadata, autoload=True)
         mapper(Analysis, analysis)
+        analysisprop = Table('analysisprop', self._metadata, autoload=True)
+        mapper(AnalysisProperty, analysisprop)
         organism = Table('organism', self._metadata, autoload=True)
         mapper(Organism, organism)
         dbxref = Table('dbxref', self._metadata, autoload=True)
