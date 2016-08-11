@@ -14,7 +14,7 @@ if __name__ == '__main__':
     ci.connect()
 
     # check if the organism exists
-    res = ci.session.query(Organism).delete
+    res = ci.session.query(Organism).delete()
     ci.session.commit()
 
     print "Removed %i organism" % res
