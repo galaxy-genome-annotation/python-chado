@@ -103,6 +103,13 @@ class ChadoInstance(object):
         return res.one().Cvterm.cvterm_id
 
     def get_cvterm_name(self, cv_id):
+        """
+        get_cvterm_name allows lookup of CV terms by their ID.
+
+        This method caches the result in order to not hit the DB for every
+        query. Maybe should investigate pre-loading popular terms? (E.g. gene,
+        mRNA, etc)
+        """
         if cv_id in self._cv_id_cache:
             if self._cv_id_cache[cv_id] is not None:
                 return self._cv_id_cache[cv_id]
