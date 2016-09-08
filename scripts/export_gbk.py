@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse
+import sys
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
@@ -59,5 +60,4 @@ if __name__ == '__main__':
         )
         record.features = record_features
 
-        with open('out.gb', 'w') as handle:
-            SeqIO.write([record], handle, 'genbank')
+        SeqIO.write([record], sys.stdout, 'genbank')
