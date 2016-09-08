@@ -98,7 +98,7 @@ class ChadoInstance(object):
     def get_cvterm_id(self, type_name, cv_name):
         res = self.session.query(Cvterm, Cv).filter(Cvterm.name == type_name, Cv.name == cv_name)
         if not res.count():
-            raise Exception("Could not find a cvterm with name '%s' from cv ''%s' in the database %s" % (type_name, cv_name, ci._engine.url))
+            raise Exception("Could not find a cvterm with name '%s' from cv ''%s' in the database %s" % (type_name, cv_name, self._engine.url))
 
         return res.one().Cvterm.cvterm_id
 
