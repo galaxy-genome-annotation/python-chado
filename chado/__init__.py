@@ -64,6 +64,7 @@ class ChadoInstance(object):
         self._test_db_access()
 
         self._reflect_tables()
+        self._cv_id_cache = {}
 
     def _test_db_access(self):
         tables = self._engine.table_names(schema=self.dbschema)
@@ -100,3 +101,18 @@ class ChadoInstance(object):
             raise Exception("Could not find a cvterm with name '%s' from cv ''%s' in the database %s" % (type_name, cv_name, ci._engine.url))
 
         return res.one().Cvterm.cvterm_id
+
+    def get_cvterm_name(self, cv_id):
+        if cv_id in self._cv_id_cache:
+            if self._cv_id_cache[cv_id] is not None:
+                return self._cv_id_cache[cv_id]
+            else:
+                raise Exception("Could not find a cvterm with id '%s' in the database %s" % (cv_id, self._engine.url))
+        else:
+            res = self.session.query(Cvterm).filter(Cvterm.cvterm_id == cv_id)
+            if not res.count():
+                self._cv_id_cache[cv_id] = None
+            else:
+                self._cv_id_cache[cv_id] = res.one().name
+
+            return self.get_cvterm_name(cv_id)
