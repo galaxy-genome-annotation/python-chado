@@ -12,7 +12,7 @@ from Bio.SeqFeature import FeatureLocation as BioFeatureLocation
 from chado import ChadoAuth, ChadoInstance, Organism, Feature, FeatureLocation, FeatureProperties
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Create a new organism')
+    parser = argparse.ArgumentParser(description='Export a GenBank formatted dataset for an organism')
 
     parser.add_argument("orgId", nargs='+', help="The id of the organism")
     ChadoAuth(parser)
