@@ -7,12 +7,17 @@ from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
 from Bio.SeqFeature import SeqFeature
 from Bio.SeqFeature import FeatureLocation as BioFeatureLocation
+from chado import ChadoAuth, ChadoInstance, Organism, Feature, FeatureLocation, FeatureProperties, FeatureRelationship
 import logging
 logging.basicConfig()
 log = logging.getLogger(name='export_gff3')
+try:
+    import tqdm
+    HAS_PROGRESS_BAR = True
+except ImportError:
+    # Progress bar library, not required to run.
+    HAS_PROGRESS_BAR = False
 
-
-from chado import ChadoAuth, ChadoInstance, Organism, Feature, FeatureLocation, FeatureProperties, FeatureRelationship
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Export a GFF3 formatted dataset for an organism')
@@ -27,7 +32,13 @@ if __name__ == '__main__':
     # check if the organism exists
     res = ci.session.query(Organism).filter(Organism.organism_id.in_(args.orgId))
 
+    if HAS_PROGRESS_BAR:
+        pbar = tqdm.tqdm(total=res.count(), desc='organism')
+
     for org in res:
+        if HAS_PROGRESS_BAR:
+            pbar.update(1)
+
         # TODO: can we do this properly?
         seq = Seq("A" * 1, IUPAC.unambiguous_dna)
 
@@ -36,11 +47,15 @@ if __name__ == '__main__':
         features = ci.session.query(Feature, FeatureLocation) \
             .filter_by(organism_id=org.organism_id) \
             .filter(Feature.seqlen==None) \
-            .join(FeatureLocation, Feature.feature_id == FeatureLocation.feature_id, isouter=True) \
-            .all()
+            .join(FeatureLocation, Feature.feature_id == FeatureLocation.feature_id, isouter=True)
+
+        if HAS_PROGRESS_BAR:
+            fbar = tqdm.tqdm(total=features.count(), desc='features')
 
         biopy_features = {}
         for feature, featureloc  in features:
+            if HAS_PROGRESS_BAR:
+                fbar.update(1)
             #[u'dbxref_id', u'feature_id', u'is_analysis', u'is_obsolete',
             # u'md5checksum', u'name', u'organism_id', u'residues', u'seqlen',
             # u'timeaccessioned', u'timelastmodified', u'type_id',
@@ -62,6 +77,9 @@ if __name__ == '__main__':
                 strand=featureloc.strand,
                 qualifiers=qualifiers
             )
+
+        if HAS_PROGRESS_BAR:
+            fbar.close()
 
     #res = ci.session.query(Organism).filter(Organism.organism_id.in_(args.orgId))
         relationships = ci.session.query(FeatureRelationship) \
@@ -137,12 +155,14 @@ if __name__ == '__main__':
                 # Otherwise, completely new feature.
                 features.append(parent)
 
+        n = org.common_name if org.common_name else 'org_%s' % org.organism_id
         record = SeqRecord(
-            seq,
-            id=org.common_name,
-            name=org.common_name,
+            seq, id=n, name=n,
             description="%s %s" % (org.genus, org.species),
         )
         record.features = sorted(features, key=lambda f: f.location.start)
 
         GFF.write([record], sys.stdout)
+
+    if HAS_PROGRESS_BAR:
+        pbar.close()
