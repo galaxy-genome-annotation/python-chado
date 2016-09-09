@@ -35,17 +35,19 @@ def ChadoAuth(parser):
     parser.add_argument('-o', '--dbhost', required=True, help='Database Host')
     parser.add_argument('-n', '--dbname', required=True, help='Database Name')
     parser.add_argument('-u', '--dbuser', help='Database Username')
-    parser.add_argument('-p', '--dbpass', help='Database Password')
+    parser.add_argument('-w', '--dbpass', help='Database Password')
+    parser.add_argument('-p', '--dbport', type=int, help='Database Port', default=5432)
     parser.add_argument('--dbschema', help='Database Schema (default: public)', default="public")
     parser.add_argument("-d", "--debug", help="Print debug information", action="store_true")
 
 class ChadoInstance(object):
 
-    def __init__(self, dbhost, dbname, dbuser, dbpass, dbschema, debug):
+    def __init__(self, dbhost, dbname, dbuser, dbpass, dbschema, dbport, debug, **kwargs):
         self.dbhost = dbhost
         self.dbname = dbname
         self.dbuser = dbuser
         self.dbpass = dbpass
+        self.dbport = dbport
         self.dbschema = dbschema
 
         self.debug = debug
@@ -55,7 +57,7 @@ class ChadoInstance(object):
 
     def connect(self):
 
-        self._engine = create_engine('postgresql://%s:%s@%s/%s' % (self.dbuser, self.dbpass, self.dbhost, self.dbname), echo=self.debug)
+        self._engine = create_engine('postgresql://%s:%s@%s:%s/%s' % (self.dbuser, self.dbpass, self.dbhost, self.dbport, self.dbname), echo=self.debug)
         self._metadata = MetaData(self._engine, schema=self.dbschema)
 
         Session = sessionmaker(bind=self._engine)
