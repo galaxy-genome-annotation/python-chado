@@ -41,11 +41,20 @@ if __name__ == '__main__':
         else:
             output = sys.stdout
 
+        if HAS_PROGRESS_BAR:
+            sbar = tqdm.tqdm(total=sequence_features.count(), desc='sequences')
+
         for seq in sequence_features:
             output.write('>{0.uniquename} [ID={0.feature_id}]'.format(seq))
             output.write('\n')
             output.write(seq.residues)
             output.write('\n')
+
+            if HAS_PROGRESS_BAR:
+                sbar.update(1)
+
+        if HAS_PROGRESS_BAR:
+            sbar.close()
 
         if args.file:
             output.close()
