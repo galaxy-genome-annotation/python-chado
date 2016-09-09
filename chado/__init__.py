@@ -31,6 +31,9 @@ class FeatureLocation(object):
 class FeatureProperties(object):
     pass
 
+class FeatureRelationship(object):
+    pass
+
 def ChadoAuth(parser):
     parser.add_argument('-o', '--dbhost', required=True, help='Database Host')
     parser.add_argument('-n', '--dbname', required=True, help='Database Name')
@@ -96,6 +99,8 @@ class ChadoInstance(object):
         mapper(FeatureLocation, featureloc)
         featureprop = Table('featureprop', self._metadata, autoload=True)
         mapper(FeatureProperties, featureprop)
+        feature_relationship = Table('feature_relationship', self._metadata, autoload=True)
+        mapper(FeatureRelationship, feature_relationship)
 
     def get_cvterm_id(self, type_name, cv_name):
         res = self.session.query(Cvterm, Cv).filter(Cvterm.name == type_name, Cv.name == cv_name)
