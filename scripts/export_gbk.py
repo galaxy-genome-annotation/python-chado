@@ -43,10 +43,14 @@ if __name__ == '__main__':
         record_features = []
         features = ci.session.query(Feature, FeatureLocation) \
             .filter_by(organism_id=org.organism_id) \
-            .join(FeatureLocation, Feature.feature_id == FeatureLocation.feature_id, isouter=True) \
-            .all()
+            .join(FeatureLocation, Feature.feature_id == FeatureLocation.feature_id, isouter=True)
+
+        if HAS_PROGRESS_BAR:
+            fbar = tqdm.tqdm(total=features.count(), desc='features')
 
         for feature, featureloc  in features:
+            if HAS_PROGRESS_BAR:
+                fbar.update(1)
             # Sequence containing feature
             if feature.residues:
                 # This seems bad? What if multiple things have seqs?
@@ -65,6 +69,9 @@ if __name__ == '__main__':
                         qualifiers=qualifiers
                     )
                 )
+
+        if HAS_PROGRESS_BAR:
+            fbar.close()
 
         record = SeqRecord(
             seq, id=org.common_name,
