@@ -8,7 +8,7 @@ from Bio.Alphabet import IUPAC
 from Bio.SeqFeature import SeqFeature
 from Bio.SeqFeature import FeatureLocation as BioFeatureLocation
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig()
 log = logging.getLogger(name='export_gff3')
 
 
@@ -90,7 +90,6 @@ if __name__ == '__main__':
         # https://github.com/biopython/biopython/issues/928
         for rel in relationships:
             term = ci.get_cvterm_name(rel.type_id)
-            log.debug("rel (%s %s %s)", rel.subject_id, term, rel.object_id)
             if term != 'part_of':
                 log.error("Cannot handle non-part_of relationships (%s %s %s)", rel.subject_id, term, rel.object_id)
                 continue
@@ -103,7 +102,6 @@ if __name__ == '__main__':
             assert len(parent) <= 1
             alreadyProcessedParent = False
             alreadyProcessedChild = False
-            log.debug('%s %s %s %s', alreadyProcessedChild, len(child), alreadyProcessedParent, len(parent))
 
             # If they aren't there, pull them from the complete set.
             if len(child) == 0:
