@@ -7,6 +7,12 @@ from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
 from Bio.SeqFeature import SeqFeature
 from Bio.SeqFeature import FeatureLocation as BioFeatureLocation
+try:
+    import tqdm
+    HAS_PROGRESS_BAR = True
+except ImportError:
+    # Progress bar library, not required to run.
+    HAS_PROGRESS_BAR = False
 
 
 from chado import ChadoAuth, ChadoInstance, Organism, Feature, FeatureLocation, FeatureProperties
@@ -22,10 +28,17 @@ if __name__ == '__main__':
     ci.connect()
 
     # check if the organism exists
-    res = ci.session.query(Organism).filter(Organism.organism_id.in_(args.orgId))
+    res = ci.session.query(Organism) \
+        .filter(Organism.organism_id.in_(args.orgId))
+
+    if HAS_PROGRESS_BAR:
+        pbar = tqdm.tqdm(total=res.count(), desc='organism')
 
     for org in res:
         seq = None
+
+        if HAS_PROGRESS_BAR:
+            pbar.update(1)
 
         record_features = []
         features = ci.session.query(Feature, FeatureLocation) \
@@ -61,3 +74,6 @@ if __name__ == '__main__':
         record.features = record_features
 
         SeqIO.write([record], sys.stdout, 'genbank')
+
+    if HAS_PROGRESS_BAR:
+        pbar.close()

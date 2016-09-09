@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 import argparse
 import sys
-from Bio import SeqIO
-from Bio.Seq import Seq
-from Bio.SeqRecord import SeqRecord
-from Bio.Alphabet import IUPAC
-from Bio.SeqFeature import SeqFeature
-from Bio.SeqFeature import FeatureLocation as BioFeatureLocation
+try:
+    import tqdm
+    HAS_PROGRESS_BAR = True
+except ImportError:
+    # Progress bar library, not required to run.
+    HAS_PROGRESS_BAR = False
 
-
-from chado import ChadoAuth, ChadoInstance, Organism, Feature, FeatureLocation, FeatureProperties
+from chado import ChadoAuth, ChadoInstance, Organism, Feature
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Export any sequence records associated with an organism')
@@ -26,7 +25,13 @@ if __name__ == '__main__':
     res = ci.session.query(Organism) \
         .filter(Organism.organism_id.in_(args.orgId))
 
+    if HAS_PROGRESS_BAR:
+        pbar = tqdm.tqdm(total=res.count(), desc='organism')
+
     for org in res:
+        if HAS_PROGRESS_BAR:
+            pbar.update(1)
+
         sequence_features = ci.session.query(Feature) \
             .filter_by(organism_id=org.organism_id) \
             .filter(Feature.seqlen > 0)
@@ -44,3 +49,6 @@ if __name__ == '__main__':
 
         if args.file:
             output.close()
+
+    if HAS_PROGRESS_BAR:
+        pbar.close()
