@@ -5,7 +5,7 @@ import argparse
 from chado import ChadoAuth
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Create a new organism')
+    parser = argparse.ArgumentParser(description='Invoke a database shell session')
 
     ChadoAuth(parser)
     args = parser.parse_args()

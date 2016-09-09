@@ -3,7 +3,7 @@ import argparse
 from chado import ChadoAuth, ChadoInstance, Organism
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Create a new organism')
+    parser = argparse.ArgumentParser(description='List organisms in the database')
 
     parser.add_argument("--genus", help="The genus of the organism")
     parser.add_argument("--species", help="The species of the organism")
