@@ -15,7 +15,7 @@ if __name__ == '__main__':
     ChadoAuth(parser)
     args = parser.parse_args()
 
-    ci = ChadoInstance(args.dbhost, args.dbname, args.dbuser, args.dbpass, args.dbschema, args.debug)
+    ci = ChadoInstance(**vars(args))
 
     ci.connect()
 

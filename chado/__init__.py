@@ -22,21 +22,35 @@ class Db(object):
 class Cv(object):
     pass
 
+class Feature(object):
+    pass
+
+class FeatureLocation(object):
+    pass
+
+class FeatureProperties(object):
+    pass
+
+class FeatureRelationship(object):
+    pass
+
 def ChadoAuth(parser):
     parser.add_argument('-o', '--dbhost', required=True, help='Database Host')
     parser.add_argument('-n', '--dbname', required=True, help='Database Name')
     parser.add_argument('-u', '--dbuser', help='Database Username')
-    parser.add_argument('-p', '--dbpass', help='Database Password')
+    parser.add_argument('-w', '--dbpass', help='Database Password')
+    parser.add_argument('-p', '--dbport', type=int, help='Database Port', default=5432)
     parser.add_argument('--dbschema', help='Database Schema (default: public)', default="public")
     parser.add_argument("-d", "--debug", help="Print debug information", action="store_true")
 
 class ChadoInstance(object):
 
-    def __init__(self, dbhost, dbname, dbuser, dbpass, dbschema, debug):
+    def __init__(self, dbhost, dbname, dbuser, dbpass, dbschema, dbport, debug, **kwargs):
         self.dbhost = dbhost
         self.dbname = dbname
         self.dbuser = dbuser
         self.dbpass = dbpass
+        self.dbport = dbport
         self.dbschema = dbschema
 
         self.debug = debug
@@ -46,7 +60,7 @@ class ChadoInstance(object):
 
     def connect(self):
 
-        self._engine = create_engine('postgresql://%s:%s@%s/%s' % (self.dbuser, self.dbpass, self.dbhost, self.dbname), echo=self.debug)
+        self._engine = create_engine('postgresql://%s:%s@%s:%s/%s' % (self.dbuser, self.dbpass, self.dbhost, self.dbport, self.dbname), echo=self.debug)
         self._metadata = MetaData(self._engine, schema=self.dbschema)
 
         Session = sessionmaker(bind=self._engine)
@@ -55,6 +69,7 @@ class ChadoInstance(object):
         self._test_db_access()
 
         self._reflect_tables()
+        self._cv_id_cache = {}
 
     def _test_db_access(self):
         tables = self._engine.table_names(schema=self.dbschema)
@@ -78,10 +93,40 @@ class ChadoInstance(object):
         mapper(Db, db)
         cv = Table('cv', self._metadata, autoload=True)
         mapper(Cv, cv)
+        feature = Table('feature',    self._metadata, autoload=True)
+        mapper(Feature, feature)
+        featureloc = Table('featureloc', self._metadata, autoload=True)
+        mapper(FeatureLocation, featureloc)
+        featureprop = Table('featureprop', self._metadata, autoload=True)
+        mapper(FeatureProperties, featureprop)
+        feature_relationship = Table('feature_relationship', self._metadata, autoload=True)
+        mapper(FeatureRelationship, feature_relationship)
 
     def get_cvterm_id(self, type_name, cv_name):
         res = self.session.query(Cvterm, Cv).filter(Cvterm.name == type_name, Cv.name == cv_name)
         if not res.count():
-            raise Exception("Could not find a cvterm with name '%s' from cv ''%s' in the database %s" % (type_name, cv_name, ci._engine.url))
+            raise Exception("Could not find a cvterm with name '%s' from cv ''%s' in the database %s" % (type_name, cv_name, self._engine.url))
 
         return res.one().Cvterm.cvterm_id
+
+    def get_cvterm_name(self, cv_id):
+        """
+        get_cvterm_name allows lookup of CV terms by their ID.
+
+        This method caches the result in order to not hit the DB for every
+        query. Maybe should investigate pre-loading popular terms? (E.g. gene,
+        mRNA, etc)
+        """
+        if cv_id in self._cv_id_cache:
+            if self._cv_id_cache[cv_id] is not None:
+                return self._cv_id_cache[cv_id]
+            else:
+                raise Exception("Could not find a cvterm with id '%s' in the database %s" % (cv_id, self._engine.url))
+        else:
+            res = self.session.query(Cvterm).filter(Cvterm.cvterm_id == cv_id)
+            if not res.count():
+                self._cv_id_cache[cv_id] = None
+            else:
+                self._cv_id_cache[cv_id] = res.one().name
+
+            return self.get_cvterm_name(cv_id)
