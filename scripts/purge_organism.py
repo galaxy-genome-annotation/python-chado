@@ -4,7 +4,7 @@ import argparse
 from chado import ChadoAuth, ChadoInstance, Organism
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Remove an organism from the database')
+    parser = argparse.ArgumentParser(description='Remove all organisms from the database')
 
     ChadoAuth(parser)
     args = parser.parse_args()
