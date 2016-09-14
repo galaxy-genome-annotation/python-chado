@@ -15,7 +15,7 @@ Script               | Description
 `export_gbk.py`      | Export a GenBank formatted dataset for an organism
 `export_gff3.py`     | Export a GFF3 formatted dataset for an organism
 `list_organisms.py`  | List organisms in the database
-`purge_organism.py`  | Remove an organism from the database
+`purge_organism.py`  | Remove all organisms from the database
 
 (This list was generated with `egrep "argparse.*description='(.*)'" -R scripts -o | sed "s/'$//g;s/:.*'/ | /g;"`)
 
