@@ -10,11 +10,11 @@ setup(
     author="Anthony Bretaudeau",
     author_email="anthony.bretaudeau@inra.fr",
     url="https://github.com/abretaud/python-chado",
-    install_requires=['sqlalchemy', 'psycopg2'],
+    install_requires=['sqlalchemy', 'psycopg2', 'biopython', 'bcbio-gff'],
     packages=find_packages(),
     license='MIT',
     platforms="Posix; MacOS X; Windows",
-    scripts=['scripts/' + f for f in listdir('scripts')],
+    scripts=['bin/' + f for f in listdir('bin')],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
