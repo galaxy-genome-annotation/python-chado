@@ -1,6 +1,6 @@
 import click
 from cc.cli import pass_context, json_loads
-from cc.decorators import chado_exception, dict_output, _arg_split
+from cc.decorators import chado_exception, list_output, _arg_split
 
 @click.command('get_organisms')
 
@@ -32,7 +32,7 @@ from cc.decorators import chado_exception, dict_output, _arg_split
 
 @pass_context
 @chado_exception
-@dict_output
+@list_output
 def cli(ctx, genus="", species="", common="", abbr="", comment=""):
     """Get all organisms
 
