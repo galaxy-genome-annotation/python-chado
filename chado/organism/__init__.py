@@ -2,19 +2,13 @@
 Contains possible interactions with the Apollo Organisms Module
 """
 from chado.client import Client
-from sqlalchemy import create_engine, MetaData, Table
-from sqlalchemy.orm import mapper, sessionmaker
-
-class Organism:
-    pass
+from chado.models import *
 
 
 class OrganismClient(Client):
-
-    def __init__(self, *args, **kwargs):
-        super(self.__class__, self).__init__(*args, **kwargs)
-        organism = Table('organism', self.metadata, autoload=True)
-        mapper(Organism, organism)
+    """
+    Access to the chado organism table
+    """
 
     def add_organism(self, genus, common, abbr, species=None, comment=None):
         """

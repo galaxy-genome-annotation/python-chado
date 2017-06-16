@@ -11,7 +11,6 @@ from chado.client import Client
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import mapper, sessionmaker
 from chado.models import *
-from cc.io import info
 
 
 class ExportClient(Client):
@@ -65,7 +64,7 @@ class ExportClient(Client):
         """
         # check if the organism exists
         res = self.session.query(Organism).filter(Organism.organism_id.in_([organism_id]))
-        info("Processing %s sequences", res.count())
+        sys.stderr.write("Processing %s sequences\n" % res.count())
 
         for org in res:
             # TODO: can we do this properly?
@@ -77,10 +76,13 @@ class ExportClient(Client):
                 .filter_by(organism_id=org.organism_id) \
                 .filter(Feature.seqlen==None) \
                 .join(FeatureLocation, Feature.feature_id == FeatureLocation.feature_id, isouter=True)
-            info("\tProcessing %s features", features.count())
+            sys.stderr.write("\tProcessing %s features\n" % features.count())
 
             biopy_features = {}
-            for feature, featureloc  in features:
+            for idx, (feature, featureloc) in enumerate(features):
+                if idx % 5000 == 0:
+                    sys.stderr.write("\t%s / %s\n" % (idx, features.count()))
+
                 #[u'dbxref_id', u'feature_id', u'is_analysis', u'is_obsolete',
                 # u'md5checksum', u'name', u'organism_id', u'residues', u'seqlen',
                 # u'timeaccessioned', u'timelastmodified', u'type_id',
@@ -106,7 +108,7 @@ class ExportClient(Client):
         #res = self.session.query(Organism).filter(Organism.organism_id.in_(organism_id))
             relationships = self.session.query(FeatureRelationship) \
                 .filter(FeatureRelationship.subject_id.in_(biopy_features.keys()))
-            info("\tProcessing %s relationships", relationships.count())
+            sys.stderr.write("\tProcessing %s relationships\n" % relationships.count())
 
      #feature_relationship_id | subject_id | object_id | type_id | value | rank
     #-------------------------+------------+-----------+---------+-------+------
@@ -129,10 +131,13 @@ class ExportClient(Client):
             # Now to re-parent things properly
             # This is BioPython 1.67 ONLY since they broke compatability with bcbio-gff
             # https://github.com/biopython/biopython/issues/928
-            for rel in relationships:
+            for idx, rel in enumerate(relationships):
+                if idx % 5000 == 0:
+                    sys.stderr.write("\t%s / %s\n" % (idx, relationships.count()))
+
                 term = self.ci.get_cvterm_name(rel.type_id)
                 if term != 'part_of':
-                    error("Cannot handle non-part_of relationships (%s %s %s)", rel.subject_id, term, rel.object_id)
+                    sys.stderr.write("\tCannot handle non-part_of relationships (%s %s %s)\n" % (rel.subject_id, term, rel.object_id))
                     continue
 
                 # Try and find the features in features.
