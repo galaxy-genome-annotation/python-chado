@@ -1,0 +1,18 @@
+import click
+from cc.cli import pass_context, json_loads
+from cc.decorators import chado_exception, %(output_format)s_output, _arg_split
+
+@click.command('%(command_name)s')
+%(click_arguments)s
+%(click_options)s
+@pass_context
+@chado_exception
+@%(output_format)s_output
+def cli(%(args_with_defaults)s):
+    """%(short_docstring)s
+
+Output:
+
+    %(output_documentation)s
+    """%(empty_kwargs)s%(kwarg_updates)s
+    return %(wrapped_method)s(%(wrapped_method_args)s)
