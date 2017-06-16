@@ -132,7 +132,7 @@ class ExportClient(Client):
             for rel in relationships:
                 term = self.ci.get_cvterm_name(rel.type_id)
                 if term != 'part_of':
-                    log.error("Cannot handle non-part_of relationships (%s %s %s)", rel.subject_id, term, rel.object_id)
+                    error("Cannot handle non-part_of relationships (%s %s %s)", rel.subject_id, term, rel.object_id)
                     continue
 
                 # Try and find the features in features.
