@@ -5,7 +5,7 @@ import click
 def info(message, *args):
     if args:
         message = message % args
-    click.echo(click.style(message, bold=True, fg='green'))
+    click.echo(click.style(message, bold=True, fg='green'), err=True)
 
 
 def error(message, *args):
