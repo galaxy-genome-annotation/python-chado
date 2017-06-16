@@ -16,6 +16,51 @@ class OrganismClient(Client):
         organism = Table('organism', self.metadata, autoload=True)
         mapper(Organism, organism)
 
+    def add_organism(self, genus, common, abbr, species=None, comment=None):
+        """
+        Add a new organism to the Chado database
+
+        :type genus: str
+        :param genus: The genus of the organism
+
+        :type common: str
+        :param common: The common name of the organism
+
+        :type abbr: str
+        :param abbr: The abbreviation of the organism
+
+        :type species: str
+        :param species: The species of the organism
+
+        :type comment: str
+        :param comment: A comment / description
+
+        :rtype: dict
+        :return: Organism information
+        """
+
+        # check if the organism exists
+        res = self.session.query(Organism).filter_by(common_name=common)
+
+        if (res.count() > 0):
+            raise Exception("Found a preexisting organism with the same attributes in the database")
+
+        org = Organism()
+        org.abbreviation = abbr
+        org.genus = genus
+        org.species = species
+        org.common_name = common
+        org.comment = comment
+        self.session.add(org)
+        self.session.commit()
+        return {
+            'abbreviation': org.abbreviation,
+            'comment': org.comment,
+            'common_name': org.common_name,
+            'genus': org.genus,
+            'organism_id': org.organism_id,
+            'species': org.species,
+        }
 
     def get_organisms(self, genus=None, species=None, common=None, abbr=None, comment=None):
         """
@@ -36,7 +81,7 @@ class OrganismClient(Client):
         :type comment: str
         :param comment: comment filter
 
-        :rtype: dict
+        :rtype: list of dict
         :return: Organisms information
         """
 
@@ -64,3 +109,19 @@ class OrganismClient(Client):
                 'comment': org.comment,
             })
         return data
+
+    def delete_all_organisms(self, confirm=False):
+        """
+        Delete all organisms
+
+        :type confirm: bool
+        :param confirm: Confirm that you really do want to delete ALL of the organisms.
+
+        :rtype: None
+        :return: None
+        """
+
+        # check if the organism exists
+        res = self.session.query(Organism).delete()
+        self.session.commit()
+        return res
