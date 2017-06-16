@@ -1,0 +1,44 @@
+import os
+
+from cachetools import TTLCache
+
+from apollo import (annotations, cannedcomments, cannedkeys,
+                    cannedvalues, groups, io, metrics, organisms,
+                    status, users)
+
+
+cache = TTLCache(
+    100,  # Up to 100 items
+    5 * 60  # 5 minute cache life
+)
+userCache = TTLCache(
+    10,  # Up to 2 items
+    60  # 1 minute cache life
+)
+
+
+class ChadoInstance(object):
+
+    def __init__(self, dbhost, dbname, dbuser, dbpass, dbschema, dbport, debug):
+        self.dbhost = dbhost
+        self.dbname = dbname
+        self.dbuser = dbuser
+        self.dbpass = dbpass
+        self.dbport = dbport
+        self.dbschema = dbschema
+        self.debug = debug
+
+
+        self.annotations = annotations.AnnotationsClient(self)
+        self.cannedcomments = cannedcomments.CannedCommentsClient(self)
+        self.cannedkeys = cannedkeys.CannedKeysClient(self)
+        self.cannedvalues = cannedvalues.CannedValuesClient(self)
+        self.groups = groups.GroupsClient(self)
+        self.io = io.IOClient(self)
+        self.metrics = metrics.MetricsClient(self)
+        self.organisms = organisms.OrganismsClient(self)
+        self.status = status.StatusClient(self)
+        self.users = users.UsersClient(self)
+
+    def __str__(self):
+        return '<ChadoInstance at psql://{dbuser}@{dbhost}:{dbport}/{dbname}>'.format(self)
