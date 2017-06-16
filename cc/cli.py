@@ -89,7 +89,7 @@ class ccCLI(click.MultiCommand):
         # We pre-calculate this so it works more nicely within packaged
         # versions of cc. Please feel free to fix this?
 
-        commands = ['init', 'organism']
+        commands = ['init', 'organism', 'export']
         return commands
 
     def get_command(self, ctx, name):

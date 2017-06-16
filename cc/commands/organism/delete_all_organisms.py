@@ -14,7 +14,7 @@ from cc.decorators import chado_exception, None_output, _arg_split
 @chado_exception
 @None_output
 def cli(ctx, confirm=False):
-    """Get all organisms
+    """Delete all organisms
 
 Output:
 

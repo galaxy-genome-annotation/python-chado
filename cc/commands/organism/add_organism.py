@@ -22,7 +22,7 @@ from cc.decorators import chado_exception, dict_output, _arg_split
 @chado_exception
 @dict_output
 def cli(ctx, genus, common, abbr, species="", comment=""):
-    """Get all organisms
+    """Add a new organism to the Chado database
 
 Output:
 
