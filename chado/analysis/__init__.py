@@ -43,10 +43,10 @@ class AnalysisClient(Client):
         :return: Analysis information
         """
         # check if the analysis exists
-        res = self.session.query(Analysis).filter_by(name = name)
+        res = self.session.query(Analysis).filter_by(name=name, program=program, programversion=programversion, sourcename=sourcename)
 
         if res.count() > 0:
-            raise Exception("Found a preexisting analysis with the same attributes in the database %s" % (ci._engine.url))
+            raise Exception("Found a preexisting analysis with the same attributes in the database")
 
         date = datetime.today()
         if date_executed:
@@ -73,5 +73,5 @@ class AnalysisClient(Client):
             'sourcename': newa.sourcename,
             'sourceversion': newa.sourceversion,
             'sourceuri': newa.sourceuri,
-            'timeexecuted': newa.timeexecuted,
+            'timeexecuted': newa.timeexecuted.isoformat(),
         }
