@@ -182,7 +182,7 @@ class ScriptBuilder(object):
         for module in dir(self.obj):
             if module[0] == '_' or module[0].upper() == module[0]:
                 continue
-            if module in ('debug', 'session', 'dbname', 'dbhost', 'dbport', 'dbuser', 'dbpass', 'dbschema'):
+            if module in ('debug', 'session', 'dbname', 'dbhost', 'dbport', 'dbuser', 'dbpass', 'dbschema', 'get_cvterm_id', 'get_cvterm_name'):
                 continue
 
             print(self.obj, module)

@@ -2,7 +2,10 @@ from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import mapper, sessionmaker
 from chado.organism import OrganismClient
 from chado.export import ExportClient
+from chado.util import UtilClient
+from chado.analysis import AnalysisClient
 from chado.models import *
+
 
 class ChadoInstance(object):
 
@@ -26,8 +29,11 @@ class ChadoInstance(object):
         self._reflect_tables()
 
         # Initialize Clients
-        self.organism = OrganismClient(self._engine, self._metadata, self.session, self)
-        self.export = ExportClient(self._engine, self._metadata, self.session, self)
+        args = (self._engine, self._metadata, self.session, self)
+        self.organism = OrganismClient(*args)
+        self.export = ExportClient(*args)
+        self.util = UtilClient(*args)
+        self.analysis = AnalysisClient(*args)
 
     def __str__(self):
         return '<ChadoInstance at %s>' % self.dbhost
