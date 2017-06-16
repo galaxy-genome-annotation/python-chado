@@ -2,6 +2,7 @@
 Export data from chado
 """
 import sys
+from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
@@ -133,7 +134,7 @@ class ExportClient(Client):
             # https://github.com/biopython/biopython/issues/928
             for idx, rel in enumerate(relationships):
                 if idx % 5000 == 0:
-                    sys.stderr.write("\t%s / %s\n" % (idx, relationships.count()))
+                    sys.stderr.write("\t%s / %s\n" % (idx, relationship.count()))
 
                 term = self.ci.get_cvterm_name(rel.type_id)
                 if term != 'part_of':
@@ -191,3 +192,59 @@ class ExportClient(Client):
             record.features = sorted(features, key=lambda f: f.location.start)
 
             GFF.write([record], sys.stdout)
+
+    def export_gbk(self, organism_id):
+        """
+        Export organism features as genbank
+
+        :type organism_id: int
+        :param organism_id: Organism ID
+
+        :rtype: None
+        :return: None
+        """
+
+        # check if the organism exists
+        res = self.ci.session.query(Organism) \
+            .filter(Organism.organism_id.in_([organism_id]))
+
+        sys.stderr.write("Processing %s sequences\n" % res.count())
+        for org in res:
+            seq = None
+
+            record_features = []
+            features = self.ci.session.query(Feature, FeatureLocation) \
+                .filter_by(organism_id=org.organism_id) \
+                .join(FeatureLocation, Feature.feature_id == FeatureLocation.feature_id, isouter=True)
+
+            sys.stderr.write("\tProcessing %s features\n" % features.count())
+            for idx, (feature, featureloc) in enumerate(features):
+                if idx % 5000 == 0:
+                    sys.stderr.write("\t%s / %s\n" % (idx, features.count()))
+                # Sequence containing feature
+                if feature.residues:
+                    # This seems bad? What if multiple things have seqs?
+                    seq = Seq(feature.residues, IUPAC.unambiguous_dna)
+                else:
+                    qualifiers = {
+                        self.ci.get_cvterm_name(prop.type_id): prop.value for prop in
+                        self.ci.session.query(FeatureProperties).filter_by(feature_id=feature.feature_id).all()
+                    }
+                    record_features.append(
+                        SeqFeature(
+                            BioFeatureLocation(featureloc.fmin, featureloc.fmax),
+                            id=feature.uniquename,
+                            type=self.ci.get_cvterm_name(feature.type_id),
+                            strand=featureloc.strand,
+                            qualifiers=qualifiers
+                        )
+                    )
+
+            record = SeqRecord(
+                seq, id=org.common_name,
+                name=org.common_name,
+                description="%s %s" % (org.genus, org.species),
+            )
+            record.features = record_features
+
+            SeqIO.write([record], sys.stdout, 'genbank')
