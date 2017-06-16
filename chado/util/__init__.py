@@ -30,3 +30,23 @@ class UtilClient(Client):
             ['psql'],
             env=env
         )
+
+    def launch_docker_image(self, background=False):
+        """
+        Launch a chado docker image.
+
+        :type background: bool
+        :param background: Launch the image in the background
+
+        :rtype: None
+        :return: None
+        """
+
+        subprocess.call([
+            'docker',
+            'run', '-it',
+            '-d' if background else '',
+            '-e', 'INSTALL_YEAST_DATA=1',
+            '-p', '5432:5432',
+            'erasche/chado:1.31-jenkins97-pg9.5'
+        ])
