@@ -6,9 +6,9 @@ import json
 
 from .io import error
 from .config import read_global_config, global_config_path, set_global_config_path, get_instance  # noqa, ditto
-from cc import __version__  # noqa, ditto
+from chakin import __version__  # noqa, ditto
 
-CONTEXT_SETTINGS = dict(auto_envvar_prefix='cc', help_option_names=['-h', '--help'])
+CONTEXT_SETTINGS = dict(auto_envvar_prefix='chakin', help_option_names=['-h', '--help'])
 
 
 class Context(object):
@@ -36,7 +36,7 @@ class Context(object):
             self.log(msg, *args)
 
     def exit(self, exit_code):
-        self.vlog("Exiting cc with exit code [%d]" % exit_code)
+        self.vlog("Exiting chakin with exit code [%d]" % exit_code)
         sys.exit(exit_code)
 
 
@@ -73,9 +73,9 @@ def name_to_command(parent, name):
             name = name.encode('ascii', 'replace')
 
         if parent:
-            mod_name = 'cc.commands.%s.%s' % (parent, name)
+            mod_name = 'chakin.commands.%s.%s' % (parent, name)
         else:
-            mod_name = 'cc.commands.cmd_' + name
+            mod_name = 'chakin.commands.cmd_' + name
         mod = __import__(mod_name, None, None, ['cli'])
     except ImportError as e:
         error("Problem loading command %s, exception %s" % (name, e))
@@ -83,11 +83,11 @@ def name_to_command(parent, name):
     return mod.cli
 
 
-class ccCLI(click.MultiCommand):
+class chakinCLI(click.MultiCommand):
 
     def list_commands(self, ctx):
         # We pre-calculate this so it works more nicely within packaged
-        # versions of cc. Please feel free to fix this?
+        # versions of chakin. Please feel free to fix this?
 
         commands = ['init', 'organism', 'export', 'util', 'analysis']
         return commands
@@ -96,14 +96,14 @@ class ccCLI(click.MultiCommand):
         return name_to_command(None, name)
 
 
-@click.command(cls=ccCLI, context_settings=CONTEXT_SETTINGS)
+@click.command(cls=chakinCLI, context_settings=CONTEXT_SETTINGS)
 @click.version_option(__version__)
 @click.option('-v', '--verbose', is_flag=True,
               help='Enables verbose mode.')
 @click.option(
-    "-g",
-    "--galaxy_instance",
-    help='Name of galaxy instance in %s. This parameter can also be set via the environment variable cc_GALAXY_INSTANCE' % global_config_path(),
+    "-i",
+    "--instance",
+    help='Name of chado instance in %s. This parameter can also be set via the environment variable CHADO_INSTANCE' % global_config_path(),
     default='__default',
     show_default=True,
     required=True
@@ -114,9 +114,9 @@ class ccCLI(click.MultiCommand):
     type=str
 )
 @pass_context
-def cc(ctx, galaxy_instance, verbose, path=None):
+def chakin(ctx, galaxy_instance, verbose, path=None):
     """Command line wrappers around BioBlend functions. While this sounds
-    unexciting, with cc and jq you can easily build powerful command line
+    unexciting, with chakin and jq you can easily build powerful command line
     scripts."""
     # set config_path if provided
     if path is not None and len(path) > 0:

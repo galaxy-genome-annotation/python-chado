@@ -7,8 +7,8 @@ DEFAULT_CONFIG = {
 }
 
 _config_path = os.environ.get(
-    "CC_GLOBAL_CONFIG_PATH",
-    "~/.cc.yml"
+    "CHAKIN_GLOBAL_CONFIG_PATH",
+    "~/.chakin.yml"
 )
 _config_path = os.path.expanduser(_config_path)
 DEFAULT_CONFIG['config_path'] = _config_path
@@ -45,7 +45,7 @@ def _get_instance(instance_name=None):
             raise Exception("Unknown Chado instance and no __default provided")
 
     if instance_name not in conf:
-        raise Exception("Unknown Chado instance; check spelling or add to ~/.cc.yml")
+        raise Exception("Unknown Chado instance; check spelling or add to %s" % DEFAULT_CONFIG)
 
     return conf[instance_name]
 
