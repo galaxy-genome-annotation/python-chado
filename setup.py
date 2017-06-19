@@ -16,7 +16,7 @@ setup(
     platforms="Posix; MacOS X; Windows",
     entry_points='''
         [console_scripts]
-        cc=cc.cli:cc
+        chakin=chakin.cli:chakin
     ''',
     classifiers=[
         "Development Status :: 3 - Alpha",

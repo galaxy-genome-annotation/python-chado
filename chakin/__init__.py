@@ -2,4 +2,4 @@
 
 __version__ = '1.0.0'
 
-PROJECT_NAME = "cc"
+PROJECT_NAME = "chakin"

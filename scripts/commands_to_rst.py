@@ -9,10 +9,10 @@ from click.testing import CliRunner
 project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, project_dir)
 
-from cc.cli import list_cmds, list_subcmds
-from cc import cli
+from chakin.cli import list_cmds, list_subcmds
+from chakin import cli
 
-cc_cli = cli.cc
+chakin_cli = cli.chakin
 runner = CliRunner()
 
 COMMAND_TEMPLATE = Template('''
@@ -26,9 +26,8 @@ COMMANDS_TEMPLATE = """========
 Commands
 ========
 
-cc is a set of wrappers for accessing Chado. It builds a set of small,
-useful utilities for talking to Galaxy servers. Each utility is implemented as
-a subcommand of ``cc``. This section of the documentation
+Chakin is a set of wrappers for accessing Chado. Each utility is implemented as
+a subcommand of ``chakin``. This section of the documentation
 describes these commands.
 
 .. toctree::
@@ -48,7 +47,7 @@ for command in list_cmds():
     parent_doc_handle.write('%s\n' % command)
     parent_doc_handle.write('%s\n' % ('=' * len(command)))
     parent_doc_handle.write(Template("""
-This section is auto-generated from the help text for the cc command
+This section is auto-generated from the help text for the chakin command
 ``${command}``.
 
 """).safe_substitute(command=command))
@@ -74,7 +73,7 @@ This section is auto-generated from the help text for the cc command
         else:
             output_rst = ""
 
-        result = runner.invoke(cc_cli, [command, subcommand, "--help"])
+        result = runner.invoke(chakin_cli, [command, subcommand, "--help"])
         output = result.output
         lines = output.split("\n")
         new_lines = []

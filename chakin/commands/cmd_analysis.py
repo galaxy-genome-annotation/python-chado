@@ -1,5 +1,5 @@
 import click
-from cc.commands.analysis.add_analysis import cli as func0
+from chakin.commands.analysis.add_analysis import cli as func0
 
 @click.group()
 def cli():

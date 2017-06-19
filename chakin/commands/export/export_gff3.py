@@ -1,6 +1,6 @@
 import click
-from cc.cli import pass_context, json_loads
-from cc.decorators import chado_exception, None_output, _arg_split
+from chakin.cli import pass_context, json_loads
+from chakin.decorators import chado_exception, None_output, _arg_split
 
 @click.command('export_gff3')
 @click.argument("organism_id", type=int)

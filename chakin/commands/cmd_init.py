@@ -3,11 +3,11 @@ import os
 import click
 
 from chado import ChadoInstance
-from cc.cli import pass_context
-from cc import config
-from cc.io import warn, info
+from chakin.cli import pass_context
+from chakin import config
+from chakin.io import warn, info
 
-CONFIG_TEMPLATE = """## Chado's cc: Global Configuration File.
+CONFIG_TEMPLATE = """## Chado's chakin: Global Configuration File.
 # Each stanza should contian a single galaxy server to control.
 #
 # You can set the key __default to the name of a default instance
@@ -24,7 +24,7 @@ local:
 """
 
 SUCCESS_MESSAGE = (
-    "Ready to go! Type `cc` to get a list of commands you can execute."
+    "Ready to go! Type `chakin` to get a list of commands you can execute."
 )
 
 
@@ -34,9 +34,9 @@ def cli(ctx, url=None, api_key=None, admin=False, **kwds):
     """Help initialize global configuration (in home directory)
     """
     # TODO: prompt for values someday.
-    click.echo("""Welcome to Chado's cc!""")
+    click.echo("""Welcome to Chado's Chakin!""")
     if os.path.exists(config.global_config_path()):
-        info("Your cc configuration already exists. Please edit it instead: %s" % config.global_config_path())
+        info("Your chakin configuration already exists. Please edit it instead: %s" % config.global_config_path())
         return 0
 
     while True:

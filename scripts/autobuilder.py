@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger()
 
 
-PROJECT_NAME = 'cc'
+PROJECT_NAME = 'chakin'
 
 import chado as bg
 IGNORE_LIST = [
