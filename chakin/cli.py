@@ -8,7 +8,7 @@ from .io import error
 from .config import read_global_config, global_config_path, set_global_config_path, get_instance  # noqa, ditto
 from chakin import __version__  # noqa, ditto
 
-CONTEXT_SETTINGS = dict(auto_envvar_prefix='chakin', help_option_names=['-h', '--help'])
+CONTEXT_SETTINGS = dict(auto_envvar_prefix='CHAKIN', help_option_names=['-h', '--help'])
 
 
 class Context(object):
@@ -103,7 +103,7 @@ class chakinCLI(click.MultiCommand):
 @click.option(
     "-i",
     "--instance",
-    help='Name of chado instance in %s. This parameter can also be set via the environment variable CHADO_INSTANCE' % global_config_path(),
+    help='Name of instance in %s. This parameter can also be set via the environment variable CHADO_INSTANCE' % global_config_path(),
     default='__default',
     show_default=True,
     required=True
