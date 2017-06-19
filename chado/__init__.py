@@ -1,4 +1,12 @@
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
 from sqlalchemy import create_engine, MetaData, Table
+import warnings
+from sqlalchemy import exc as sa_exc
 from sqlalchemy.orm import mapper, sessionmaker
 from chado.organism import OrganismClient
 from chado.export import ExportClient
@@ -26,7 +34,10 @@ class ChadoInstance(object):
 
         self._cv_id_cache = {}
 
-        self._reflect_tables()
+        with warnings.catch_warnings():
+            # https://stackoverflow.com/a/5225951
+            warnings.simplefilter("ignore", category=sa_exc.SAWarning)
+            self._reflect_tables()
 
         # Initialize Clients
         args = (self._engine, self._metadata, self.session, self)
