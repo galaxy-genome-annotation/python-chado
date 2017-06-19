@@ -114,7 +114,7 @@ class chakinCLI(click.MultiCommand):
     type=str
 )
 @pass_context
-def chakin(ctx, galaxy_instance, verbose, path=None):
+def chakin(ctx, instance, verbose, path=None):
     """Command line wrappers around BioBlend functions. While this sounds
     unexciting, with chakin and jq you can easily build powerful command line
     scripts."""
@@ -123,10 +123,9 @@ def chakin(ctx, galaxy_instance, verbose, path=None):
         set_global_config_path(path)
     # We abuse this, knowing that calls to one will fail.
     try:
-        ctx.gi = get_instance(galaxy_instance)
+        ctx.gi = get_instance(instance)
     except TypeError:
         pass
-        # ctx.log("Could not access Galaxy instance configuration")
 
     ctx.verbose = verbose
 
