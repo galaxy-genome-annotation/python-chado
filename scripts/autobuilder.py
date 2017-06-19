@@ -185,8 +185,6 @@ class ScriptBuilder(object):
             if module in ('debug', 'session', 'dbname', 'dbhost', 'dbport', 'dbuser', 'dbpass', 'dbschema', 'get_cvterm_id', 'get_cvterm_name'):
                 continue
 
-            print(self.obj, module)
-
             sm = getattr(bg, module)
             submodules = dir(sm)
             # Find the "...Client"
