@@ -275,7 +275,7 @@ class ScriptBuilder(object):
                 continue
             if f in IGNORE_LIST or '%s.%s' % (ssm, f) in IGNORE_LIST:
                 continue
-            self.orig(module, sm, ssm, f)
+            self.orig(module, sm, ssm, f, galaxy=galaxy)
         # Write module __init__
         with open(os.path.join(PROJECT_NAME, 'commands', module, '__init__.py'), 'w') as handle:
             pass
@@ -310,12 +310,18 @@ class ScriptBuilder(object):
             'command_name': function_name,
             'click_arguments': "",
             'click_options': "",
+            'args_with_defaults': "ctx",
+            'wrapped_method_args': "",
+            # Galaxy stuff
             'galaxy_arguments': "    <!-- arguments -->\n",
             'galaxy_options': "    <!-- options -->\n",
             'galaxy_cli_arguments': "",
             'galaxy_cli_options': "",
-            'args_with_defaults': "ctx",
-            'wrapped_method_args': "",
+            # By default we output JSON, so we sort the keys for
+            # reproducibility. however in some cases we don't want that,
+            # we'll want text outputs.
+            'galaxy_reformat_json': '| jq -S .',
+            'galaxy_output_format': 'json',
         }
         param_docs = {}
         if argdoc is not None:
@@ -450,6 +456,10 @@ class ScriptBuilder(object):
         if '__return__' not in param_docs:
             raise Exception("%s is not documented with a return type" % candidate)
         data['output_format'] = param_docs['__return__']['type']
+        if data['output_format'] == 'None':
+            # Usually means writing to stdout.
+            data['galaxy_reformat_json'] = ''
+            data['galaxy_output_format'] = 'txt'
         # We allow "list of dicts" and other such silliness.
         if ' ' in data['output_format']:
             data['output_format'] = data['output_format'][0:data['output_format'].index(' ')]
