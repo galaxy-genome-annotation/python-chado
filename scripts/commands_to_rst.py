@@ -74,6 +74,7 @@ This section is auto-generated from the help text for the chakin command
             output_rst = ""
 
         result = runner.invoke(chakin_cli, [command, subcommand, "--help"])
+        print(result, result.output_bytes, dir(result))
         output = result.output
         lines = output.split("\n")
         new_lines = []
