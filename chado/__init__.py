@@ -33,11 +33,14 @@ class ChadoInstance(object):
         self._test_db_access()
 
         self._cv_id_cache = {}
+        self._mapped = False
 
-        with warnings.catch_warnings():
-            # https://stackoverflow.com/a/5225951
-            warnings.simplefilter("ignore", category=sa_exc.SAWarning)
-            self._reflect_tables()
+        if not self._mapped:
+            with warnings.catch_warnings():
+                # https://stackoverflow.com/a/5225951
+                warnings.simplefilter("ignore", category=sa_exc.SAWarning)
+                self._reflect_tables()
+                self._mapped = True
 
         # Initialize Clients
         args = (self._engine, self._metadata, self.session, self)
@@ -50,7 +53,6 @@ class ChadoInstance(object):
         return '<ChadoInstance at %s>' % self.dbhost
 
     def _reflect_tables(self):
-
         # Try to reflect tables
         analysis = Table('analysis', self._metadata, autoload=True)
         mapper(Analysis, analysis)

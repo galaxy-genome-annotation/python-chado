@@ -16,8 +16,6 @@ from Bio.Alphabet import IUPAC
 from Bio.SeqFeature import SeqFeature
 from Bio.SeqFeature import FeatureLocation as BioFeatureLocation
 from chado.client import Client
-from sqlalchemy import create_engine, MetaData, Table
-from sqlalchemy.orm import mapper, sessionmaker
 from chado.models import *
 
 
@@ -78,7 +76,6 @@ class ExportClient(Client):
             # TODO: can we do this properly?
             seq = Seq("A" * 1, IUPAC.unambiguous_dna)
 
-            record_features = []
             # Annotation features
             features = self.session.query(Feature, FeatureLocation) \
                 .filter_by(organism_id=org.organism_id) \
