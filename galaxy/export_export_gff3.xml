@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<tool id="parsec.export.export_gff3" name="export" version="1.0">
+ <description>export_gff3</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+parsec export export_gff3
+"$organism_id"
+
+ > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+	<param name="organism_id" label="Organism Id" argument="organism_id" type="integer" value="0" help="Organism ID" />
+
+	</inputs>
+	<outputs>
+		<data format="gff3" name="results"/>
+	</outputs>
+	<help>
+Export organism features as GFF3
+	</help>
+</tool>
