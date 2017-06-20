@@ -6,7 +6,7 @@
 	</macros>
 	<expand macro="requirements"/>
 	<command detect_errors="aggressive">
-parsec analysis add_analysis
+chakin analysis add_analysis
 "$name"
 "$program"
 "$programversion"

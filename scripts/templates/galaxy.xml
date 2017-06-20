@@ -6,7 +6,7 @@
 	</macros>
 	<expand macro="requirements"/>
 	<command detect_errors="aggressive">
-parsec %(meta_module_name)s %(command_name)s
+%(project_name)s %(meta_module_name)s %(command_name)s
 %(galaxy_cli_arguments)s
 %(galaxy_cli_options)s
 %(galaxy_reformat_json)s > $results

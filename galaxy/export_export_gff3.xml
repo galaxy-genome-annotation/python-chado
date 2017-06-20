@@ -6,7 +6,7 @@
 	</macros>
 	<expand macro="requirements"/>
 	<command detect_errors="aggressive">
-parsec export export_gff3
+chakin export export_gff3
 "$organism_id"
 
  > $results

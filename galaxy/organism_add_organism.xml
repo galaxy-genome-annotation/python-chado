@@ -6,7 +6,7 @@
 	</macros>
 	<expand macro="requirements"/>
 	<command detect_errors="aggressive">
-parsec organism add_organism
+chakin organism add_organism
 "$genus"
 "$common"
 "$abbr"

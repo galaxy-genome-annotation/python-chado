@@ -6,7 +6,7 @@
 	</macros>
 	<expand macro="requirements"/>
 	<command detect_errors="aggressive">
-parsec export export_gbk
+chakin export export_gbk
 "$organism_id"
 
 
