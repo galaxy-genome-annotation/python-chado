@@ -3,6 +3,7 @@
 import os
 import sys
 from string import Template
+import sqlalchemy
 
 from click.testing import CliRunner
 
@@ -54,6 +55,7 @@ This section is auto-generated from the help text for the chakin command
 
 
     for subcommand in list_subcmds(command):
+        sqlalchemy.orm.clear_mappers()
 
         command_obj = cli.name_to_command(command, subcommand)
 
@@ -74,7 +76,7 @@ This section is auto-generated from the help text for the chakin command
             output_rst = ""
 
         result = runner.invoke(chakin_cli, [command, subcommand, "--help"])
-        print(result, result.output_bytes, dir(result))
+        print(result)
         output = result.output
         lines = output.split("\n")
         new_lines = []
