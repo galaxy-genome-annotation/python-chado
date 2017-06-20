@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<tool id="parsec.organism.delete_all_organisms" name="organism" version="1.0">
+ <description>delete_all_organisms</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+parsec organism delete_all_organisms
+
+#if $confirm:
+  $confirm
+#end if
+
+ > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+
+    <!-- options -->
+	<param name="confirm" label="Confirm" argument="confirm" type="booelan" truevalue="--confirm" falsevalue="" help="Confirm that you really do want to delete ALL of the organisms." />
+
+	</inputs>
+	<outputs>
+		<data format="txt" name="results"/>
+	</outputs>
+	<help>
+Delete all organisms
+	</help>
+</tool>

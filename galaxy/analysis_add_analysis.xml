@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<tool id="parsec.analysis.add_analysis" name="analysis" version="1.0">
+ <description>add_analysis</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+parsec analysis add_analysis
+"$name"
+"$program"
+"$programversion"
+## UNKNOWN algorithm
+"$sourcename"
+## UNKNOWN sourceversion
+"$sourceuri"
+
+#if $date_executed:
+  --date_executed "$date_executed"
+#end if
+#if $algorithn:
+  --algorithn "$algorithn"
+#end if
+#if $sourcevesion:
+  --sourcevesion "$sourcevesion"
+#end if
+
+| jq -S . > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+	<param name="name" label="Name" argument="name" type="text" help="analysis name" />
+	<param name="program" label="Program" argument="program" type="text" help="analysis program" />
+	<param name="programversion" label="Programversion" argument="programversion" type="text" help="analysis programversion" />
+	<error />
+	<param name="sourcename" label="Sourcename" argument="sourcename" type="text" help="analysis sourcename" />
+	<error />
+	<param name="sourceuri" label="Sourceuri" argument="sourceuri" type="text" help="analysis sourceuri" />
+
+    <!-- options -->
+	<param name="date_executed" label="Date Executed" argument="date_executed" type="text" help="analysis date_executed (yyyy-mm-dd)" />
+	<param name="algorithn" label="Algorithn" argument="algorithn" type="text" help="analysis algorithn" />
+	<param name="sourcevesion" label="Sourcevesion" argument="sourcevesion" type="text" help="analysis sourcevesion" />
+
+	</inputs>
+	<outputs>
+		<data format="json" name="results"/>
+	</outputs>
+	<help>
+Create an analysis
+	</help>
+</tool>

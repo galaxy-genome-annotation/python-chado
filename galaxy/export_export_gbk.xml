@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<tool id="parsec.export.export_gbk" name="export" version="1.0">
+ <description>export_gbk</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+parsec export export_gbk
+"$organism_id"
+
+
+ > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+	<param name="organism_id" label="Organism Id" argument="organism_id" type="integer" value="0" help="Organism ID" />
+
+    <!-- options -->
+
+	</inputs>
+	<outputs>
+		<data format="genbank" name="results"/>
+	</outputs>
+	<help>
+Export organism features as genbank
+	</help>
+</tool>
