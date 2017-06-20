@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<tool id="parsec.organism.get_organisms" name="organism" version="1.0">
+<tool id="chakin.organism.get_organisms" name="organism" version="1.0">
  <description>get_organisms</description>
 	<macros>
 		<import>macros.xml</import>

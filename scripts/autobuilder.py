@@ -305,6 +305,7 @@ class ScriptBuilder(object):
         argdoc = func.__doc__
 
         data = {
+            'project_name': PROJECT_NAME,
             'meta_module_name': module_name,
             'meta_function_name': function_name,
             'command_name': function_name,
