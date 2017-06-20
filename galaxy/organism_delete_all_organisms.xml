@@ -6,7 +6,7 @@
 	</macros>
 	<expand macro="requirements"/>
 	<command detect_errors="aggressive">
-parsec organism delete_all_organisms
+chakin organism delete_all_organisms
 
 #if $confirm:
   $confirm

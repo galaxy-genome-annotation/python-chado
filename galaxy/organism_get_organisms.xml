@@ -6,7 +6,7 @@
 	</macros>
 	<expand macro="requirements"/>
 	<command detect_errors="aggressive">
-parsec organism get_organisms
+chakin organism get_organisms
 
 #if $genus:
   --genus "$genus"
