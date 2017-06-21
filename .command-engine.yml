@@ -1,7 +1,7 @@
 project_name: chakin
 strict: true
 module:
-    base_module: apollo
+    base_module: chado
     instance_cls: "<class 'chado.ChadoInstance'>"
     instance_func: ChadoInstance
     instance_args: []

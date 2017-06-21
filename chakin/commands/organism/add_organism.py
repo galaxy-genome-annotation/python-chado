@@ -1,6 +1,6 @@
 import click
 from chakin.cli import pass_context, json_loads
-from chakin.decorators import chado_exception, dict_output, _arg_split
+from chakin.decorators import custom_exception, dict_output, _arg_split
 
 @click.command('add_organism')
 @click.argument("genus", type=str)
@@ -19,7 +19,7 @@ from chakin.decorators import chado_exception, dict_output, _arg_split
 )
 
 @pass_context
-@chado_exception
+@custom_exception
 @dict_output
 def cli(ctx, genus, common, abbr, species="", comment=""):
     """Add a new organism to the Chado database

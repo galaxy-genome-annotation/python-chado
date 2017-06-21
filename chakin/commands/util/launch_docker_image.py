@@ -1,6 +1,6 @@
 import click
 from chakin.cli import pass_context, json_loads
-from chakin.decorators import chado_exception, None_output, _arg_split
+from chakin.decorators import custom_exception, None_output, _arg_split
 
 @click.command('launch_docker_image')
 
@@ -11,7 +11,7 @@ from chakin.decorators import chado_exception, None_output, _arg_split
 )
 
 @pass_context
-@chado_exception
+@custom_exception
 @None_output
 def cli(ctx, background=False):
     """Launch a chado docker image.
