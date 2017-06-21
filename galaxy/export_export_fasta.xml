@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<tool id="chakin.export.export_fasta" name="export" version="1.0">
+ <description>export_fasta</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+chakin export export_fasta
+"$organism_id"
+ > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+	<param name="organism_id" label="Organism Id" argument="organism_id" type="integer" value="0" help="Organism ID" />
+
+    <!-- options -->
+	<param name="file" label="File" argument="file" type="booelan" truevalue="--file" falsevalue="" help="If true, write to files in CWD" />
+
+	</inputs>
+	<outputs>
+		<data format="fasta" name="results"/>
+	</outputs>
+	<help>
+Export reference sequences as fasta.
+	</help>
+</tool>

@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<tool id="chakin.organism.add_organism" name="organism" version="1.0">
+ <description>add_organism</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+chakin organism add_organism
+"$genus"
+"$common"
+"$abbr"
+
+#if $species:
+  --species "$species"
+#end if
+#if $comment:
+  --comment "$comment"
+#end if
+
+| jq -S . > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+	<param name="genus" label="Genus" argument="genus" type="text" help="The genus of the organism" />
+	<param name="common" label="Common" argument="common" type="text" help="The common name of the organism" />
+	<param name="abbr" label="Abbr" argument="abbr" type="text" help="The abbreviation of the organism" />
+
+    <!-- options -->
+	<param name="species" label="Species" argument="species" type="text" help="The species of the organism" />
+	<param name="comment" label="Comment" argument="comment" type="text" help="A comment / description" />
+
+	</inputs>
+	<outputs>
+		<data format="json" name="results"/>
+	</outputs>
+	<help>
+Add a new organism to the Chado database
+	</help>
+</tool>

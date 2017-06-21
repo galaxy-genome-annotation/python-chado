@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<tool id="%(project_name)s.%(meta_module_name)s.%(meta_function_name)s" name="%(meta_module_name)s" version="1.0">
+ <description>%(command_name)s</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+%(project_name)s %(meta_module_name)s %(command_name)s
+%(galaxy_cli_arguments)s
+%(galaxy_cli_options)s
+%(galaxy_reformat_json)s > $results
+</command>
+	<inputs>
+%(galaxy_arguments)s
+%(galaxy_options)s
+	</inputs>
+	<outputs>
+		<data format="%(galaxy_output_format)s" name="results"/>
+	</outputs>
+	<help>
+%(short_docstring)s
+	</help>
+</tool>
