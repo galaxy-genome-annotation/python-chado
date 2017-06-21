@@ -1,5 +1,5 @@
 """
-Contains possible interactions with the Apollo Organisms Module
+Contains possible interactions with the Chado Organisms Module
 """
 from __future__ import unicode_literals
 from __future__ import print_function
