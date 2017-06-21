@@ -1,0 +1,42 @@
+project_name: chakin
+strict: true
+module:
+    base_module: apollo
+    instance_cls: "<class 'chado.ChadoInstance'>"
+    instance_func: ChadoInstance
+    instance_args: []
+    instance_kwargs:
+        dbhost: "localhost"
+        dbuser: "postgres"
+        dbpass: "postgres"
+        dbname: "postgres"
+        dbschema: "public"
+        dbport: 5432
+
+    ignore:
+        top_attrs:
+            - 'debug'
+            - 'session'
+            - 'dbname'
+            - 'dbhost'
+            - 'dbport'
+            - 'dbuser'
+            - 'dbpass'
+            - 'dbschema'
+            - 'get_cvterm_id'
+            - 'get_cvterm_name'
+        funcs:
+            - get
+            - post
+
+documentation: |
+    Chakin is a set of wrappers for accessing Chado. Each utility is implemented as
+    a subcommand of ``chakin``. This section of the documentation
+    describes these commands.
+
+docs_preinit: |
+    import sqlalchemy
+
+docs_reset_hook: |
+    sqlalchemy.orm.clear_mappers()
+
