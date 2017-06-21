@@ -1,0 +1,18 @@
+language: python
+python:
+- '2.7'
+- '3.5'
+script:
+- pip install -U pip setuptools
+- pip install -U flake8
+- flake8 apollo --ignore=E501 --exclude=arrow/commands/,scripts/
+- python setup.py install
+deploy:
+  provider: pypi
+  user: abretaud
+  password:
+    secure: XeNxcR2OkEW5VlmlgcpInv8cCfjxZt6aYgosInIiCI9HSXiVvaI6YhbXarpL+AXB/ZtlRaprSK3NQjANX1/KgvcYSqAKOOID586ZZN02uHDapLo16/yXu+tABIwHoNAj2sT8xr7QugrXtzWFe4foEG6hi2Cg/8cBQu3RhwQZe3KJuIRooBsf4FQTRxaDRuPqp+NLgxij9oBYzOwmFnRwR99DbazmRTiTRvaTpet9PZC+EKZFrPC3HKRJRAj4ojXm1VvLbu3HAqN/t44Rf/lHPII2KMM4QdJvbn/xL4RYmsinfdyhjo2IIdiC/MnMxPaszssV6JRk9pvR9CTxIFdDAOIk3/iPXECOKDhmyHlfMY7uqOGuG7an4r4azhwwECAQX8BS8/ZS+MKU6iFrp3NrIvGnYs97hDlpeb9VZuyu01hVDEtc8uvK0L1zfgwFeeamqZrAiF3ZcpHjcDh+8XtsoDdAAUKbIObfMWfOV6q/qF32wn0JF1ZxvqL1zFgzACA8Xbg99o6p2EvdEPkVQwrafJ1cQNEw93G0JQEFLTdIaboaUBXhP1zYV3lLxkVBQc0r3rtpwZgiDNYue+fCMStSKo8pjtvMGuRNR8xWVD1TNThCMIyny92cwbOR/jh4IGb8k2yEQXj4WIzPjBuWsW4kGCNMI7dkLSBASnOUOh/Q02A=
+  on:
+    tags: true
+    distributions: sdist bdist_wheel
+    repo: galaxy-genome-annotation/python-chado
