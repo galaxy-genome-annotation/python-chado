@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<tool id="chakin.organism.get_organisms" name="organism" version="1.0">
+ <description>get_organisms</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+chakin organism get_organisms
+
+#if $genus:
+  --genus "$genus"
+#end if
+#if $species:
+  --species "$species"
+#end if
+#if $common:
+  --common "$common"
+#end if
+#if $abbr:
+  --abbr "$abbr"
+#end if
+#if $comment:
+  --comment "$comment"
+#end if
+
+| jq -S . > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+
+    <!-- options -->
+	<param name="genus" label="Genus" argument="genus" type="text" help="genus filter" />
+	<param name="species" label="Species" argument="species" type="text" help="species filter" />
+	<param name="common" label="Common" argument="common" type="text" help="common filter" />
+	<param name="abbr" label="Abbr" argument="abbr" type="text" help="abbr filter" />
+	<param name="comment" label="Comment" argument="comment" type="text" help="comment filter" />
+
+	</inputs>
+	<outputs>
+		<data format="json" name="results"/>
+	</outputs>
+	<help>
+Get all organisms
+	</help>
+</tool>
