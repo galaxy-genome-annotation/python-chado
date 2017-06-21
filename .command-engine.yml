@@ -34,8 +34,8 @@ documentation: |
     a subcommand of ``chakin``. This section of the documentation
     describes these commands.
 
-docs_preinit: |
-    import sqlalchemy
+docs_import:
+    - sqlalchemy
 
 docs_reset_hook: |
     sqlalchemy.orm.clear_mappers()
