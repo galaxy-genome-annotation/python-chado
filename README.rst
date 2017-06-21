@@ -10,6 +10,14 @@ Chado Library
 
 A Python library for interacting with a Chado database.
 
+History
+-------
+
+- 2.0
+    - "Chakin" CLI utility
+    - Complete package restructure
+    - Nearly all functions renamed
+
 Scripts
 -------
 
