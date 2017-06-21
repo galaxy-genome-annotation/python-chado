@@ -1,6 +1,13 @@
 Chado Library
 =============
 
+.. image:: https://travis-ci.org/galaxy-genome-annotation/python-chado.svg?branch=master
+    :target: https://travis-ci.org/galaxy-genome-annotation/python-chado
+
+.. image:: https://readthedocs.org/projects/python-chado/badge/?version=latest
+    :target: http://python-chado.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 A Python library for interacting with a Chado database.
 
 Scripts
