@@ -15,7 +15,6 @@ module:
 
     ignore:
         top_attrs:
-            - 'debug'
             - 'session'
             - 'dbname'
             - 'dbhost'
@@ -39,4 +38,3 @@ docs_import:
 
 docs_reset_hook: |
     sqlalchemy.orm.clear_mappers()
-

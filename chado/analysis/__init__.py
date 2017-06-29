@@ -30,14 +30,14 @@ class AnalysisClient(Client):
         :type programversion: str
         :param programversion: analysis programversion
 
-        :type algorithn: str
-        :param algorithn: analysis algorithn
+        :type algorithm: str
+        :param algorithm: analysis algorithm
 
         :type sourcename: str
         :param sourcename: analysis sourcename
 
-        :type sourcevesion: str
-        :param sourcevesion: analysis sourcevesion
+        :type sourceversion: str
+        :param sourceversion: analysis sourceversion
 
         :type sourceuri: str
         :param sourceuri: analysis sourceuri

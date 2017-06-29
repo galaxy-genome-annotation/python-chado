@@ -27,7 +27,5 @@ Analysis information
 
 
       --date_executed TEXT  analysis date_executed (yyyy-mm-dd)
-      --algorithn TEXT      analysis algorithn
-      --sourcevesion TEXT   analysis sourcevesion
       -h, --help            Show this message and exit.
     
