@@ -10,19 +10,13 @@ chakin analysis add_analysis
 "$name"
 "$program"
 "$programversion"
-## UNKNOWN algorithm
+"$algorithm"
 "$sourcename"
-## UNKNOWN sourceversion
+"$sourceversion"
 "$sourceuri"
 
 #if $date_executed:
   --date_executed "$date_executed"
-#end if
-#if $algorithn:
-  --algorithn "$algorithn"
-#end if
-#if $sourcevesion:
-  --sourcevesion "$sourcevesion"
 #end if
 
 | jq -S . > $results
@@ -32,15 +26,13 @@ chakin analysis add_analysis
 	<param name="name" label="Name" argument="name" type="text" help="analysis name" />
 	<param name="program" label="Program" argument="program" type="text" help="analysis program" />
 	<param name="programversion" label="Programversion" argument="programversion" type="text" help="analysis programversion" />
-	<error />
+	<param name="algorithm" label="Algorithm" argument="algorithm" type="text" help="analysis algorithm" />
 	<param name="sourcename" label="Sourcename" argument="sourcename" type="text" help="analysis sourcename" />
-	<error />
+	<param name="sourceversion" label="Sourceversion" argument="sourceversion" type="text" help="analysis sourceversion" />
 	<param name="sourceuri" label="Sourceuri" argument="sourceuri" type="text" help="analysis sourceuri" />
 
     <!-- options -->
 	<param name="date_executed" label="Date Executed" argument="date_executed" type="text" help="analysis date_executed (yyyy-mm-dd)" />
-	<param name="algorithn" label="Algorithn" argument="algorithn" type="text" help="analysis algorithn" />
-	<param name="sourcevesion" label="Sourcevesion" argument="sourcevesion" type="text" help="analysis sourcevesion" />
 
 	</inputs>
 	<outputs>

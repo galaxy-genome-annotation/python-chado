@@ -6,9 +6,9 @@ from chakin.decorators import custom_exception, dict_output, _arg_split
 @click.argument("name", type=str)
 @click.argument("program", type=str)
 @click.argument("programversion", type=str)
-@click.argument("algorithm")
+@click.argument("algorithm", type=str)
 @click.argument("sourcename", type=str)
-@click.argument("sourceversion")
+@click.argument("sourceversion", type=str)
 @click.argument("sourceuri", type=str)
 
 @click.option(
@@ -16,21 +16,11 @@ from chakin.decorators import custom_exception, dict_output, _arg_split
     help="analysis date_executed (yyyy-mm-dd)",
     type=str
 )
-@click.option(
-    "--algorithn",
-    help="analysis algorithn",
-    type=str
-)
-@click.option(
-    "--sourcevesion",
-    help="analysis sourcevesion",
-    type=str
-)
 
 @pass_context
 @custom_exception
 @dict_output
-def cli(ctx, name, program, programversion, algorithm, sourcename, sourceversion, sourceuri, date_executed="", algorithn=None, sourcevesion=None):
+def cli(ctx, name, program, programversion, algorithm, sourcename, sourceversion, sourceuri, date_executed=""):
     """Create an analysis
 
 Output:
@@ -38,10 +28,4 @@ Output:
      Analysis information
         
     """
-    kwargs = {}
-    if algorithn and len(algorithn) > 0:
-        kwargs['algorithn'] = algorithn
-    if sourcevesion and len(sourcevesion) > 0:
-        kwargs['sourcevesion'] = sourcevesion
-
-    return ctx.gi.analysis.add_analysis(name, program, programversion, algorithm, sourcename, sourceversion, sourceuri, date_executed=date_executed, **kwargs)
+    return ctx.gi.analysis.add_analysis(name, program, programversion, algorithm, sourcename, sourceversion, sourceuri, date_executed=date_executed)

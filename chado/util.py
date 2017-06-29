@@ -11,4 +11,3 @@ def ChadoAuth(parser):
     parser.add_argument('-w', '--dbpass', help='Database Password')
     parser.add_argument('-p', '--dbport', type=int, help='Database Port', default=5432)
     parser.add_argument('--dbschema', help='Database Schema (default: public)', default="public")
-    parser.add_argument("-d", "--debug", help="Print debug information", action="store_true")
