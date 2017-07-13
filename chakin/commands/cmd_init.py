@@ -8,7 +8,7 @@ from chakin import config
 from chakin.io import warn, info
 
 CONFIG_TEMPLATE = """## Chado's chakin: Global Configuration File.
-# Each stanza should contian a single galaxy server to control.
+# Each stanza should contain a single chado server to control.
 #
 # You can set the key __default to the name of a default instance
 __default: local
