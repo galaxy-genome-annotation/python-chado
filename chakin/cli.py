@@ -115,7 +115,7 @@ class chakinCLI(click.MultiCommand):
 )
 @pass_context
 def chakin(ctx, instance, verbose, path=None):
-    """Command line wrappers around BioBlend functions. While this sounds
+    """Command line wrappers around Python-Chado functions. While this sounds
     unexciting, with chakin and jq you can easily build powerful command line
     scripts."""
     # set config_path if provided
