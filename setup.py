@@ -5,7 +5,7 @@ from os import listdir
 
 setup(
     name="chado",
-    version='2.0',
+    version='2.0.1',
     description="Chado library",
     author="Anthony Bretaudeau",
     author_email="anthony.bretaudeau@inra.fr",
