@@ -37,6 +37,8 @@ jobs:
       script:
         - python setup.py nosetests
     - stage: deploy
+      install: skip
+      script: echo "Deploying to Pypi"
       deploy:
         provider: pypi
         user: abretaud
