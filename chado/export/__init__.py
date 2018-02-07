@@ -5,8 +5,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+
 import sys
+
 from builtins import open
+
 from BCBio import GFF
 from Bio import SeqIO
 from Bio.Alphabet import IUPAC
@@ -14,7 +17,9 @@ from Bio.Seq import Seq
 from Bio.SeqFeature import FeatureLocation as BioFeatureLocation
 from Bio.SeqFeature import SeqFeature
 from Bio.SeqRecord import SeqRecord
+
 from chado.client import Client
+
 from future import standard_library
 
 standard_library.install_aliases()
