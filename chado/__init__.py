@@ -2,18 +2,23 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+
 import warnings
+
 from chado.analysis import AnalysisClient
 from chado.export import ExportClient
 from chado.feature import FeatureClient
 from chado.organism import OrganismClient
 from chado.phylogeny import PhylogenyClient
 from chado.util import UtilClient
+
 from future import standard_library
+
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy import exc as sa_exc
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import sessionmaker
+
 standard_library.install_aliases()
 
 
