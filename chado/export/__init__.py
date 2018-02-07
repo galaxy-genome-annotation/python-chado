@@ -7,10 +7,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import sys
-
 from builtins import open
 
 from BCBio import GFF
+
 from Bio import SeqIO
 from Bio.Alphabet import IUPAC
 from Bio.Seq import Seq
