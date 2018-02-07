@@ -1,14 +1,14 @@
 """
 Contains possible interactions with the Chado Organisms Module
 """
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
 from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 from chado.client import Client
-from chado.models import *
+from future import standard_library
+
+standard_library.install_aliases()
 
 
 class OrganismClient(Client):
@@ -40,12 +40,12 @@ class OrganismClient(Client):
         """
 
         # check if the organism exists
-        res = self.session.query(Organism).filter_by(common_name=common)
+        res = self.session.query(self.model.organism).filter_by(common_name=common)
 
         if (res.count() > 0):
             raise Exception("Found a preexisting organism with the same attributes in the database")
 
-        org = Organism()
+        org = self.model.organism()
         org.abbreviation = abbr
         org.genus = genus
         org.species = species
@@ -86,7 +86,7 @@ class OrganismClient(Client):
         """
 
         # check if the organism exists
-        res = self.session.query(Organism)
+        res = self.session.query(self.model.organism)
         if genus:
             res = res.filter_by(genus=genus)
         if species:
@@ -122,6 +122,6 @@ class OrganismClient(Client):
         """
 
         # check if the organism exists
-        res = self.session.query(Organism).delete()
+        res = self.session.query(self.model.organism).delete()
         self.session.commit()
         return res

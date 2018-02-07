@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<tool id="chakin_util_dbshell" name="util" version="@WRAPPER_VERSION@.0">
+ <description>dbshell</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+chakin util dbshell
+
+
+ > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+
+    <!-- options -->
+
+	</inputs>
+	<outputs>
+		<data format="txt" name="results"/>
+	</outputs>
+	<help>
+Open a psql session to the database
+
+@HELP@
+	</help>
+</tool>

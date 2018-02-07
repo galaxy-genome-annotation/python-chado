@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<tool id="chakin_feature_load_gff" name="feature" version="@WRAPPER_VERSION@.0">
+ <description>load_gff</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+chakin feature load_gff
+'$gff'
+'$analysis'
+'$organism'
+'$sequence_type'
+
+
+ > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+	<param name="gff" label="Gff" argument="gff" type="text" help="Path to the Fasta file to load" />
+	<param name="analysis" label="Analysis" argument="analysis" type="integer" value="0" help="Analysis ID" />
+	<param name="organism" label="Organism" argument="organism" type="integer" value="0" help="Organism ID" />
+	<param name="sequence_type" label="Sequence Type" argument="sequence_type" type="text" help="Sequence type" />
+
+    <!-- options -->
+
+	</inputs>
+	<outputs>
+		<data format="txt" name="results"/>
+	</outputs>
+	<help>
+Load features from a gff file
+
+@HELP@
+	</help>
+</tool>

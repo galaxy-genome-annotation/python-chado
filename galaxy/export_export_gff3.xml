@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<tool id="chakin.export.export_gff3" name="export" version="1.0">
+<tool id="chakin_export_export_gff3" name="export" version="@WRAPPER_VERSION@.0">
  <description>export_gff3</description>
 	<macros>
 		<import>macros.xml</import>
@@ -7,7 +7,8 @@
 	<expand macro="requirements"/>
 	<command detect_errors="aggressive">
 chakin export export_gff3
-"$organism_id"
+'$organism_id'
+
 
  > $results
 </command>
@@ -15,11 +16,15 @@ chakin export export_gff3
     <!-- arguments -->
 	<param name="organism_id" label="Organism Id" argument="organism_id" type="integer" value="0" help="Organism ID" />
 
+    <!-- options -->
+
 	</inputs>
 	<outputs>
 		<data format="gff3" name="results"/>
 	</outputs>
 	<help>
 Export organism features as GFF3
+
+@HELP@
 	</help>
 </tool>

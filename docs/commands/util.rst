@@ -20,8 +20,7 @@ Open a psql session to the database
 **Output**
 
 
-None
-   
+    None
     
 **Options**::
 
@@ -44,12 +43,12 @@ Launch a chado docker image.
 **Output**
 
 
-None
-   
+    None
     
 **Options**::
 
 
       --background  Launch the image in the background
+      --no_yeast    Disable loading of example yeast data
       -h, --help    Show this message and exit.
     

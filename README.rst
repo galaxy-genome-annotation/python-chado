@@ -13,6 +13,12 @@ A Python library for interacting with a Chado database.
 History
 -------
 
+- 2.1
+    - auto reflect db schema
+    - add phylogeny module
+    - make chakin util commands work when db is offline
+    - add minimal unit tests
+
 - 2.0
     - "Chakin" CLI utility
     - Complete package restructure

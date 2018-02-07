@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<tool id="chakin.analysis.add_analysis" name="analysis" version="1.0">
+<tool id="chakin_analysis_add_analysis" name="analysis" version="@WRAPPER_VERSION@.0">
  <description>add_analysis</description>
 	<macros>
 		<import>macros.xml</import>
@@ -7,16 +7,16 @@
 	<expand macro="requirements"/>
 	<command detect_errors="aggressive">
 chakin analysis add_analysis
-"$name"
-"$program"
-"$programversion"
-"$algorithm"
-"$sourcename"
-"$sourceversion"
-"$sourceuri"
+'$name'
+'$program'
+'$programversion'
+'$algorithm'
+'$sourcename'
+'$sourceversion'
+'$sourceuri'
 
 #if $date_executed:
-  --date_executed "$date_executed"
+  --date_executed '$date_executed'
 #end if
 
 | jq -S . > $results
@@ -40,5 +40,7 @@ chakin analysis add_analysis
 	</outputs>
 	<help>
 Create an analysis
+
+@HELP@
 	</help>
 </tool>

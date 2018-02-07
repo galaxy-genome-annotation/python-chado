@@ -1,9 +1,11 @@
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 from future import standard_library
 standard_library.install_aliases()
+
+
 def ChadoAuth(parser):
     parser.add_argument('-o', '--dbhost', required=True, help='Database Host')
     parser.add_argument('-n', '--dbname', required=True, help='Database Name')

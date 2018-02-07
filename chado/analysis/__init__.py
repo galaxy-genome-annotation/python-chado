@@ -1,15 +1,15 @@
 """
 Contains possible interactions with the Chado Analysis Module
 """
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
 from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
-from chado.client import Client
-from chado.models import *
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 from datetime import datetime
+from chado.client import Client
+from future import standard_library
+
+standard_library.install_aliases()
 
 
 class AnalysisClient(Client):
@@ -49,7 +49,7 @@ class AnalysisClient(Client):
         :return: Analysis information
         """
         # check if the analysis exists
-        res = self.session.query(Analysis).filter_by(name=name, program=program, programversion=programversion, sourcename=sourcename)
+        res = self.session.query(self.model.analysis).filter_by(name=name, program=program, programversion=programversion, sourcename=sourcename)
 
         if res.count() > 0:
             raise Exception("Found a preexisting analysis with the same attributes in the database")
@@ -58,7 +58,7 @@ class AnalysisClient(Client):
         if date_executed:
             date = datetime.strptime(date_executed, '%Y-%m-%d')
 
-        newa = Analysis()
+        newa = self.model.analysis()
         newa.name = name
         newa.program = program
         newa.programversion = programversion

@@ -20,8 +20,7 @@ Add a new organism to the Chado database
 **Output**
 
 
-Organism information
-   
+    Organism information
     
 **Options**::
 
@@ -46,8 +45,7 @@ Delete all organisms
 **Output**
 
 
-None
-   
+    None
     
 **Options**::
 
@@ -71,8 +69,7 @@ Get all organisms
 **Output**
 
 
-Organisms information
-   
+    Organisms information
     
 **Options**::
 

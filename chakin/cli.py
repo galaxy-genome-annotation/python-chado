@@ -89,7 +89,7 @@ class chakinCLI(click.MultiCommand):
         # We pre-calculate this so it works more nicely within packaged
         # versions of chakin. Please feel free to fix this?
 
-        commands = ['init', 'organism', 'export', 'util', 'analysis']
+        commands = ['init', 'organism', 'export', 'util', 'analysis', 'feature', 'phylogeny']
         return commands
 
     def get_command(self, ctx, name):
@@ -122,8 +122,10 @@ def chakin(ctx, instance, verbose, path=None):
     if path is not None and len(path) > 0:
         set_global_config_path(path)
     # We abuse this, knowing that calls to one will fail.
+    current_ctx = click.get_current_context()
     try:
-        ctx.gi = get_instance(instance)
+        # TODO find a way to pass offline=True when running with -h option or without any subcommand
+        ctx.gi = get_instance(instance, offline=(current_ctx.invoked_subcommand in ['init', 'util']))
     except TypeError:
         pass
 

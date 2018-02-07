@@ -1,6 +1,7 @@
 import click
-from chakin.cli import pass_context, json_loads
-from chakin.decorators import custom_exception, dict_output, _arg_split
+from chakin.cli import pass_context
+from chakin.decorators import custom_exception, dict_output
+
 
 @click.command('add_analysis')
 @click.argument("name", type=str)
@@ -10,13 +11,11 @@ from chakin.decorators import custom_exception, dict_output, _arg_split
 @click.argument("sourcename", type=str)
 @click.argument("sourceversion", type=str)
 @click.argument("sourceuri", type=str)
-
 @click.option(
     "--date_executed",
     help="analysis date_executed (yyyy-mm-dd)",
     type=str
 )
-
 @pass_context
 @custom_exception
 @dict_output
@@ -25,7 +24,6 @@ def cli(ctx, name, program, programversion, algorithm, sourcename, sourceversion
 
 Output:
 
-     Analysis information
-        
+    Analysis information
     """
     return ctx.gi.analysis.add_analysis(name, program, programversion, algorithm, sourcename, sourceversion, sourceuri, date_executed=date_executed)
