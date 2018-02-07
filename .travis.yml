@@ -5,12 +5,14 @@ services:
   - docker
 
 python:
-  - '2.7'
   - '3.5'
 
 jobs:
   include:
-    - stage: lint
+    - stage: test
+      python:
+        - '2.7'
+        - '3.5'
       install:
         - pip install -U pip setuptools nose
         - python setup.py install
