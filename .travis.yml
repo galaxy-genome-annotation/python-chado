@@ -15,15 +15,6 @@ jobs:
         - pip install -U flake8 flake8-import-order
       script:
         - flake8 chado --ignore=E501
-    - stage: tests
-      install:
-        - pip install -U pip setuptools nose
-        - python setup.py install
-        - cp test-data/chakin.yml ~/.chakin.yml
-        - chakin util launch_docker_image --background
-        - sleep 120 # Wait for the container to be ready
-      script:
-        - python setup.py nosetests
     - stage: deploy
       deploy:
         provider: pypi
@@ -34,3 +25,12 @@ jobs:
           tags: true
           distributions: sdist bdist_wheel
           repo: galaxy-genome-annotation/python-chado
+
+install:
+  - pip install -U pip setuptools nose
+  - python setup.py install
+  - cp test-data/chakin.yml ~/.chakin.yml
+  - chakin util launch_docker_image --background
+  - sleep 120 # Wait for the container to be ready
+script:
+  - python setup.py nosetests
