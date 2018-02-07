@@ -50,11 +50,12 @@ def _get_instance(instance_name=None):
     return conf[instance_name]
 
 
-def get_instance(instance_name=None):
+def get_instance(instance_name=None, offline=False):
     conf = _get_instance(instance_name=instance_name)
     return chado.ChadoInstance(dbhost=conf['dbhost'],
                                 dbname=conf['dbname'],
                                 dbuser=conf['dbuser'],
                                 dbpass=conf['dbpass'],
                                 dbschema=conf['dbschema'],
-                                dbport=conf['dbport'])
+                                dbport=conf['dbport'],
+                                offline=offline)

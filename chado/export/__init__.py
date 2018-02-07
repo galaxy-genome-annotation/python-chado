@@ -1,25 +1,29 @@
 """
 Export data from chado
 """
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
 from __future__ import absolute_import
-from builtins import open
-from future import standard_library
-standard_library.install_aliases()
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 import sys
+from builtins import open
+from BCBio import GFF
 from Bio import SeqIO
-from Bio.Seq import Seq
-from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
-from Bio.SeqFeature import SeqFeature
+from Bio.Seq import Seq
 from Bio.SeqFeature import FeatureLocation as BioFeatureLocation
+from Bio.SeqFeature import SeqFeature
+from Bio.SeqRecord import SeqRecord
 from chado.client import Client
-from chado.models import *
+from future import standard_library
+
+standard_library.install_aliases()
 
 
 class ExportClient(Client):
+    """
+    Export data from the chado database
+    """
 
     def export_fasta(self, organism_id, file=False):
         """
@@ -36,13 +40,13 @@ class ExportClient(Client):
         """
 
         # check if the organism exists
-        res = self.session.query(Organism) \
-            .filter(Organism.organism_id.in_([organism_id]))
+        res = self.session.query(self.model.organism) \
+            .filter(self.model.organism.organism_id.in_([organism_id]))
 
         for org in res:
-            sequence_features = self.session.query(Feature) \
+            sequence_features = self.session.query(self.model.feature) \
                 .filter_by(organism_id=org.organism_id) \
-                .filter(Feature.seqlen > 0)
+                .filter(self.model.feature.seqlen > 0)
 
             if file:
                 output = open('{0.organism_id}.{0.genus}.{0.species}-{0.common_name}.fa'.format(org), 'w')
@@ -58,7 +62,7 @@ class ExportClient(Client):
             if file:
                 output.close()
 
-    def export_gff3(self, organism_id, file=False):
+    def export_gff3(self, organism_id):
         """
         Export organism features as GFF3
 
@@ -69,7 +73,7 @@ class ExportClient(Client):
         :return: None
         """
         # check if the organism exists
-        res = self.session.query(Organism).filter(Organism.organism_id.in_([organism_id]))
+        res = self.session.query(self.model.organism).filter(self.model.organism.organism_id.in_([organism_id]))
         sys.stderr.write("Processing %s sequences\n" % res.count())
 
         for org in res:
@@ -77,10 +81,10 @@ class ExportClient(Client):
             seq = Seq("A" * 1, IUPAC.unambiguous_dna)
 
             # Annotation features
-            features = self.session.query(Feature, FeatureLocation) \
+            features = self.session.query(self.model.feature, self.model.featurelocation) \
                 .filter_by(organism_id=org.organism_id) \
-                .filter(Feature.seqlen==None) \
-                .join(FeatureLocation, Feature.feature_id == FeatureLocation.feature_id, isouter=True)
+                .filter(self.model.feature.seqlen is None) \
+                .join(self.model.featurelocation, self.model.feature.feature_id == self.model.featurelocation.feature_id, isouter=True)
             sys.stderr.write("\tProcessing %s features\n" % features.count())
 
             biopy_features = {}
@@ -88,16 +92,16 @@ class ExportClient(Client):
                 if idx % 5000 == 0:
                     sys.stderr.write("\t%s / %s\n" % (idx, features.count()))
 
-                #[u'dbxref_id', u'feature_id', u'is_analysis', u'is_obsolete',
+                # [u'dbxref_id', u'feature_id', u'is_analysis', u'is_obsolete',
                 # u'md5checksum', u'name', u'organism_id', u'residues', u'seqlen',
                 # u'timeaccessioned', u'timelastmodified', u'type_id',
                 # u'uniquename']
-                #[u'feature_id', u'featureloc_id', u'fmax', u'fmin',
+                # [u'feature_id', u'featureloc_id', u'fmax', u'fmin',
                 # u'is_fmax_partial', u'is_fmin_partial', u'locgroup', u'phase',
                 # u'rank', u'residue_info', u'srcfeature_id', u'strand']
                 qualifiers = {
                     self.ci.get_cvterm_name(prop.type_id): prop.value for prop in
-                    self.session.query(FeatureProperties).filter_by(feature_id=feature.feature_id).all()
+                    self.session.query(self.model.featureproperties).filter_by(feature_id=feature.feature_id).all()
                 }
 
                 qualifiers['ID'] = feature.uniquename
@@ -110,17 +114,17 @@ class ExportClient(Client):
                     qualifiers=qualifiers
                 )
 
-        #res = self.session.query(Organism).filter(Organism.organism_id.in_(organism_id))
-            relationships = self.session.query(FeatureRelationship) \
-                .filter(FeatureRelationship.subject_id.in_(biopy_features.keys()))
+        # res = self.session.query(self.model.organism).filter(self.model.organism.organism_id.in_(organism_id))
+            relationships = self.session.query(self.model.featurerelationship) \
+                .filter(self.model.featurerelationship.subject_id.in_(biopy_features.keys()))
             sys.stderr.write("\tProcessing %s relationships\n" % relationships.count())
 
-     #feature_relationship_id | subject_id | object_id | type_id | value | rank
-    #-------------------------+------------+-----------+---------+-------+------
-                           #1 |          4 |         3 |      37 |       |    0
-                           #2 |          5 |         4 |      37 |       |    0
-                           #3 |          6 |         4 |      37 |       |    0
-                           #4 |          7 |         4 |      37 |       |    0
+            #  feature_relationship_id | subject_id | object_id | type_id | value | rank
+            # -------------------------+------------+-----------+---------+-------+------
+            #                        1 |          4 |         3 |      37 |       |    0
+            #                        2 |          5 |         4 |      37 |       |    0
+            #                        3 |          6 |         4 |      37 |       |    0
+            #                        4 |          7 |         4 |      37 |       |    0
 
             features = []
 
@@ -138,7 +142,7 @@ class ExportClient(Client):
             # https://github.com/biopython/biopython/issues/928
             for idx, rel in enumerate(relationships):
                 if idx % 5000 == 0:
-                    sys.stderr.write("\t%s / %s\n" % (idx, relationship.count()))
+                    sys.stderr.write("\t%s / %s\n" % (idx, relationships.count()))
 
                 term = self.ci.get_cvterm_name(rel.type_id)
                 if term != 'part_of':
@@ -202,24 +206,24 @@ class ExportClient(Client):
         Export organism features as genbank
 
         :type organism_id: int
-        :param organism_id: Organism ID
+        :param organism_id: self.model.organism ID
 
         :rtype: None
         :return: None
         """
 
         # check if the organism exists
-        res = self.ci.session.query(Organism) \
-            .filter(Organism.organism_id.in_([organism_id]))
+        res = self.ci.session.query(self.model.organism) \
+            .filter(self.model.organism.organism_id.in_([organism_id]))
 
         sys.stderr.write("Processing %s sequences\n" % res.count())
         for org in res:
             seq = None
 
             record_features = []
-            features = self.ci.session.query(Feature, FeatureLocation) \
+            features = self.ci.session.query(self.model.feature, self.model.featurelocation) \
                 .filter_by(organism_id=org.organism_id) \
-                .join(FeatureLocation, Feature.feature_id == FeatureLocation.feature_id, isouter=True)
+                .join(self.model.featurelocation, self.model.feature.feature_id == self.model.featurelocation.feature_id, isouter=True)
 
             sys.stderr.write("\tProcessing %s features\n" % features.count())
             for idx, (feature, featureloc) in enumerate(features):
@@ -232,7 +236,7 @@ class ExportClient(Client):
                 else:
                     qualifiers = {
                         self.ci.get_cvterm_name(prop.type_id): prop.value for prop in
-                        self.ci.session.query(FeatureProperties).filter_by(feature_id=feature.feature_id).all()
+                        self.ci.session.query(self.model.featureproperties).filter_by(feature_id=feature.feature_id).all()
                     }
                     record_features.append(
                         SeqFeature(

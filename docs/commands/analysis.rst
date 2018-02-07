@@ -20,8 +20,7 @@ Create an analysis
 **Output**
 
 
-Analysis information
-   
+    Analysis information
     
 **Options**::
 

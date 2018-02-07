@@ -1,12 +1,30 @@
+sudo: required
 language: python
+
+services:
+  - docker
+
 python:
-- '2.7'
-- '3.5'
+  - '2.7'
+  - '3.5'
+
+jobs:
+  include:
+    - stage: lint
+      install:
+        - pip install -U flake8 flake8-import-order
+      script:
+        - flake8 chado --ignore=E501
+
+install:
+  - pip install -U pip setuptools nose
+  - python setup.py install
+  - chakin util launch_docker_image --background
+  - sleep 120 # Wait for the container to be ready
+
 script:
-- pip install -U pip setuptools
-- pip install -U flake8
-- flake8 apollo --ignore=E501 --exclude=arrow/commands/,scripts/
-- python setup.py install
+  - python setup.py nosetests
+
 deploy:
   provider: pypi
   user: abretaud

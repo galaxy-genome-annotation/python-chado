@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<tool id="chakin.export.export_fasta" name="export" version="1.0">
+<tool id="chakin_export_export_fasta" name="export" version="@WRAPPER_VERSION@.0">
  <description>export_fasta</description>
 	<macros>
 		<import>macros.xml</import>
@@ -7,7 +7,12 @@
 	<expand macro="requirements"/>
 	<command detect_errors="aggressive">
 chakin export export_fasta
-"$organism_id"
+'$organism_id'
+
+#if $file:
+  $file
+#end if
+
  > $results
 </command>
 	<inputs>
@@ -15,7 +20,7 @@ chakin export export_fasta
 	<param name="organism_id" label="Organism Id" argument="organism_id" type="integer" value="0" help="Organism ID" />
 
     <!-- options -->
-	<param name="file" label="File" argument="file" type="booelan" truevalue="--file" falsevalue="" help="If true, write to files in CWD" />
+	<param name="file" label="File" argument="file" type="boolean" truevalue="--file" falsevalue="" help="If true, write to files in CWD" />
 
 	</inputs>
 	<outputs>
@@ -23,5 +28,7 @@ chakin export export_fasta
 	</outputs>
 	<help>
 Export reference sequences as fasta.
+
+@HELP@
 	</help>
 </tool>
