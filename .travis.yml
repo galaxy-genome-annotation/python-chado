@@ -9,6 +9,11 @@ python:
 
 jobs:
   include:
+    - stage: lint
+      install:
+        - pip install -U flake8 flake8-import-order
+      script:
+        - flake8 chado --ignore=E501
     - stage: test
       python:
         - '2.7'
@@ -32,8 +37,3 @@ jobs:
           tags: true
           distributions: sdist bdist_wheel
           repo: galaxy-genome-annotation/python-chado
-
-install:
-  - pip install -U flake8 flake8-import-order
-script:
-  - flake8 chado --ignore=E501
