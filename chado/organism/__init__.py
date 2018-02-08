@@ -66,7 +66,7 @@ class OrganismClient(Client):
 
     def get_organisms(self, genus=None, species=None, common=None, abbr=None, comment=None):
         """
-        Get all organisms
+        Get all or some organisms
 
         :type genus: str
         :param genus: genus filter

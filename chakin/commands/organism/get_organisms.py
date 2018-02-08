@@ -33,7 +33,7 @@ from chakin.decorators import custom_exception, list_output
 @custom_exception
 @list_output
 def cli(ctx, genus="", species="", common="", abbr="", comment=""):
-    """Get all organisms
+    """Get all or some organisms
 
 Output:
 

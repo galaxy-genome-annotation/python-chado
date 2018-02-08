@@ -211,7 +211,7 @@ class ExportClient(Client):
         Export organism features as genbank
 
         :type organism_id: int
-        :param organism_id: self.model.organism ID
+        :param organism_id: Organism ID
 
         :rtype: None
         :return: None

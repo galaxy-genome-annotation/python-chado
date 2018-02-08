@@ -84,3 +84,65 @@ class AnalysisClient(Client):
             'sourceuri': newa.sourceuri,
             'timeexecuted': newa.timeexecuted.isoformat(),
         }
+
+
+    def get_analyses(self, name=None, program=None, programversion=None, algorithm=None, sourcename=None, sourceversion=None, sourceuri=None):
+        """
+        Get all or some analyses
+
+        :type name: str
+        :param name: analysis name filter
+
+        :type program: str
+        :param program: analysis program filter
+
+        :type programversion: str
+        :param programversion: analysis programversion filter
+
+        :type algorithm: str
+        :param algorithm: analysis algorithm filter
+
+        :type sourcename: str
+        :param sourcename: analysis sourcename filter
+
+        :type sourceversion: str
+        :param sourceversion: analysis sourceversion filter
+
+        :type sourceuri: str
+        :param sourceuri: analysis sourceuri filter
+
+        :rtype: list of dict
+        :return: Analysis information
+        """
+
+        # check if the organism exists
+        res = self.session.query(self.model.analysis)
+        if name:
+            res = res.filter_by(name=name)
+        if program:
+            res = res.filter_by(program=program)
+        if programversion:
+            res = res.filter_by(programversion=programversion)
+        if algorithm:
+            res = res.filter_by(algorithm=algorithm)
+        if sourcename:
+            res = res.filter_by(sourcename=sourcename)
+        if sourceversion:
+            res = res.filter_by(sourceversion=sourceversion)
+        if sourceuri:
+            res = res.filter_by(sourceuri=sourceuri)
+
+        data = []
+        for ana in res:
+            data.append({
+                'analysis_id': ana.analysis_id,
+                'name': ana.name,
+                'program': ana.program,
+                'programversion': ana.programversion,
+                'algorithm': ana.algorithm,
+                'sourcename': ana.sourcename,
+                'sourceversion': ana.sourceversion,
+                'sourceuri': ana.sourceuri,
+                'timeexecuted': str(ana.timeexecuted),
+            })
+        return data
