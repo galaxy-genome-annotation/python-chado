@@ -37,7 +37,7 @@ class FeatureClient(Client):
         :rtype: None
         :return: None
         """
-        raise Exception("Not implemented")
+        raise NotImplementedError()
 
     def load_gff(self, gff, analysis, organism, sequence_type):
         """
@@ -58,4 +58,4 @@ class FeatureClient(Client):
         :rtype: None
         :return: None
         """
-        raise Exception("Not implemented")
+        raise NotImplementedError()
