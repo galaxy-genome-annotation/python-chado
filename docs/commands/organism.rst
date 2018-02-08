@@ -63,7 +63,7 @@ Delete all organisms
 
 **Help**
 
-Get all organisms
+Get all or some organisms
 
 
 **Output**

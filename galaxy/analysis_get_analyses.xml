@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<tool id="chakin_analysis_get_analyses" name="analysis" version="@WRAPPER_VERSION@.0">
+ <description>get_analyses</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+chakin analysis get_analyses
+
+#if $name:
+  --name '$name'
+#end if
+#if $program:
+  --program '$program'
+#end if
+#if $programversion:
+  --programversion '$programversion'
+#end if
+#if $algorithm:
+  --algorithm '$algorithm'
+#end if
+#if $sourcename:
+  --sourcename '$sourcename'
+#end if
+#if $sourceversion:
+  --sourceversion '$sourceversion'
+#end if
+#if $sourceuri:
+  --sourceuri '$sourceuri'
+#end if
+
+| jq -S . > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+
+    <!-- options -->
+	<param name="name" label="Name" argument="name" type="text" help="analysis name filter" />
+	<param name="program" label="Program" argument="program" type="text" help="analysis program filter" />
+	<param name="programversion" label="Programversion" argument="programversion" type="text" help="analysis programversion filter" />
+	<param name="algorithm" label="Algorithm" argument="algorithm" type="text" help="analysis algorithm filter" />
+	<param name="sourcename" label="Sourcename" argument="sourcename" type="text" help="analysis sourcename filter" />
+	<param name="sourceversion" label="Sourceversion" argument="sourceversion" type="text" help="analysis sourceversion filter" />
+	<param name="sourceuri" label="Sourceuri" argument="sourceuri" type="text" help="analysis sourceuri filter" />
+
+	</inputs>
+	<outputs>
+		<data format="json" name="results"/>
+	</outputs>
+	<help>
+Get all or some analyses
+
+@HELP@
+	</help>
+</tool>

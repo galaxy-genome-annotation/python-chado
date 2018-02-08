@@ -41,7 +41,7 @@ chakin organism get_organisms
 		<data format="json" name="results"/>
 	</outputs>
 	<help>
-Get all organisms
+Get all or some organisms
 
 @HELP@
 	</help>
