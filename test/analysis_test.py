@@ -6,6 +6,7 @@ class AnalysisTest(unittest.TestCase):
     @staticmethod
     def test_add_analysis():
 
+        # TODO reuse ci for all tests (will speed up testing)
         ci = ChadoInstance(dbuser="postgres", dbpass="postgres", dbname="postgres")
 
         name = "analysis x"

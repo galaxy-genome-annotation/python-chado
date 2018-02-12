@@ -85,7 +85,6 @@ class AnalysisClient(Client):
             'timeexecuted': newa.timeexecuted.isoformat(),
         }
 
-
     def get_analyses(self, name=None, program=None, programversion=None, algorithm=None, sourcename=None, sourceversion=None, sourceuri=None):
         """
         Get all or some analyses
