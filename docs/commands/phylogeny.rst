@@ -28,6 +28,55 @@ Make sure required cvterms are loaded
       -h, --help  Show this message and exit.
     
 
+``gene_families`` command
+-------------------------
+
+**Usage**::
+
+    chakin phylogeny gene_families [OPTIONS]
+
+**Help**
+
+Adds an entry in the featureprop table in a chado database for each each family a gene belongs to (for use in https://github.com/legumeinfo/lis_context_viewer/).
+
+
+**Output**
+
+
+    None
+    
+**Options**::
+
+
+      --family_name TEXT  Restrict to families beginning with given prefix
+      --nuke              Removes all previous gene families data
+      -h, --help          Show this message and exit.
+    
+
+``gene_order`` command
+----------------------
+
+**Usage**::
+
+    chakin phylogeny gene_order [OPTIONS]
+
+**Help**
+
+Orders all the genes in the database by their order on their respective chromosomes in the gene_order table (for use in https://github.com/legumeinfo/lis_context_viewer/).
+
+
+**Output**
+
+
+    None
+    
+**Options**::
+
+
+      --nuke      Removes all previous gene ordering data
+      -h, --help  Show this message and exit.
+    
+
 ``load_tree`` command
 ---------------------
 

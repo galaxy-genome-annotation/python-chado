@@ -2,6 +2,7 @@
 Contains possible interactions with the Chado Phylogeny Module
 http://gmod.org/wiki/Chado_Phylogeny_Module
 As implemented in https://github.com/legumeinfo/tripal_phylotree
+and https://github.com/legumeinfo/lis_context_viewer/
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -9,12 +10,17 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import os.path
+import warnings
 
 from Bio import Phylo
 
 from chado.client import Client
 
 from future import standard_library
+
+from sqlalchemy import Column, ForeignKey, Index, Integer, String, Table, UniqueConstraint
+from sqlalchemy import exc as sa_exc
+from sqlalchemy.orm import aliased
 
 standard_library.install_aliases()
 
@@ -57,7 +63,7 @@ class PhylogenyClient(Client):
             raise Exception("Could not read input file/dir '{}'".format(newick))
 
         if not os.path.isdir(newick):
-            return self._load_single_tree(newick, analysis_id, name, xref_db, xref_accession, match_on_name)
+            return self._load_single_tree(newick, analysis_id, name, xref_db, xref_accession, match_on_name, prefix)
 
         out = []
         for nf in os.listdir(newick):
@@ -65,7 +71,7 @@ class PhylogenyClient(Client):
             if name.endswith('_tree'):  # OrthoFinder file
                 name = name[:-5]
             print("Loading newick '{}' from file '{}'".format(name, nf))
-            out.append(self._load_single_tree(newick + nf, analysis_id, name, xref_db, xref_accession, match_on_name))
+            out.append(self._load_single_tree(newick + nf, analysis_id, name, xref_db, xref_accession, match_on_name, prefix))
 
         return out
 
@@ -89,7 +95,7 @@ class PhylogenyClient(Client):
         :param xref_accession: The accession to use for dbxrefs for the trees (assumed same as name unless otherwise specified)
 
         :type match_on_name: bool
-        :param match_on_name: Match polypeptide features usnig their name instead of their uniquename
+        :param match_on_name: Match polypeptide features using their name instead of their uniquename
 
         :type prefix: str
         :param prefix: Comma-separated list of prefix to be removed from identifiers (e.g species prefixes when using loading OrthoFinder output)
@@ -153,11 +159,15 @@ class PhylogenyClient(Client):
         trees = Phylo.parse(tree_file, 'newick')
 
         # Retrieve leaf features
-        res = self.session.query(self.model.feature, self.model.cvterm).filter(self.model.cvterm.name == 'polypeptide').all()
+        res = self.session.query(self.model.feature, self.model.cvterm) \
+            .filter(self.model.cvterm.name == 'polypeptide') \
+            .join(self.model.cvterm, self.model.feature.type_id == self.model.cvterm.cvterm_id) \
+            .all()
+
         if match_on_name:
-            peps = {p.feature.uniquename: p.feature for p in res}
-        else:
             peps = {p.feature.name: p.feature for p in res}
+        else:
+            peps = {p.feature.uniquename: p.feature for p in res}
 
         prefixes = prefix.split(',')
 
@@ -208,10 +218,12 @@ class PhylogenyClient(Client):
             cname = clade.name
             # Remove prefix from id (typically added by orthofinder)
             for p in prefixes:
-                if cname.startswith(p):
-                    cname = cname[len(p) - 1:]
-                elif cname.startswith(p + '_'):
+                if cname.startswith(p + '_'):
+                    cname = cname[len(p) + 1:]
+                    break
+                elif cname.startswith(p):
                     cname = cname[len(p):]
+                    break
             if cname not in peps:
                 raise Exception("Could not find polypeptide '{}', rolling back".format(cname))
             node.feature = peps[cname]
@@ -223,8 +235,9 @@ class PhylogenyClient(Client):
 
         clades = clade.clades
         for c in clades:
-            self._create_nodes(c, depth + 1, db_tree, cvterms, peps, indexes, node, prefixes=[])
+            self._create_nodes(c, depth + 1, db_tree, cvterms, peps, indexes, node, prefixes=prefixes)
 
+    # TODO refactor this sh*t
     def add_cvterms(self):
         """
         Make sure required cvterms are loaded
@@ -295,4 +308,243 @@ class PhylogenyClient(Client):
                 'dbxref_id': cvterm.dbxref.dbxref_id
             }
 
+        # Some cvterm for LIS-GCV
+        res = self.session.query(self.model.cv).filter_by(name='GCV_properties')
+
+        if res.count() > 0:
+            cvlis = res.one()
+        else:
+            cvlis = self.model.cv()
+            cvlis.name = 'GCV_properties'
+            cvlis.definition = 'Used by https://github.com/legumeinfo/lis_context_viewer/'
+
+            self.session.add(cvlis)
+
+        res = self.session.query(self.model.db).filter_by(name='null')
+
+        if res.count() > 0:
+            dblis = res.one()
+        else:
+            dblis = self.model.db()
+            dblis.name = 'null'
+            dblis.definition = 'A fake database for local items'
+
+            self.session.add(dblis)
+
+        res = self.session.query(self.model.dbxref).filter_by(accession='gene family', db=dblis)
+        if res.count() > 0:
+            dbxref = res.one()
+        else:
+            dbxref = self.model.dbxref()
+            dbxref.accession = 'gene family'
+            dbxref.db = dblis
+
+            self.session.add(dbxref)
+
+        res = self.session.query(self.model.cvterm).filter_by(name='gene family', cv=cvlis)
+        if res.count() > 0:
+            cvterm = res.one()
+        else:
+            cvterm = self.model.cvterm()
+            cvterm.name = 'gene family'
+            cvterm.cv = cvlis
+            cvterm.definition = 'A group of genes presumed to be related by common ancestry'
+            cvterm.dbxref = dbxref
+
+            self.session.add(cvterm)
+
+        out[cvterm.name] = {
+            'name': cvterm.name,
+            'cv_id': cvterm.cv.cv_id,
+            'definition': cvterm.definition,
+            'dbxref_id': cvterm.dbxref.dbxref_id
+        }
+
         return out
+
+    def gene_order(self, nuke=False):
+        """
+        Orders all the genes in the database by their order on their respective chromosomes in the gene_order table (for use in https://github.com/legumeinfo/lis_context_viewer/).
+
+        :type nuke: bool
+        :param nuke: Removes all previous gene ordering data
+
+        :rtype: None
+        :return: None
+        """
+
+        if not hasattr(self.model, 'gene_order'):
+            # Create gene_order table if it doesn't exist yet
+            gene_order_table = Table('gene_order', self.metadata,
+                Column('gene_order_id', Integer, primary_key=True),
+                Column('chromosome_id', Integer, ForeignKey(self.model.feature.feature_id)),
+                Column('gene_id', Integer, ForeignKey(self.model.feature.feature_id)),
+                Column('number', Integer, nullable=False),
+                UniqueConstraint('chromosome_id', 'number', name='gene_order_c1'),
+                UniqueConstraint('gene_id', name='gene_order_gene_id_key'),
+                schema = self.ci.dbschema
+            )
+            gene_order_table.create(self.engine)
+
+            # Reload the db schema
+            with warnings.catch_warnings():
+                # https://stackoverflow.com/a/5225951
+                warnings.simplefilter("ignore", category=sa_exc.SAWarning)
+                self.ci._reflect_tables()
+                self.model = self.ci.model
+
+        if nuke:
+            # Remove old ordering
+            self.session.query(self.model.gene_order).delete()
+
+        # Insert ordering info
+        chromosomes = self.session.query(self.model.cv, self.model.cvterm, self.model.feature) \
+            .filter_by(name='sequence') \
+            .join(self.model.cvterm, self.model.cvterm.cv_id == self.model.cv.cv_id) \
+            .filter((self.model.cvterm.name=='chromosome') | (self.model.cvterm.name=='contig') | (self.model.cvterm.name=='supercontig')) \
+            .join(self.model.feature, self.model.feature.type_id == self.model.cvterm.cvterm_id) \
+            .all()
+
+        existing = self.session.query(self.model.gene_order) \
+            .all()
+
+        existing = {'{}_{}'.format(ex.chromosome_id, ex.gene_id): ex.number for ex in existing}
+
+        for chro in chromosomes:
+            genes = self.session.query(self.model.cv, self.model.cvterm, self.model.feature, self.model.featureloc) \
+                .filter_by(name='sequence') \
+                .join(self.model.cvterm, self.model.cvterm.cv_id == self.model.cv.cv_id) \
+                .filter((self.model.cvterm.name=='gene')) \
+                .join(self.model.feature, self.model.feature.type_id == self.model.cvterm.cvterm_id) \
+                .join(self.model.featureloc, self.model.feature.feature_id == self.model.featureloc.feature_id) \
+                .filter_by(srcfeature_id=chro.feature.feature_id) \
+                .order_by(self.model.featureloc.fmin.asc()) \
+                .all()
+
+            pos = 0
+            for g in genes:
+                pos += 1
+                dup_check_id = '{}_{}'.format(chro.feature.feature_id, g.feature.feature_id)
+                if dup_check_id in existing:
+                    if existing[dup_check_id] == pos:
+                        continue  # We already have this order record, skip it
+                    else:
+                        raise Exception("Found an existing gene_order record with different value. Rolling back, use the --nuke option to replace all existing values.")
+
+                order = self.model.gene_order()
+                order.chromosome_id = chro.feature.feature_id
+                order.gene_id = g.feature.feature_id
+                order.number = pos
+                self.session.add(order)
+
+        self.session.commit()
+
+    def gene_families(self, family_name='', nuke=False):
+        """
+        Adds an entry in the featureprop table in a chado database for each each family a gene belongs to (for use in https://github.com/legumeinfo/lis_context_viewer/).
+
+        :type family_name: str
+        :param family_name: Restrict to families beginning with given prefix
+
+        :type nuke: bool
+        :param nuke: Removes all previous gene families data
+
+        :rtype: None
+        :return: None
+        """
+
+        if not hasattr(self.model, 'gene_family_assignment'):
+            # Create gene_order table if it doesn't exist yet
+            gfa_table = Table('gene_family_assignment', self.metadata,
+                Column('gene_family_assignment_id', Integer, primary_key=True),
+                Column('gene_id', Integer, ForeignKey(self.model.feature.feature_id)),
+                Column('family_label', String, nullable=False),
+                Index('gene_family_assignment_idx1', 'family_label'),
+                schema = self.ci.dbschema
+            )
+            gfa_table.create(self.engine)
+
+            # Reload the db schema
+            with warnings.catch_warnings():
+                # https://stackoverflow.com/a/5225951
+                warnings.simplefilter("ignore", category=sa_exc.SAWarning)
+                self.ci._reflect_tables()
+                self.model = self.ci.model
+
+        self.add_cvterms()
+
+        gfterm = self.ci.get_cvterm_id('gene family', 'GCV_properties')
+
+        if nuke:
+            # Remove old ordering
+            self.session.query(self.model.gene_family_assignment).delete()
+            self.session.query(self.model.featureprop).filter_by(type_id=gfterm).delete()
+
+        # Insert ordering info
+        trees = self.session.query(self.model.phylotree) \
+            .filter(self.model.phylotree.name != 'NCBI taxonomy tree')
+
+        if family_name:
+            tree.filter(self.model.phylotree.name.like(family_name+'%'))
+
+        trees = trees.all()
+
+        mrna_alias = aliased(self.model.feature)
+        gene_alias = aliased(self.model.feature)
+        rel_alias = aliased(self.model.feature_relationship)
+
+        assignements = {}
+
+        for tree in trees:
+            genes = self.session.query(self.model.phylonode, gene_alias.feature_id) \
+                .filter_by(phylotree_id=tree.phylotree_id) \
+                .join(self.model.feature_relationship, self.model.phylonode.feature_id == self.model.feature_relationship.subject_id) \
+                .join(mrna_alias, self.model.feature_relationship.object_id == mrna_alias.feature_id) \
+                .join(rel_alias, mrna_alias.feature_id == rel_alias.subject_id) \
+                .join(gene_alias, rel_alias.object_id == gene_alias.feature_id) \
+                .all()
+
+            print("Found {} genes".format(len(genes)))
+
+            for tree_node, gene_id in genes:
+                print('Gene {} is in tree {}'.format(gene_id, tree_node.phylotree.name))
+
+                if gene_id not in assignements:
+                    assignements[gene_id] = []
+
+                assignements[gene_id].append(tree_node.phylotree.name)
+
+
+        # Cache all existing gene_family_assignment rows
+        existing_gfa = self.session.query(self.model.gene_family_assignment) \
+            .all()
+        existing_gfa = ['{}_{}'.format(ex.gene_id, ex.family_label) for ex in existing_gfa]
+
+        # Cache all existing featureprop rows
+        existing_fp = self.session.query(self.model.featureprop) \
+            .filter_by(type_id=gfterm) \
+            .all()
+        existing_fp = {'{}_{}'.format(ex.feature_id, ex.value): ex.rank for ex in existing_fp}
+
+        for gene in assignements:
+
+            rank = 0
+            tree_list = ','.join(assignements[gene])
+            if '{}_{}'.format(gene, tree_list) in existing_fp:
+                rank = existing_fp['{}_{}'.format(gene, tree_list)] + 1
+
+            fprop = self.model.featureprop()
+            fprop.feature_id = gene
+            fprop.type_id = gfterm
+            fprop.value = tree_list
+            fprop.rank = rank
+            self.session.add(fprop)
+
+            for tree in assignements[gene]:
+                if '{}_{}'.format(gene, tree) not in existing_gfa:
+                    gfa = self.model.gene_family_assignment()
+                    gfa.gene_id = gene
+                    gfa.family_label = tree
+                    self.session.add(gfa)
+
+        self.session.commit()

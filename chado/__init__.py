@@ -40,6 +40,7 @@ class ChadoInstance(object):
             self._test_db_access()
 
         self._cv_id_cache = {}
+        self._cv_name_cache = {}
         self._mapped = False
         self.model = None
 
@@ -72,13 +73,6 @@ class ChadoInstance(object):
         if ('analysis' not in tables or 'feature' not in tables):
             raise Exception("Could not find Chado tables in db %s" % (self._engine.url))
 
-    def get_cvterm_id(self, type_name, cv_name):
-        res = self.session.query(self.model.cvterm, self.model.cv).filter(self.model.cvterm.name == type_name, self.model.cv.name == cv_name)
-        if not res.count():
-            raise Exception("Could not find a cvterm with name '%s' from cv ''%s' in the database %s" % (type_name, cv_name, self._engine.url))
-
-        return res.one().Cvterm.cvterm_id
-
     def get_cvterm_name(self, cv_id):
         """
         get_cvterm_name allows lookup of CV terms by their ID.
@@ -99,3 +93,29 @@ class ChadoInstance(object):
                 self._cv_id_cache[cv_id] = res.one().name
 
             return self.get_cvterm_name(cv_id)
+
+    def get_cvterm_id(self, name, cv):
+        """
+        get_cvterm_id allows lookup of CV terms by their name.
+        This method caches the result in order to not hit the DB for every
+        query. Maybe should investigate pre-loading popular terms? (E.g. gene,
+        mRNA, etc)
+        """
+        cvhash = cv+'____'+name
+        if cvhash in self._cv_name_cache:
+            if self._cv_name_cache[cvhash] is not None:
+                return self._cv_name_cache[cvhash]
+            else:
+                raise Exception("Could not find a cvterm with name '%s' from cv '%s' in the database %s" % (name, cv, self._engine.url))
+        else:
+            res = self.session.query(self.model.cvterm) \
+                .filter(self.model.cvterm.name == name) \
+                .join(self.model.cv, self.model.cv.cv_id == self.model.cvterm.cv_id) \
+                .filter_by(name=cv)
+
+            if not res.count():
+                self._cv_name_cache[cvhash] = None
+            else:
+                self._cv_name_cache[cvhash] = res.one().cvterm_id
+
+            return self.get_cvterm_id(name, cv)
