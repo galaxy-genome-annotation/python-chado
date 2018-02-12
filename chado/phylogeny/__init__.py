@@ -487,7 +487,7 @@ class PhylogenyClient(Client):
             .filter(self.model.phylotree.name != 'NCBI taxonomy tree')
 
         if family_name:
-            trees.filter(self.model.phylotree.name.like(family_name+'%'))
+            trees.filter(self.model.phylotree.name.like(family_name + '%'))
 
         trees = trees.all()
 

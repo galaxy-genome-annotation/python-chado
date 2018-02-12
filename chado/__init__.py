@@ -101,7 +101,7 @@ class ChadoInstance(object):
         query. Maybe should investigate pre-loading popular terms? (E.g. gene,
         mRNA, etc)
         """
-        cvhash = cv+'____'+name
+        cvhash = cv + '____' + name
         if cvhash in self._cv_name_cache:
             if self._cv_name_cache[cvhash] is not None:
                 return self._cv_name_cache[cvhash]
