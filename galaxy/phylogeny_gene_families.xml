@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<tool id="chakin_phylogeny_gene_families" name="phylogeny" version="@WRAPPER_VERSION@.0">
+ <description>gene_families</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+chakin phylogeny gene_families
+
+#if $family_name:
+  --family_name '$family_name'
+#end if
+#if $nuke:
+  $nuke
+#end if
+
+ > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+
+    <!-- options -->
+	<param name="family_name" label="Family Name" argument="family_name" type="text" help="Restrict to families beginning with given prefix" />
+	<param name="nuke" label="Nuke" argument="nuke" type="boolean" truevalue="--nuke" falsevalue="" help="Removes all previous gene families data" />
+
+	</inputs>
+	<outputs>
+		<data format="txt" name="results"/>
+	</outputs>
+	<help>
+Adds an entry in the featureprop table in a chado database for each each family a gene belongs to (for use in https://github.com/legumeinfo/lis_context_viewer/).
+
+@HELP@
+	</help>
+</tool>

@@ -375,14 +375,15 @@ class PhylogenyClient(Client):
 
         if not hasattr(self.model, 'gene_order'):
             # Create gene_order table if it doesn't exist yet
-            gene_order_table = Table('gene_order', self.metadata,
+            gene_order_table = Table(
+                'gene_order', self.metadata,
                 Column('gene_order_id', Integer, primary_key=True),
                 Column('chromosome_id', Integer, ForeignKey(self.model.feature.feature_id)),
                 Column('gene_id', Integer, ForeignKey(self.model.feature.feature_id)),
                 Column('number', Integer, nullable=False),
                 UniqueConstraint('chromosome_id', 'number', name='gene_order_c1'),
                 UniqueConstraint('gene_id', name='gene_order_gene_id_key'),
-                schema = self.ci.dbschema
+                schema=self.ci.dbschema
             )
             gene_order_table.create(self.engine)
 
@@ -401,7 +402,7 @@ class PhylogenyClient(Client):
         chromosomes = self.session.query(self.model.cv, self.model.cvterm, self.model.feature) \
             .filter_by(name='sequence') \
             .join(self.model.cvterm, self.model.cvterm.cv_id == self.model.cv.cv_id) \
-            .filter((self.model.cvterm.name=='chromosome') | (self.model.cvterm.name=='contig') | (self.model.cvterm.name=='supercontig')) \
+            .filter((self.model.cvterm.name == 'chromosome') | (self.model.cvterm.name == 'contig') | (self.model.cvterm.name == 'supercontig')) \
             .join(self.model.feature, self.model.feature.type_id == self.model.cvterm.cvterm_id) \
             .all()
 
@@ -414,7 +415,7 @@ class PhylogenyClient(Client):
             genes = self.session.query(self.model.cv, self.model.cvterm, self.model.feature, self.model.featureloc) \
                 .filter_by(name='sequence') \
                 .join(self.model.cvterm, self.model.cvterm.cv_id == self.model.cv.cv_id) \
-                .filter((self.model.cvterm.name=='gene')) \
+                .filter((self.model.cvterm.name == 'gene')) \
                 .join(self.model.feature, self.model.feature.type_id == self.model.cvterm.cvterm_id) \
                 .join(self.model.featureloc, self.model.feature.feature_id == self.model.featureloc.feature_id) \
                 .filter_by(srcfeature_id=chro.feature.feature_id) \
@@ -455,12 +456,13 @@ class PhylogenyClient(Client):
 
         if not hasattr(self.model, 'gene_family_assignment'):
             # Create gene_order table if it doesn't exist yet
-            gfa_table = Table('gene_family_assignment', self.metadata,
+            gfa_table = Table(
+                'gene_family_assignment', self.metadata,
                 Column('gene_family_assignment_id', Integer, primary_key=True),
                 Column('gene_id', Integer, ForeignKey(self.model.feature.feature_id)),
                 Column('family_label', String, nullable=False),
                 Index('gene_family_assignment_idx1', 'family_label'),
-                schema = self.ci.dbschema
+                schema=self.ci.dbschema
             )
             gfa_table.create(self.engine)
 
@@ -485,7 +487,7 @@ class PhylogenyClient(Client):
             .filter(self.model.phylotree.name != 'NCBI taxonomy tree')
 
         if family_name:
-            tree.filter(self.model.phylotree.name.like(family_name+'%'))
+            trees.filter(self.model.phylotree.name.like(family_name+'%'))
 
         trees = trees.all()
 
@@ -513,7 +515,6 @@ class PhylogenyClient(Client):
                     assignements[gene_id] = []
 
                 assignements[gene_id].append(tree_node.phylotree.name)
-
 
         # Cache all existing gene_family_assignment rows
         existing_gfa = self.session.query(self.model.gene_family_assignment) \
