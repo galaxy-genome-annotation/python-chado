@@ -103,7 +103,7 @@ Load a phylogenetic tree (Newick format) into Chado db
                              (default: "null")  [default: null]
       --xref_accession TEXT  The accession to use for dbxrefs for the trees (assumed
                              same as name unless otherwise specified)
-      --match_on_name        Match polypeptide features usnig their name instead of
+      --match_on_name        Match polypeptide features using their name instead of
                              their uniquename
       --prefix TEXT          Comma-separated list of prefix to be removed from
                              identifiers (e.g species prefixes when using loading

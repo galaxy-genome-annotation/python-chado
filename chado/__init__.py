@@ -17,7 +17,7 @@ from future import standard_library
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy import exc as sa_exc
 from sqlalchemy.ext.automap import automap_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import relationship, sessionmaker
 
 standard_library.install_aliases()
 
@@ -65,8 +65,13 @@ class ChadoInstance(object):
 
     def _reflect_tables(self):
         Base = automap_base()
+
         Base.prepare(self._engine, reflect=True, schema=self.dbschema)
         self.model = Base.classes
+
+        # ambiguous relationships to same table
+        self.model.feature_relationship.subject = relationship("feature", foreign_keys=[self.model.feature_relationship.subject_id])
+        self.model.feature_relationship.object = relationship("feature", foreign_keys=[self.model.feature_relationship.object_id])
 
     def _test_db_access(self):
         tables = self._engine.table_names(schema=self.dbschema)

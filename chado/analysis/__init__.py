@@ -85,9 +85,12 @@ class AnalysisClient(Client):
             'timeexecuted': newa.timeexecuted.isoformat(),
         }
 
-    def get_analyses(self, name=None, program=None, programversion=None, algorithm=None, sourcename=None, sourceversion=None, sourceuri=None):
+    def get_analyses(self, analysis_id=None, name=None, program=None, programversion=None, algorithm=None, sourcename=None, sourceversion=None, sourceuri=None):
         """
         Get all or some analyses
+
+        :type analysis_id: int
+        :param analysis_id: analysis_id filter
 
         :type name: str
         :param name: analysis name filter
@@ -116,6 +119,8 @@ class AnalysisClient(Client):
 
         # check if the organism exists
         res = self.session.query(self.model.analysis)
+        if analysis_id:
+            res = res.filter_by(analysis_id=analysis_id)
         if name:
             res = res.filter_by(name=name)
         if program:
@@ -145,3 +150,58 @@ class AnalysisClient(Client):
                 'timeexecuted': str(ana.timeexecuted),
             })
         return data
+
+    def delete_analyses(self, analysis_id=None, name=None, program=None, programversion=None, algorithm=None, sourcename=None, sourceversion=None, sourceuri=None):
+        """
+        Delete analysis
+
+        :type analysis_id: int
+        :param analysis_id: analysis_id filter
+
+        :type name: str
+        :param name: analysis name filter
+
+        :type program: str
+        :param program: analysis program filter
+
+        :type programversion: str
+        :param programversion: analysis programversion filter
+
+        :type algorithm: str
+        :param algorithm: analysis algorithm filter
+
+        :type sourcename: str
+        :param sourcename: analysis sourcename filter
+
+        :type sourceversion: str
+        :param sourceversion: analysis sourceversion filter
+
+        :type sourceuri: str
+        :param sourceuri: analysis sourceuri filter
+
+        :rtype: None
+        :return: None
+        """
+
+        res = self.session.query(self.model.analysis)
+        if analysis_id:
+            res = res.filter_by(analysis_id=analysis_id)
+        if name:
+            res = res.filter_by(name=name)
+        if program:
+            res = res.filter_by(program=program)
+        if programversion:
+            res = res.filter_by(programversion=programversion)
+        if algorithm:
+            res = res.filter_by(algorithm=algorithm)
+        if sourcename:
+            res = res.filter_by(sourcename=sourcename)
+        if sourceversion:
+            res = res.filter_by(sourceversion=sourceversion)
+        if sourceuri:
+            res = res.filter_by(sourceuri=sourceuri)
+
+        res = res.delete()
+
+        self.session.commit()
+        return res

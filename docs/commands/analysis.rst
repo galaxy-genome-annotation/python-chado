@@ -29,6 +29,37 @@ Create an analysis
       -h, --help            Show this message and exit.
     
 
+``delete_analyses`` command
+---------------------------
+
+**Usage**::
+
+    chakin analysis delete_analyses [OPTIONS]
+
+**Help**
+
+Delete analysis
+
+
+**Output**
+
+
+    None
+    
+**Options**::
+
+
+      --analysis_id INTEGER  analysis_id filter
+      --name TEXT            analysis name filter
+      --program TEXT         analysis program filter
+      --programversion TEXT  analysis programversion filter
+      --algorithm TEXT       analysis algorithm filter
+      --sourcename TEXT      analysis sourcename filter
+      --sourceversion TEXT   analysis sourceversion filter
+      --sourceuri TEXT       analysis sourceuri filter
+      -h, --help             Show this message and exit.
+    
+
 ``get_analyses`` command
 ------------------------
 
@@ -49,6 +80,7 @@ Get all or some analyses
 **Options**::
 
 
+      --analysis_id INTEGER  analysis_id filter
       --name TEXT            analysis name filter
       --program TEXT         analysis program filter
       --programversion TEXT  analysis programversion filter

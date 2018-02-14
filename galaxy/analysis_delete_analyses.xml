@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
-<tool id="chakin_analysis_get_analyses" name="analysis" version="@WRAPPER_VERSION@.0">
- <description>get_analyses</description>
+<tool id="chakin_analysis_delete_analyses" name="analysis" version="@WRAPPER_VERSION@.0">
+ <description>delete_analyses</description>
 	<macros>
 		<import>macros.xml</import>
 	</macros>
 	<expand macro="requirements"/>
 	<command detect_errors="aggressive">
-chakin analysis get_analyses
+chakin analysis delete_analyses
 
 #if $analysis_id:
   --analysis_id '$analysis_id'
@@ -33,7 +33,7 @@ chakin analysis get_analyses
   --sourceuri '$sourceuri'
 #end if
 
-| jq -S . > $results
+ > $results
 </command>
 	<inputs>
     <!-- arguments -->
@@ -50,10 +50,10 @@ chakin analysis get_analyses
 
 	</inputs>
 	<outputs>
-		<data format="json" name="results"/>
+		<data format="txt" name="results"/>
 	</outputs>
 	<help>
-Get all or some analyses
+Delete analysis
 
 @HELP@
 	</help>
