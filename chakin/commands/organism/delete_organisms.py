@@ -1,9 +1,9 @@
 import click
 from chakin.cli import pass_context
-from chakin.decorators import custom_exception, list_output
+from chakin.decorators import custom_exception, None_output
 
 
-@click.command('get_organisms')
+@click.command('delete_organisms')
 @click.option(
     "--organism_id",
     help="organism_id filter",
@@ -36,12 +36,12 @@ from chakin.decorators import custom_exception, list_output
 )
 @pass_context
 @custom_exception
-@list_output
+@None_output
 def cli(ctx, organism_id="", genus="", species="", common="", abbr="", comment=""):
-    """Get all or some organisms
+    """Delete all organisms
 
 Output:
 
-    Organisms information
+    None
     """
-    return ctx.gi.organism.get_organisms(organism_id=organism_id, genus=genus, species=species, common=common, abbr=abbr, comment=comment)
+    return ctx.gi.organism.delete_organisms(organism_id=organism_id, genus=genus, species=species, common=common, abbr=abbr, comment=comment)

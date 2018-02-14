@@ -16,8 +16,9 @@ History
 - 2.1
     - auto reflect db schema
     - add phylogeny module
+    - load features from fasta
     - make chakin util commands work when db is offline
-    - add minimal unit tests
+    - add unit tests
 
 - 2.0
     - "Chakin" CLI utility

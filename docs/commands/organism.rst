@@ -54,6 +54,35 @@ Delete all organisms
       -h, --help  Show this message and exit.
     
 
+``delete_organisms`` command
+----------------------------
+
+**Usage**::
+
+    chakin organism delete_organisms [OPTIONS]
+
+**Help**
+
+Delete all organisms
+
+
+**Output**
+
+
+    None
+    
+**Options**::
+
+
+      --organism_id INTEGER  organism_id filter
+      --genus TEXT           genus filter
+      --species TEXT         species filter
+      --common TEXT          common filter
+      --abbr TEXT            abbr filter
+      --comment TEXT         comment filter
+      -h, --help             Show this message and exit.
+    
+
 ``get_organisms`` command
 -------------------------
 
@@ -74,10 +103,11 @@ Get all or some organisms
 **Options**::
 
 
-      --genus TEXT    genus filter
-      --species TEXT  species filter
-      --common TEXT   common filter
-      --abbr TEXT     abbr filter
-      --comment TEXT  comment filter
-      -h, --help      Show this message and exit.
+      --organism_id INTEGER  organism_id filter
+      --genus TEXT           genus filter
+      --species TEXT         species filter
+      --common TEXT          common filter
+      --abbr TEXT            abbr filter
+      --comment TEXT         comment filter
+      -h, --help             Show this message and exit.
     

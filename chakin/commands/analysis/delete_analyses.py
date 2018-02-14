@@ -1,9 +1,9 @@
 import click
 from chakin.cli import pass_context
-from chakin.decorators import custom_exception, list_output
+from chakin.decorators import custom_exception, None_output
 
 
-@click.command('get_analyses')
+@click.command('delete_analyses')
 @click.option(
     "--analysis_id",
     help="analysis_id filter",
@@ -46,12 +46,12 @@ from chakin.decorators import custom_exception, list_output
 )
 @pass_context
 @custom_exception
-@list_output
+@None_output
 def cli(ctx, analysis_id="", name="", program="", programversion="", algorithm="", sourcename="", sourceversion="", sourceuri=""):
-    """Get all or some analyses
+    """Delete analysis
 
 Output:
 
-    Analysis information
+    None
     """
-    return ctx.gi.analysis.get_analyses(analysis_id=analysis_id, name=name, program=program, programversion=programversion, algorithm=algorithm, sourcename=sourcename, sourceversion=sourceversion, sourceuri=sourceuri)
+    return ctx.gi.analysis.delete_analyses(analysis_id=analysis_id, name=name, program=program, programversion=programversion, algorithm=algorithm, sourcename=sourcename, sourceversion=sourceversion, sourceuri=sourceuri)

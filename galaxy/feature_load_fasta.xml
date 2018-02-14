@@ -8,21 +8,61 @@
 	<command detect_errors="aggressive">
 chakin feature load_fasta
 '$fasta'
-'$analysis'
-'$organism'
-'$sequence_type'
+'$organism_id'
 
+#if $sequence_type:
+  --sequence_type '$sequence_type'
+#end if
+#if $analysis_id:
+  --analysis_id '$analysis_id'
+#end if
+#if $re_name:
+  --re_name '$re_name'
+#end if
+#if $re_uniquename:
+  --re_uniquename '$re_uniquename'
+#end if
+#if $match_on_name:
+  $match_on_name
+#end if
+#if $update:
+  $update
+#end if
+#if $db:
+  --db '$db'
+#end if
+#if $re_db_accession:
+  --re_db_accession '$re_db_accession'
+#end if
+#if $rel_type:
+  --rel_type '$rel_type'
+#end if
+#if $re_parent:
+  --re_parent '$re_parent'
+#end if
+#if $parent_type:
+  --parent_type '$parent_type'
+#end if
 
  > $results
 </command>
 	<inputs>
     <!-- arguments -->
 	<param name="fasta" label="Fasta" argument="fasta" type="text" help="Path to the Fasta file to load" />
-	<param name="analysis" label="Analysis" argument="analysis" type="integer" value="0" help="Analysis ID" />
-	<param name="organism" label="Organism" argument="organism" type="integer" value="0" help="Organism ID" />
-	<param name="sequence_type" label="Sequence Type" argument="sequence_type" type="text" help="Sequence type" />
+	<param name="organism_id" label="Organism Id" argument="organism_id" type="integer" value="0" help="Organism ID" />
 
     <!-- options -->
+	<param name="sequence_type" label="Sequence Type" argument="sequence_type" type="text" help="Sequence type" />
+	<param name="analysis_id" label="Analysis Id" argument="analysis_id" type="integer" value="0" help="Analysis ID" />
+	<param name="re_name" label="Re Name" argument="re_name" type="text" help="Regular expression to extract the feature name from the fasta sequence id (first capturing group will be used)." />
+	<param name="re_uniquename" label="Re Uniquename" argument="re_uniquename" type="text" help="Regular expression to extract the feature name from the fasta sequence id (first capturing group will be used)." />
+	<param name="match_on_name" label="Match On Name" argument="match_on_name" type="boolean" truevalue="--match_on_name" falsevalue="" help="Match existing features using their name instead of their uniquename" />
+	<param name="update" label="Update" argument="update" type="boolean" truevalue="--update" falsevalue="" help="Update existing feature with new sequence instead of throwing an error" />
+	<param name="db" label="Db" argument="db" type="integer" value="0" help="External database to cross reference to." />
+	<param name="re_db_accession" label="Re Db Accession" argument="re_db_accession" type="text" help="Regular expression to extract an external database accession from the fasta sequence id (first capturing group will be used)." />
+	<param name="rel_type" label="Rel Type" argument="rel_type" type="text" help="Relation type to parent feature ('part_of' or 'derives_from')." />
+	<param name="re_parent" label="Re Parent" argument="re_parent" type="text" help="Regular expression to extract parent uniquename from the fasta sequence id (first capturing group will be used)." />
+	<param name="parent_type" label="Parent Type" argument="parent_type" type="text" help="Sequence type of the parent feature" />
 
 	</inputs>
 	<outputs>

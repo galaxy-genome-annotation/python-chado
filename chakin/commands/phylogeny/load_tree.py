@@ -25,7 +25,7 @@ from chakin.decorators import custom_exception, None_output
 )
 @click.option(
     "--match_on_name",
-    help="Match polypeptide features usnig their name instead of their uniquename",
+    help="Match polypeptide features using their name instead of their uniquename",
     is_flag=True
 )
 @click.option(

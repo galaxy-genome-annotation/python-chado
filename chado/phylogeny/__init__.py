@@ -50,7 +50,7 @@ class PhylogenyClient(Client):
         :param xref_accession: The accession to use for dbxrefs for the trees (assumed same as name unless otherwise specified)
 
         :type match_on_name: bool
-        :param match_on_name: Match polypeptide features usnig their name instead of their uniquename
+        :param match_on_name: Match polypeptide features using their name instead of their uniquename
 
         :type prefix: str
         :param prefix: Comma-separated list of prefix to be removed from identifiers (e.g species prefixes when using loading OrthoFinder output)

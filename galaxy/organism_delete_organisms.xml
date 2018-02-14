@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
-<tool id="chakin_organism_get_organisms" name="organism" version="@WRAPPER_VERSION@.0">
- <description>get_organisms</description>
+<tool id="chakin_organism_delete_organisms" name="organism" version="@WRAPPER_VERSION@.0">
+ <description>delete_organisms</description>
 	<macros>
 		<import>macros.xml</import>
 	</macros>
 	<expand macro="requirements"/>
 	<command detect_errors="aggressive">
-chakin organism get_organisms
+chakin organism delete_organisms
 
 #if $organism_id:
   --organism_id '$organism_id'
@@ -27,7 +27,7 @@ chakin organism get_organisms
   --comment '$comment'
 #end if
 
-| jq -S . > $results
+ > $results
 </command>
 	<inputs>
     <!-- arguments -->
@@ -42,10 +42,10 @@ chakin organism get_organisms
 
 	</inputs>
 	<outputs>
-		<data format="json" name="results"/>
+		<data format="txt" name="results"/>
 	</outputs>
 	<help>
-Get all or some organisms
+Delete all organisms
 
 @HELP@
 	</help>
