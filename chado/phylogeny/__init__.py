@@ -142,8 +142,9 @@ class PhylogenyClient(Client):
 
         res = self.session.query(self.model.phylotree).filter_by(name=name)
         if res.count() > 0:
-            print("Found existing '{}' phylotree, using it".format(name))
+            print("Found existing '{}' phylotree, updating it".format(name))
             db_tree = res.one()
+            self.session.query(self.model.phylonode).filter_by(phylotree_id=db_tree.phylotree_id).delete()
         else:
             db_tree = self.model.phylotree()
             db_tree.name = name
