@@ -65,17 +65,21 @@ class PhylogenyClient(Client):
         if not os.path.isdir(newick):
             return self._load_single_tree(newick, analysis_id, name, xref_db, xref_accession, match_on_name, prefix)
 
+
+        # prefetch this for performances
+        peps = self._fetch_peptides(match_on_name)
+
         out = []
         for nf in os.listdir(newick):
             name = os.path.splitext(os.path.basename(nf))[0]
             if name.endswith('_tree'):  # OrthoFinder file
                 name = name[:-5]
             print("Loading newick '{}' from file '{}'".format(name, os.path.join(newick, nf)))
-            out.append(self._load_single_tree(os.path.join(newick, nf), analysis_id, name, xref_db, xref_accession, match_on_name, prefix))
+            out.append(self._load_single_tree(os.path.join(newick, nf), analysis_id, name, xref_db, xref_accession, match_on_name, prefix, peps))
 
         return out
 
-    def _load_single_tree(self, newick, analysis_id, name=None, xref_db='null', xref_accession=None, match_on_name=False, prefix=""):
+    def _load_single_tree(self, newick, analysis_id, name=None, xref_db='null', xref_accession=None, match_on_name=False, prefix="", peps=None):
         """
         Load a phylogenetic tree (Newick format) into Chado db
 
@@ -160,15 +164,8 @@ class PhylogenyClient(Client):
         trees = Phylo.parse(tree_file, 'newick')
 
         # Retrieve leaf features
-        res = self.session.query(self.model.feature, self.model.cvterm) \
-            .filter(self.model.cvterm.name == 'polypeptide') \
-            .join(self.model.cvterm, self.model.feature.type_id == self.model.cvterm.cvterm_id) \
-            .all()
-
-        if match_on_name:
-            peps = {p.feature.name: p.feature for p in res}
-        else:
-            peps = {p.feature.uniquename: p.feature for p in res}
+        if not peps:
+            peps = self._fetch_peptides(match_on_name)
 
         prefixes = prefix.split(',')
 
@@ -189,6 +186,20 @@ class PhylogenyClient(Client):
             'analysis_id': db_tree.analysis.analysis_id,
             'comment': db_tree.comment,
         }
+
+    def _fetch_peptides(self, match_on_name):
+
+        ppterm = self.ci.get_cvterm_id('polypeptide', 'sequence')
+        res = self.session.query(self.model.feature.feature_id, self.model.feature.name, self.model.feature.uniquename) \
+            .filter_by(type_id=ppterm) \
+            .all()
+
+        if match_on_name:
+            peps = {p.name: p.feature_id for p in res}
+        else:
+            peps = {p.uniquename: p.feature_id for p in res}
+
+        return peps
 
     def _create_nodes(self, clade, depth, db_tree, cvterms, peps, indexes, parent_node=None, prefixes=[]):
         """
@@ -227,7 +238,7 @@ class PhylogenyClient(Client):
                     break
             if cname not in peps:
                 raise Exception("Could not find polypeptide '{}', rolling back".format(cname))
-            node.feature = peps[cname]
+            node.feature_id = peps[cname]
         node.label = clade.name
         node.distance = clade.branch_length
         self.session.add(node)
