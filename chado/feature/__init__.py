@@ -217,8 +217,8 @@ class FeatureClient(Client):
                     dbx.accession = accession
                     self.session.add(dbx)
 
-                    dbxref_id = dbx.dbxref_id
-                    existing_dbxref[accession] = dbxref_id
+                    dbxref_id = dbx
+                    existing_dbxref[accession] = dbx
 
             # Compute md5 checksum
             md5 = hashlib.md5()
@@ -245,7 +245,10 @@ class FeatureClient(Client):
             if identifier not in existing:
                 feat = self.model.feature()
                 if dbxref_id:
-                    feat.dbxref_id = dbxref_id
+                    if isinstance(dbxref_id, int):  # I'm not proud of this
+                        feat.dbxref_id = dbxref_id
+                    else:
+                        feat.dbxref = dbxref_id
                 feat.organism_id = organism_id
                 feat.name = name_ok
                 feat.uniquename = uname_ok
