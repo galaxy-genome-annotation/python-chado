@@ -1,8 +1,8 @@
 import unittest
 from nose.tools import raises
 
-from chado import *
-from test import ci
+from . import ci
+
 
 class FeatureTest(unittest.TestCase):
 
@@ -29,7 +29,7 @@ class FeatureTest(unittest.TestCase):
         feats = self.ci.feature.get_features(organism_id=org['organism_id'], name='Q02123|VNBP_POPMV')
         f = feats[0]
         contigterm = self.ci.get_cvterm_id('contig', 'sequence')
-        assert f['dbxref_id'] == None, "fasta features properly created"
+        assert f['dbxref_id'] is None, "fasta features properly created"
         assert f['organism_id'] == org['organism_id'], "fasta features properly created"
         assert f['analysis_id'] == an['analysis_id'], "fasta features properly created"
         assert f['name'] == 'Q02123|VNBP_POPMV', "fasta features properly created"
@@ -38,14 +38,13 @@ class FeatureTest(unittest.TestCase):
         assert f['seqlen'] == 123, "fasta features properly created"
         assert f['md5checksum'] == 'a10c50557506954bf61efe1f997aa8d3', "fasta features properly created"
         assert f['type_id'] == contigterm, "fasta features properly created"
-        assert f['is_analysis'] == False, "fasta features properly created"
-        assert f['is_obsolete'] == False, "fasta features properly created"
+        assert f['is_analysis'] is False, "fasta features properly created"
+        assert f['is_obsolete'] is False, "fasta features properly created"
 
     def test_delete_features(self):
 
         org = self._create_fake_org()
         an = self._create_fake_an()
-        an2 = self._create_fake_an('another')
 
         self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'])
 
@@ -68,7 +67,7 @@ class FeatureTest(unittest.TestCase):
 
         f = feats[0]
         contigterm = self.ci.get_cvterm_id('contig', 'sequence')
-        assert f['dbxref_id'] == None, "fasta features properly created"
+        assert f['dbxref_id'] is None, "fasta features properly created"
         assert f['organism_id'] == org['organism_id'], "fasta features properly created"
         assert f['analysis_id'] == an['analysis_id'], "fasta features properly created"
         assert f['name'] == 'Q02123|VNBP_POPMV', "fasta features properly created"
@@ -77,8 +76,8 @@ class FeatureTest(unittest.TestCase):
         assert f['seqlen'] == 123, "fasta features properly created"
         assert f['md5checksum'] == 'a10c50557506954bf61efe1f997aa8d3', "fasta features properly created"
         assert f['type_id'] == contigterm, "fasta features properly created"
-        assert f['is_analysis'] == False, "fasta features properly created"
-        assert f['is_obsolete'] == False, "fasta features properly created"
+        assert f['is_analysis'] is False, "fasta features properly created"
+        assert f['is_obsolete'] is False, "fasta features properly created"
 
     def test_load_fasta_seqtype(self):
         org = self._create_fake_org()
@@ -220,7 +219,7 @@ class FeatureTest(unittest.TestCase):
         an = self._create_fake_an()
 
         self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'])
-        feats = self.ci.feature.get_features(organism_id=org['organism_id'], name='Q02123|VNBP_POPMV')
+        self.ci.feature.get_features(organism_id=org['organism_id'], name='Q02123|VNBP_POPMV')
 
         assert len(self.ci.feature.get_features()) == 21, "features are loaded"
 
@@ -233,7 +232,7 @@ class FeatureTest(unittest.TestCase):
         an = self._create_fake_an()
 
         self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'])
-        feats = self.ci.feature.get_features(organism_id=org['organism_id'], name='Q02123|VNBP_POPMV')
+        self.ci.feature.get_features(organism_id=org['organism_id'], name='Q02123|VNBP_POPMV')
 
         assert len(self.ci.feature.get_features()) == 21, "features are loaded"
 
@@ -262,14 +261,25 @@ class FeatureTest(unittest.TestCase):
 
         return self.ci.analysis.add_analysis(name=name, program=program, programversion=programversion, algorithm=algorithm, sourcename=sourcename, sourceversion=sourceversion, sourceuri=sourceuri, date_executed=date_executed)
 
+    def _del_dbxref(self):
+        self.ci.session.query(self.ci.model.dbxref).filter(
+            self.ci.model.dbxref.db_id == 1,
+            (self.ci.model.dbxref.accession.like('VNBP%') | self.ci.model.dbxref.accession.like('%VIRU'))
+        ).delete(synchronize_session='fetch')
+
     def setUp(self):
-        global ci
         self.ci = ci
         self.ci.organism.delete_organisms()
         self.ci.analysis.delete_analyses()
         self.ci.feature.delete_features()
 
+        # Make sure dbxref are deleted too
+        self._del_dbxref()
+
     def tearDown(self):
         self.ci.organism.delete_organisms()
         self.ci.analysis.delete_analyses()
         self.ci.feature.delete_features()
+
+        # Make sure dbxref are deleted too
+        self._del_dbxref()

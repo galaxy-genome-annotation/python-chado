@@ -1,6 +1,6 @@
 import unittest
-from chado import *
-from test import ci
+from . import ci
+
 
 class OrganismTest(unittest.TestCase):
 
@@ -31,7 +31,6 @@ class OrganismTest(unittest.TestCase):
         assert len(orgs) == 0, "orgs properly deleted"
 
     def setUp(self):
-        global ci
         self.ci = ci
         self.ci.organism.delete_organisms()
 

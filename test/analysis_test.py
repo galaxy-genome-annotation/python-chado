@@ -1,6 +1,6 @@
 import unittest
-from chado import *
-from test import ci
+from . import ci
+
 
 class AnalysisTest(unittest.TestCase):
 
@@ -37,7 +37,6 @@ class AnalysisTest(unittest.TestCase):
         assert len(ans) == 0, "analysis properly deleted"
 
     def setUp(self):
-        global ci
         self.ci = ci
         self.ci.analysis.delete_analyses()
 

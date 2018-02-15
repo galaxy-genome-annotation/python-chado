@@ -13,7 +13,7 @@ jobs:
       install:
         - pip install -U flake8 flake8-import-order
       script:
-        - flake8 chado --ignore=E501
+        - flake8 chado test --ignore=E501
     - stage: test
       python: '2.7'
       install:
