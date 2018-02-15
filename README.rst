@@ -10,6 +10,49 @@ Chado Library
 
 A Python library for interacting with a Chado database.
 
+Examples
+--------
+
+.. code:: python
+
+    from chado import ChadoInstance
+    ci = ChadoInstance(dbhost="localhost", dbname="chado", dbuser="chado", dbpass="chado", dbschema="public", dbport=5432)
+
+    # Create human species
+    org = ci.organism.add_organism(genus="Homo", species="sapiens", common="Human", abbr="H.sapiens")
+
+    # Then display the list of organisms
+    orgs = ci.organism.get_organisms()
+
+    for org in orgs:
+        print('{} {}'.format(org.genus, org.species))
+
+Or with the Chakin client:
+
+.. code-block:: shell
+
+    $ chakin organism add_organism --species sapiens Homo Human H.sapiens
+    {
+        "abbreviation": "H.sapiens",
+        "comment": null,
+        "common_name": "Human",
+        "genus": "Homo",
+        "organism_id": 1133,
+        "species": "sapiens"
+    }
+    $ chakin organism get_organisms
+    [
+        {
+            "organism_id": 1133,
+            "genus": "Homo",
+            "species": "sapiens",
+            "abbreviation": "H.sapiens",
+            "common_name": "Human",
+            "comment": null
+        }
+    ]
+
+
 History
 -------
 

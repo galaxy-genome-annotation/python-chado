@@ -10,6 +10,7 @@ import hashlib
 import re
 
 from Bio import SeqIO
+
 from chado.client import Client
 
 from future import standard_library
@@ -114,8 +115,8 @@ class FeatureClient(Client):
         return res
 
     def load_fasta(self, fasta, organism_id, sequence_type='contig', analysis_id=None,
-        re_name=None, re_uniquename=None, match_on_name=False, update=False, db=None,
-        re_db_accession=None, rel_type=None, re_parent=None, parent_type=None):
+                   re_name=None, re_uniquename=None, match_on_name=False, update=False, db=None,
+                   re_db_accession=None, rel_type=None, re_parent=None, parent_type=None):
         """
         Load features from a fasta file
 
@@ -292,9 +293,7 @@ class FeatureClient(Client):
             else:
                 raise Exception("Found an existing feature with '{}': '{}' ('{}'). Use --update to update its sequence.".format('name' if match_on_name else 'uniquename', identifier, seq_record.id))
 
-
         self.session.commit()
-
 
     def load_gff(self, gff, analysis_id, organism_id, sequence_type):
         """
