@@ -70,8 +70,8 @@ class PhylogenyClient(Client):
             name = os.path.splitext(os.path.basename(nf))[0]
             if name.endswith('_tree'):  # OrthoFinder file
                 name = name[:-5]
-            print("Loading newick '{}' from file '{}'".format(name, nf))
-            out.append(self._load_single_tree(newick + nf, analysis_id, name, xref_db, xref_accession, match_on_name, prefix))
+            print("Loading newick '{}' from file '{}'".format(name, os.path.join(newick, nf)))
+            out.append(self._load_single_tree(os.path.join(newick, nf), analysis_id, name, xref_db, xref_accession, match_on_name, prefix))
 
         return out
 
