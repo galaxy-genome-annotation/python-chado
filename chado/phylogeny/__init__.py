@@ -65,7 +65,6 @@ class PhylogenyClient(Client):
         if not os.path.isdir(newick):
             return self._load_single_tree(newick, analysis_id, name, xref_db, xref_accession, match_on_name, prefix)
 
-
         # prefetch this for performances
         peps = self._fetch_peptides(match_on_name)
 
