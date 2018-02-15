@@ -69,16 +69,22 @@ class PhylogenyClient(Client):
         peps = self._fetch_peptides(match_on_name)
 
         out = []
-        for nf in os.listdir(newick):
+        files = os.listdir(newick)
+        cur = 1
+        total = len(files)
+        for nf in sorted(files):
             name = os.path.splitext(os.path.basename(nf))[0]
             if name.endswith('_tree'):  # OrthoFinder file
                 name = name[:-5]
-            print("Loading newick '{}' from file '{}'".format(name, os.path.join(newick, nf)))
-            out.append(self._load_single_tree(os.path.join(newick, nf), analysis_id, name, xref_db, xref_accession, match_on_name, prefix, peps))
+            print("Loading newick '{}' from file '{}' {}/{}".format(name, os.path.join(newick, nf), cur, total))
+            out.append(self._load_single_tree(os.path.join(newick, nf), analysis_id, name, xref_db, xref_accession, match_on_name, prefix, peps, commit=False))
+            cur += 1
+
+        self.session.commit()
 
         return out
 
-    def _load_single_tree(self, newick, analysis_id, name=None, xref_db='null', xref_accession=None, match_on_name=False, prefix="", peps=None):
+    def _load_single_tree(self, newick, analysis_id, name=None, xref_db='null', xref_accession=None, match_on_name=False, prefix="", peps=None, commit=True):
         """
         Load a phylogenetic tree (Newick format) into Chado db
 
@@ -134,7 +140,6 @@ class PhylogenyClient(Client):
         # Add phylotree and its dbxref
         res = self.session.query(self.model.dbxref).filter_by(accession=name, db=db)
         if res.count() > 0:
-            print("Found existing '{}' dbxref, using it".format(name))
             dbxref = res.one()
         else:
             dbxref = self.model.dbxref()
@@ -175,7 +180,8 @@ class PhylogenyClient(Client):
 
         tree_file.close()
 
-        self.session.commit()
+        if commit:
+            self.session.commit()
 
         return {
             'phylotree_id': db_tree.phylotree_id,
