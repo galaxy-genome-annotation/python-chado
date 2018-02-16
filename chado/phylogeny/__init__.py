@@ -523,11 +523,7 @@ class PhylogenyClient(Client):
                 .join(gene_alias, rel_alias.object_id == gene_alias.feature_id) \
                 .all()
 
-            print("Found {} genes".format(len(genes)))
-
             for tree_node, gene_id in genes:
-                print('Gene {} is in tree {}'.format(gene_id, tree_node.phylotree.name))
-
                 if gene_id not in assignements:
                     assignements[gene_id] = []
 
