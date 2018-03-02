@@ -60,6 +60,8 @@ History
     - auto reflect db schema
     - add phylogeny module
     - load features from fasta
+    - load features from gff3
+    - load featureprops from tabular file
     - make chakin util commands work when db is offline
     - add unit tests
 

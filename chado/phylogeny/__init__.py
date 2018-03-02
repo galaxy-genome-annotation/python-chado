@@ -14,6 +14,7 @@ import warnings
 
 from Bio import Phylo
 
+import chado
 from chado.client import Client
 
 from future import standard_library
@@ -55,8 +56,8 @@ class PhylogenyClient(Client):
         :type prefix: str
         :param prefix: Comma-separated list of prefix to be removed from identifiers (e.g species prefixes when using loading OrthoFinder output)
 
-        :rtype: None
-        :return: None
+        :rtype: dict
+        :return: Number of inserted trees
         """
 
         if not os.path.exists(newick):
@@ -82,7 +83,7 @@ class PhylogenyClient(Client):
 
         self.session.commit()
 
-        return out
+        return {'inserted': cur}
 
     def _load_single_tree(self, newick, analysis_id, name=None, xref_db='null', xref_accession=None, match_on_name=False, prefix="", peps=None, commit=True):
         """
@@ -109,13 +110,11 @@ class PhylogenyClient(Client):
         :type prefix: str
         :param prefix: Comma-separated list of prefix to be removed from identifiers (e.g species prefixes when using loading OrthoFinder output)
 
-        :rtype: None
-        :return: None
+        :rtype: dict
+        :return: Tree description
         """
 
-        cvterms = self.add_cvterms()
-        for cvt in cvterms:
-            cvterms[cvt] = self.session.query(self.model.cvterm).filter_by(name=cvterms[cvt]['name'], cv_id=cvterms[cvt]['cv_id']).one()
+        self.add_cvterms()
 
         res = self.session.query(self.model.db).filter_by(name=xref_db)
         if res.count() == 0:
@@ -176,7 +175,7 @@ class PhylogenyClient(Client):
         indexes = []
         for tree in trees:
 
-            self._create_nodes(tree.root, 0, db_tree, cvterms, peps, indexes, prefixes=prefixes)
+            self._create_nodes(tree.root, 0, db_tree, peps, indexes, prefixes=prefixes)
 
         tree_file.close()
 
@@ -206,7 +205,7 @@ class PhylogenyClient(Client):
 
         return peps
 
-    def _create_nodes(self, clade, depth, db_tree, cvterms, peps, indexes, parent_node=None, prefixes=[]):
+    def _create_nodes(self, clade, depth, db_tree, peps, indexes, parent_node=None, prefixes=[]):
         """
         Recursive function which will insert into db all nodes of a phylo tree
         """
@@ -219,18 +218,18 @@ class PhylogenyClient(Client):
         indexes.append(rindex)
 
         if depth == 0:
-            term = cvterms['phylo_root']
+            term = self.ci.get_cvterm_id('phylo_root', 'tripal_phylotree')
         elif clade.is_terminal():
-            term = cvterms['phylo_leaf']
+            term = self.ci.get_cvterm_id('phylo_leaf', 'tripal_phylotree')
         else:
-            term = cvterms['phylo_interior']
+            term = self.ci.get_cvterm_id('phylo_interior', 'tripal_phylotree')
 
         node = self.model.phylonode()
         node.phylotree = db_tree
         node.phylonode = parent_node
         node.left_idx = lindex
         node.right_idx = rindex
-        node.cvterm = term
+        node.cvterm_id = term
         if clade.name:
             cname = clade.name
             # Remove prefix from id (typically added by orthofinder)
@@ -252,9 +251,8 @@ class PhylogenyClient(Client):
 
         clades = clade.clades
         for c in clades:
-            self._create_nodes(c, depth + 1, db_tree, cvterms, peps, indexes, node, prefixes=prefixes)
+            self._create_nodes(c, depth + 1, db_tree, peps, indexes, node, prefixes=prefixes)
 
-    # TODO refactor this sh*t
     def add_cvterms(self):
         """
         Make sure required cvterms are loaded
@@ -262,30 +260,6 @@ class PhylogenyClient(Client):
         :rtype: list of dict
         :return: created cvterms
         """
-
-        # check if the db exists
-        res = self.session.query(self.model.db).filter_by(name='tripal')
-
-        if res.count() > 0:
-            db = res.one()
-        else:
-            db = self.model.db()
-            db.name = 'tripal'
-            db.definition = 'Used as a database placeholder for tripal defined objects such as tripal cvterms'
-
-            self.session.add(db)
-
-        # check if the cv exists
-        res = self.session.query(self.model.cv).filter_by(name='tripal_phylotree')
-
-        if res.count() > 0:
-            cv = res.one()
-        else:
-            cv = self.model.cv()
-            cv.name = 'tripal_phylotree'
-            cv.definition = 'Terms used by the Tripal phylotree module for phylogenetic and taxonomic trees.'
-
-            self.session.add(cv)
 
         terms = {
             'phylo_interior': 'An interior node in a phylogenetic tree.',
@@ -296,85 +270,27 @@ class PhylogenyClient(Client):
         out = {}
 
         for term in terms:
-            res = self.session.query(self.model.dbxref).filter_by(accession=term, db=db)
-            if res.count() > 0:
-                dbxref = res.one()
-            else:
-                dbxref = self.model.dbxref()
-                dbxref.accession = term
-                dbxref.db = db
+            try:
+                cvterm_id = self.ci.get_cvterm_id(term, 'tripal_phylotree')
+            except chado.RecordNotFoundError:
+                cvterm_id = self.ci.create_cvterm(term=term, term_definition=terms[term], cv='tripal_phylotree', db='tripal', cv_definition="Terms used by the Tripal phylotree module for phylogenetic and taxonomic trees.", db_definition="Used as a database placeholder for tripal defined objects such as tripal cvterms")
 
-                self.session.add(dbxref)
-
-            res = self.session.query(self.model.cvterm).filter_by(name=term, cv=cv)
-            if res.count() > 0:
-                cvterm = res.one()
-            else:
-                cvterm = self.model.cvterm()
-                cvterm.name = term
-                cvterm.cv = cv
-                cvterm.definition = terms[term]
-                cvterm.dbxref = dbxref
-
-                self.session.add(cvterm)
-
-            out[cvterm.name] = {
-                'name': cvterm.name,
-                'cv_id': cvterm.cv.cv_id,
-                'definition': cvterm.definition,
-                'dbxref_id': cvterm.dbxref.dbxref_id
+            out[term] = {
+                'cvterm_id': cvterm_id,
+                'name': term,
+                'definition': terms[term],
             }
 
         # Some cvterm for LIS-GCV
-        res = self.session.query(self.model.cv).filter_by(name='GCV_properties')
+        try:
+            cvterm_id = self.ci.get_cvterm_id('gene family', 'GCV_properties')
+        except chado.RecordNotFoundError:
+            cvterm_id = self.ci.create_cvterm(term='gene family', term_definition='A group of genes presumed to be related by common ancestry', cv='GCV_properties', db='null', cv_definition="Used by https://github.com/legumeinfo/lis_context_viewer/", db_definition="A fake database for local items")
 
-        if res.count() > 0:
-            cvlis = res.one()
-        else:
-            cvlis = self.model.cv()
-            cvlis.name = 'GCV_properties'
-            cvlis.definition = 'Used by https://github.com/legumeinfo/lis_context_viewer/'
-
-            self.session.add(cvlis)
-
-        res = self.session.query(self.model.db).filter_by(name='null')
-
-        if res.count() > 0:
-            dblis = res.one()
-        else:
-            dblis = self.model.db()
-            dblis.name = 'null'
-            dblis.definition = 'A fake database for local items'
-
-            self.session.add(dblis)
-
-        res = self.session.query(self.model.dbxref).filter_by(accession='gene family', db=dblis)
-        if res.count() > 0:
-            dbxref = res.one()
-        else:
-            dbxref = self.model.dbxref()
-            dbxref.accession = 'gene family'
-            dbxref.db = dblis
-
-            self.session.add(dbxref)
-
-        res = self.session.query(self.model.cvterm).filter_by(name='gene family', cv=cvlis)
-        if res.count() > 0:
-            cvterm = res.one()
-        else:
-            cvterm = self.model.cvterm()
-            cvterm.name = 'gene family'
-            cvterm.cv = cvlis
-            cvterm.definition = 'A group of genes presumed to be related by common ancestry'
-            cvterm.dbxref = dbxref
-
-            self.session.add(cvterm)
-
-        out[cvterm.name] = {
-            'name': cvterm.name,
-            'cv_id': cvterm.cv.cv_id,
-            'definition': cvterm.definition,
-            'dbxref_id': cvterm.dbxref.dbxref_id
+        out['gene family'] = {
+            'cvterm_id': cvterm_id,
+            'name': 'gene family',
+            'definition': 'A group of genes presumed to be related by common ancestry',
         }
 
         return out
@@ -416,11 +332,13 @@ class PhylogenyClient(Client):
             self.session.query(self.model.gene_order).delete()
 
         # Insert ordering info
-        chromosomes = self.session.query(self.model.cv, self.model.cvterm, self.model.feature) \
-            .filter_by(name='sequence') \
-            .join(self.model.cvterm, self.model.cvterm.cv_id == self.model.cv.cv_id) \
-            .filter((self.model.cvterm.name == 'chromosome') | (self.model.cvterm.name == 'contig') | (self.model.cvterm.name == 'supercontig')) \
-            .join(self.model.feature, self.model.feature.type_id == self.model.cvterm.cvterm_id) \
+        chroterm = self.ci.get_cvterm_id('chromosome', 'sequence')
+        contigterm = self.ci.get_cvterm_id('contig', 'sequence')
+        scontigterm = self.ci.get_cvterm_id('supercontig', 'sequence')
+        geneterm = self.ci.get_cvterm_id('gene', 'sequence')
+
+        chromosomes = self.session.query(self.model.feature.feature_id) \
+            .filter((self.model.feature.type_id == chroterm) | (self.model.feature.type_id == contigterm) | (self.model.feature.type_id == scontigterm)) \
             .all()
 
         existing = self.session.query(self.model.gene_order) \
@@ -429,20 +347,16 @@ class PhylogenyClient(Client):
         existing = {'{}_{}'.format(ex.chromosome_id, ex.gene_id): ex.number for ex in existing}
 
         for chro in chromosomes:
-            genes = self.session.query(self.model.cv, self.model.cvterm, self.model.feature, self.model.featureloc) \
-                .filter_by(name='sequence') \
-                .join(self.model.cvterm, self.model.cvterm.cv_id == self.model.cv.cv_id) \
-                .filter((self.model.cvterm.name == 'gene')) \
-                .join(self.model.feature, self.model.feature.type_id == self.model.cvterm.cvterm_id) \
+            genes = self.session.query(self.model.feature.feature_id) \
                 .join(self.model.featureloc, self.model.feature.feature_id == self.model.featureloc.feature_id) \
-                .filter_by(srcfeature_id=chro.feature.feature_id) \
+                .filter(self.model.feature.type_id == geneterm, self.model.featureloc.srcfeature_id == chro.feature_id) \
                 .order_by(self.model.featureloc.fmin.asc()) \
                 .all()
 
             pos = 0
             for g in genes:
                 pos += 1
-                dup_check_id = '{}_{}'.format(chro.feature.feature_id, g.feature.feature_id)
+                dup_check_id = '{}_{}'.format(chro.feature_id, g.feature_id)
                 if dup_check_id in existing:
                     if existing[dup_check_id] == pos:
                         continue  # We already have this order record, skip it
@@ -450,8 +364,8 @@ class PhylogenyClient(Client):
                         raise Exception("Found an existing gene_order record with different value. Rolling back, use the --nuke option to replace all existing values.")
 
                 order = self.model.gene_order()
-                order.chromosome_id = chro.feature.feature_id
-                order.gene_id = g.feature.feature_id
+                order.chromosome_id = chro.feature_id
+                order.gene_id = g.feature_id
                 order.number = pos
                 self.session.add(order)
 
@@ -515,37 +429,38 @@ class PhylogenyClient(Client):
         assignements = {}
 
         for tree in trees:
-            genes = self.session.query(self.model.phylonode, gene_alias.feature_id) \
-                .filter_by(phylotree_id=tree.phylotree_id) \
+            genes = self.session.query(self.model.phylotree.name, gene_alias.feature_id) \
+                .join(self.model.phylonode, self.model.phylonode.phylotree_id == self.model.phylotree.phylotree_id) \
                 .join(self.model.feature_relationship, self.model.phylonode.feature_id == self.model.feature_relationship.subject_id) \
                 .join(mrna_alias, self.model.feature_relationship.object_id == mrna_alias.feature_id) \
                 .join(rel_alias, mrna_alias.feature_id == rel_alias.subject_id) \
                 .join(gene_alias, rel_alias.object_id == gene_alias.feature_id) \
+                .filter(self.model.phylonode.phylotree_id == tree.phylotree_id) \
                 .all()
 
-            for tree_node, gene_id in genes:
-                if gene_id not in assignements:
-                    assignements[gene_id] = []
+            for gene in genes:
+                if gene.feature_id not in assignements:
+                    assignements[gene.feature_id] = []
 
-                assignements[gene_id].append(tree_node.phylotree.name)
+                assignements[gene.feature_id].append(gene.name)
 
         # Cache all existing gene_family_assignment rows
         existing_gfa = self.session.query(self.model.gene_family_assignment) \
             .all()
-        existing_gfa = ['{}_{}'.format(ex.gene_id, ex.family_label) for ex in existing_gfa]
+        existing_gfa = [(ex.gene_id, ex.family_label) for ex in existing_gfa]
 
         # Cache all existing featureprop rows
         existing_fp = self.session.query(self.model.featureprop) \
             .filter_by(type_id=gfterm) \
             .all()
-        existing_fp = {'{}_{}'.format(ex.feature_id, ex.value): ex.rank for ex in existing_fp}
+        existing_fp = {(ex.feature_id, ex.value): ex.rank for ex in existing_fp}
 
         for gene in assignements:
 
             rank = 0
             tree_list = ','.join(assignements[gene])
-            if '{}_{}'.format(gene, tree_list) in existing_fp:
-                rank = existing_fp['{}_{}'.format(gene, tree_list)] + 1
+            if (gene, tree_list) in existing_fp:
+                rank = existing_fp[(gene, tree_list)] + 1
 
             fprop = self.model.featureprop()
             fprop.feature_id = gene
@@ -555,7 +470,7 @@ class PhylogenyClient(Client):
             self.session.add(fprop)
 
             for tree in assignements[gene]:
-                if '{}_{}'.format(gene, tree) not in existing_gfa:
+                if (gene, tree) not in existing_gfa:
                     gfa = self.model.gene_family_assignment()
                     gfa.gene_id = gene
                     gfa.family_label = tree

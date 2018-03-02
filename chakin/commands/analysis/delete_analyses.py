@@ -44,14 +44,19 @@ from chakin.decorators import custom_exception, None_output
     help="analysis sourceuri filter",
     type=str
 )
+@click.option(
+    "--description",
+    help="analysis description",
+    type=str
+)
 @pass_context
 @custom_exception
 @None_output
-def cli(ctx, analysis_id="", name="", program="", programversion="", algorithm="", sourcename="", sourceversion="", sourceuri=""):
+def cli(ctx, analysis_id="", name="", program="", programversion="", algorithm="", sourcename="", sourceversion="", sourceuri="", description=""):
     """Delete analysis
 
 Output:
 
     None
     """
-    return ctx.gi.analysis.delete_analyses(analysis_id=analysis_id, name=name, program=program, programversion=programversion, algorithm=algorithm, sourcename=sourcename, sourceversion=sourceversion, sourceuri=sourceuri)
+    return ctx.gi.analysis.delete_analyses(analysis_id=analysis_id, name=name, program=program, programversion=programversion, algorithm=algorithm, sourcename=sourcename, sourceversion=sourceversion, sourceuri=sourceuri, description=description)

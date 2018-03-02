@@ -10,11 +10,20 @@ chakin analysis add_analysis
 '$name'
 '$program'
 '$programversion'
-'$algorithm'
 '$sourcename'
-'$sourceversion'
-'$sourceuri'
 
+#if $algorithm:
+  --algorithm '$algorithm'
+#end if
+#if $sourceversion:
+  --sourceversion '$sourceversion'
+#end if
+#if $sourceuri:
+  --sourceuri '$sourceuri'
+#end if
+#if $description:
+  --description '$description'
+#end if
 #if $date_executed:
   --date_executed '$date_executed'
 #end if
@@ -26,12 +35,13 @@ chakin analysis add_analysis
 	<param name="name" label="Name" argument="name" type="text" help="analysis name" />
 	<param name="program" label="Program" argument="program" type="text" help="analysis program" />
 	<param name="programversion" label="Programversion" argument="programversion" type="text" help="analysis programversion" />
-	<param name="algorithm" label="Algorithm" argument="algorithm" type="text" help="analysis algorithm" />
 	<param name="sourcename" label="Sourcename" argument="sourcename" type="text" help="analysis sourcename" />
-	<param name="sourceversion" label="Sourceversion" argument="sourceversion" type="text" help="analysis sourceversion" />
-	<param name="sourceuri" label="Sourceuri" argument="sourceuri" type="text" help="analysis sourceuri" />
 
     <!-- options -->
+	<param name="algorithm" label="Algorithm" argument="algorithm" type="text" help="analysis algorithm" />
+	<param name="sourceversion" label="Sourceversion" argument="sourceversion" type="text" help="analysis sourceversion" />
+	<param name="sourceuri" label="Sourceuri" argument="sourceuri" type="text" help="analysis sourceuri" />
+	<param name="description" label="Description" argument="description" type="text" help="analysis description" />
 	<param name="date_executed" label="Date Executed" argument="date_executed" type="text" help="analysis date_executed (yyyy-mm-dd)" />
 
 	</inputs>

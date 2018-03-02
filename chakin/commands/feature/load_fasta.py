@@ -1,6 +1,6 @@
 import click
 from chakin.cli import pass_context
-from chakin.decorators import custom_exception, None_output
+from chakin.decorators import custom_exception, dict_output
 
 
 @click.command('load_fasta')
@@ -65,12 +65,12 @@ from chakin.decorators import custom_exception, None_output
 )
 @pass_context
 @custom_exception
-@None_output
+@dict_output
 def cli(ctx, fasta, organism_id, sequence_type="contig", analysis_id="", re_name="", re_uniquename="", match_on_name=False, update=False, db="", re_db_accession="", rel_type="", re_parent="", parent_type=""):
     """Load features from a fasta file
 
 Output:
 
-    None
+    Number of inserted sequences
     """
     return ctx.gi.feature.load_fasta(fasta, organism_id, sequence_type=sequence_type, analysis_id=analysis_id, re_name=re_name, re_uniquename=re_uniquename, match_on_name=match_on_name, update=update, db=db, re_db_accession=re_db_accession, rel_type=rel_type, re_parent=re_parent, parent_type=parent_type)

@@ -20,7 +20,7 @@ class AnalysisClient(Client):
     Access to the chado analysis table
     """
 
-    def add_analysis(self, name, program, programversion, algorithm, sourcename, sourceversion, sourceuri, date_executed=None):
+    def add_analysis(self, name, program, programversion, sourcename, algorithm=None, sourceversion=None, sourceuri=None, description=None, date_executed=None):
         """
         Create an analysis
 
@@ -44,6 +44,9 @@ class AnalysisClient(Client):
 
         :type sourceuri: str
         :param sourceuri: analysis sourceuri
+
+        :type description: str
+        :param description: analysis description
 
         :type date_executed: str
         :param date_executed: analysis date_executed (yyyy-mm-dd)
@@ -69,6 +72,7 @@ class AnalysisClient(Client):
         newa.sourcename = sourcename
         newa.sourceversion = sourceversion
         newa.sourceuri = sourceuri
+        newa.description = description
         newa.timeexecuted = date
         self.session.add(newa)
         self.session.commit()
@@ -82,10 +86,11 @@ class AnalysisClient(Client):
             'sourcename': newa.sourcename,
             'sourceversion': newa.sourceversion,
             'sourceuri': newa.sourceuri,
+            'description': newa.description,
             'timeexecuted': newa.timeexecuted.isoformat(),
         }
 
-    def get_analyses(self, analysis_id=None, name=None, program=None, programversion=None, algorithm=None, sourcename=None, sourceversion=None, sourceuri=None):
+    def get_analyses(self, analysis_id=None, name=None, program=None, programversion=None, algorithm=None, sourcename=None, sourceversion=None, sourceuri=None, description=None):
         """
         Get all or some analyses
 
@@ -113,6 +118,9 @@ class AnalysisClient(Client):
         :type sourceuri: str
         :param sourceuri: analysis sourceuri filter
 
+        :type description: str
+        :param description: analysis description
+
         :rtype: list of dict
         :return: Analysis information
         """
@@ -135,6 +143,8 @@ class AnalysisClient(Client):
             res = res.filter_by(sourceversion=sourceversion)
         if sourceuri:
             res = res.filter_by(sourceuri=sourceuri)
+        if description:
+            res = res.filter_by(description=description)
 
         data = []
         for ana in res:
@@ -147,11 +157,12 @@ class AnalysisClient(Client):
                 'sourcename': ana.sourcename,
                 'sourceversion': ana.sourceversion,
                 'sourceuri': ana.sourceuri,
+                'description': ana.description,
                 'timeexecuted': str(ana.timeexecuted),
             })
         return data
 
-    def delete_analyses(self, analysis_id=None, name=None, program=None, programversion=None, algorithm=None, sourcename=None, sourceversion=None, sourceuri=None):
+    def delete_analyses(self, analysis_id=None, name=None, program=None, programversion=None, algorithm=None, sourcename=None, sourceversion=None, sourceuri=None, description=None):
         """
         Delete analysis
 
@@ -179,6 +190,9 @@ class AnalysisClient(Client):
         :type sourceuri: str
         :param sourceuri: analysis sourceuri filter
 
+        :type description: str
+        :param description: analysis description
+
         :rtype: None
         :return: None
         """
@@ -200,6 +214,8 @@ class AnalysisClient(Client):
             res = res.filter_by(sourceversion=sourceversion)
         if sourceuri:
             res = res.filter_by(sourceuri=sourceuri)
+        if description:
+            res = res.filter_by(description=description)
 
         res = res.delete()
 

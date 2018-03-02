@@ -26,7 +26,7 @@ chakin phylogeny load_tree
   --prefix '$prefix'
 #end if
 
- > $results
+| jq -S . > $results
 </command>
 	<inputs>
     <!-- arguments -->
@@ -42,7 +42,7 @@ chakin phylogeny load_tree
 
 	</inputs>
 	<outputs>
-		<data format="txt" name="results"/>
+		<data format="json" name="results"/>
 	</outputs>
 	<help>
 Load a phylogenetic tree (Newick format) into Chado db
