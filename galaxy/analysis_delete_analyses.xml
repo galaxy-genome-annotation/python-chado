@@ -32,6 +32,9 @@ chakin analysis delete_analyses
 #if $sourceuri:
   --sourceuri '$sourceuri'
 #end if
+#if $description:
+  --description '$description'
+#end if
 
  > $results
 </command>
@@ -47,6 +50,7 @@ chakin analysis delete_analyses
 	<param name="sourcename" label="Sourcename" argument="sourcename" type="text" help="analysis sourcename filter" />
 	<param name="sourceversion" label="Sourceversion" argument="sourceversion" type="text" help="analysis sourceversion filter" />
 	<param name="sourceuri" label="Sourceuri" argument="sourceuri" type="text" help="analysis sourceuri filter" />
+	<param name="description" label="Description" argument="description" type="text" help="analysis description" />
 
 	</inputs>
 	<outputs>

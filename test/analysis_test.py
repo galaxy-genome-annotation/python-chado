@@ -14,9 +14,10 @@ class AnalysisTest(unittest.TestCase):
         sourcename = "src"
         sourceversion = "2.1beta"
         sourceuri = "http://example.org/"
+        description = "Bla bla bla"
         date_executed = "2018-02-03"
 
-        ana = self.ci.analysis.add_analysis(name=name, program=program, programversion=programversion, algorithm=algorithm, sourcename=sourcename, sourceversion=sourceversion, sourceuri=sourceuri, date_executed=date_executed)
+        ana = self.ci.analysis.add_analysis(name=name, program=program, programversion=programversion, algorithm=algorithm, sourcename=sourcename, sourceversion=sourceversion, sourceuri=sourceuri, description=description, date_executed=date_executed)
 
         assert ana["analysis_id"] > 0, "ana properly created"
 
@@ -29,6 +30,7 @@ class AnalysisTest(unittest.TestCase):
         assert ana["sourcename"] == sourcename, "analysis properly created"
         assert ana["sourceversion"] == sourceversion, "analysis properly created"
         assert ana["sourceuri"] == sourceuri, "analysis properly created"
+        assert ana["description"] == description, "analysis properly created"
         assert ana["timeexecuted"] == '2018-02-03 00:00:00', "analysis properly created"
 
         self.ci.analysis.delete_analyses(name=name)
@@ -41,5 +43,9 @@ class AnalysisTest(unittest.TestCase):
         self.ci = ci
         self.ci.analysis.delete_analyses()
 
+        self.ci.session.commit()
+
     def tearDown(self):
         self.ci.analysis.delete_analyses()
+
+        self.ci.session.commit()

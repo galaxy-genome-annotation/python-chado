@@ -44,7 +44,7 @@ chakin feature load_fasta
   --parent_type '$parent_type'
 #end if
 
- > $results
+| jq -S . > $results
 </command>
 	<inputs>
     <!-- arguments -->
@@ -66,7 +66,7 @@ chakin feature load_fasta
 
 	</inputs>
 	<outputs>
-		<data format="txt" name="results"/>
+		<data format="json" name="results"/>
 	</outputs>
 	<help>
 Load features from a fasta file

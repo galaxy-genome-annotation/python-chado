@@ -74,7 +74,7 @@ Load features from a fasta file
 **Output**
 
 
-    None
+    Number of inserted sequences
     
 **Options**::
 
@@ -104,6 +104,33 @@ Load features from a fasta file
       -h, --help              Show this message and exit.
     
 
+``load_featureprops`` command
+-----------------------------
+
+**Usage**::
+
+    chakin feature load_featureprops [OPTIONS] TAB_FILE ANALYSIS_ID
+
+**Help**
+
+Load feature properties from a tabular file (Column1: feature name or uniquename, Column2: property value)
+
+
+**Output**
+
+
+    Number of inserted featureprop
+    
+**Options**::
+
+
+      --feature_type TEXT  Type of the target features in sequence ontology (will
+                           speed up loading if specified)
+      --match_on_name      Match features using their name instead of their
+                           uniquename
+      -h, --help           Show this message and exit.
+    
+
 ``load_gff`` command
 --------------------
 
@@ -124,5 +151,28 @@ Load features from a gff file
 **Options**::
 
 
-      -h, --help  Show this message and exit.
+      --landmark_type TEXT       Type of the landmarks (will speed up loading if
+                                 provided, e.g. contig, should be a term of the
+                                 Sequence ontology)
+      --re_protein TEXT          Replacement string for the protein name using
+                                 capturing groups defined by --re_protein_capture
+      --re_protein_capture TEXT  Regular expression to capture groups in protein
+                                 name to use in --re_protein (e.g.
+                                 "^(.*?)-R([A-Z]+)$", default="^(.*?)$")  [default:
+                                 ^(.*?)$]
+      --fasta TEXT               Path to a Fasta containing sequences for some
+                                 features. When creating a feature, if its sequence
+                                 is in this fasta file it will be loaded. Otherwise
+                                 for mRNA and polypeptides it will be computed from
+                                 the genome sequence (if available), otherwise it
+                                 will be left empty.
+      --no_seq_compute           Disable the computation of mRNA and polypeptides
+                                 sequences based on genome sequence and positions.
+      --quiet                    Hide progress information
+      --add_only                 Use this flag if you're not updating existing
+                                 features, but just adding new features to the
+                                 selected analysis and organism. It will speedup
+                                 loading, and reduce memory usage, but might produce
+                                 errors in case of already existing feature.
+      -h, --help                 Show this message and exit.
     

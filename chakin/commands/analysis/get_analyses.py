@@ -44,14 +44,19 @@ from chakin.decorators import custom_exception, list_output
     help="analysis sourceuri filter",
     type=str
 )
+@click.option(
+    "--description",
+    help="analysis description",
+    type=str
+)
 @pass_context
 @custom_exception
 @list_output
-def cli(ctx, analysis_id="", name="", program="", programversion="", algorithm="", sourcename="", sourceversion="", sourceuri=""):
+def cli(ctx, analysis_id="", name="", program="", programversion="", algorithm="", sourcename="", sourceversion="", sourceuri="", description=""):
     """Get all or some analyses
 
 Output:
 
     Analysis information
     """
-    return ctx.gi.analysis.get_analyses(analysis_id=analysis_id, name=name, program=program, programversion=programversion, algorithm=algorithm, sourcename=sourcename, sourceversion=sourceversion, sourceuri=sourceuri)
+    return ctx.gi.analysis.get_analyses(analysis_id=analysis_id, name=name, program=program, programversion=programversion, algorithm=algorithm, sourcename=sourcename, sourceversion=sourceversion, sourceuri=sourceuri, description=description)

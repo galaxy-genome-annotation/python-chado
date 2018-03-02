@@ -25,6 +25,10 @@ Create an analysis
 **Options**::
 
 
+      --algorithm TEXT      analysis algorithm
+      --sourceversion TEXT  analysis sourceversion
+      --sourceuri TEXT      analysis sourceuri
+      --description TEXT    analysis description
       --date_executed TEXT  analysis date_executed (yyyy-mm-dd)
       -h, --help            Show this message and exit.
     
@@ -57,6 +61,7 @@ Delete analysis
       --sourcename TEXT      analysis sourcename filter
       --sourceversion TEXT   analysis sourceversion filter
       --sourceuri TEXT       analysis sourceuri filter
+      --description TEXT     analysis description
       -h, --help             Show this message and exit.
     
 
@@ -88,5 +93,6 @@ Get all or some analyses
       --sourcename TEXT      analysis sourcename filter
       --sourceversion TEXT   analysis sourceversion filter
       --sourceuri TEXT       analysis sourceuri filter
+      --description TEXT     analysis description
       -h, --help             Show this message and exit.
     

@@ -92,7 +92,7 @@ Load a phylogenetic tree (Newick format) into Chado db
 **Output**
 
 
-    None
+    Number of inserted trees
     
 **Options**::
 

@@ -35,5 +35,9 @@ class OrganismTest(unittest.TestCase):
         self.ci = ci
         self.ci.organism.delete_organisms()
 
+        self.ci.session.commit()
+
     def tearDown(self):
         self.ci.organism.delete_organisms()
+
+        self.ci.session.commit()

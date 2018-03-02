@@ -1,6 +1,6 @@
 import click
 from chakin.cli import pass_context
-from chakin.decorators import custom_exception, None_output
+from chakin.decorators import custom_exception, dict_output
 
 
 @click.command('load_tree')
@@ -35,12 +35,12 @@ from chakin.decorators import custom_exception, None_output
 )
 @pass_context
 @custom_exception
-@None_output
+@dict_output
 def cli(ctx, newick, analysis_id, name="", xref_db="null", xref_accession="", match_on_name=False, prefix=""):
     """Load a phylogenetic tree (Newick format) into Chado db
 
 Output:
 
-    None
+    Number of inserted trees
     """
     return ctx.gi.phylogeny.load_tree(newick, analysis_id, name=name, xref_db=xref_db, xref_accession=xref_accession, match_on_name=match_on_name, prefix=prefix)

@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<tool id="chakin_feature_load_featureprops" name="feature" version="@WRAPPER_VERSION@.0">
+ <description>load_featureprops</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+chakin feature load_featureprops
+'$tab_file'
+'$analysis_id'
+'$organism_id'
+'$prop_type'
+
+#if $feature_type:
+  --feature_type '$feature_type'
+#end if
+#if $match_on_name:
+  $match_on_name
+#end if
+
+| jq -S . > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+	<param name="tab_file" label="Tab File" argument="tab_file" type="text" help="Path to the tabular file file to load" />
+	<param name="analysis_id" label="Analysis Id" argument="analysis_id" type="integer" value="0" help="Analysis ID" />
+	<param name="organism_id" label="Organism Id" argument="organism_id" type="integer" value="0" help="Organism ID" />
+	<param name="prop_type" label="Prop Type" argument="prop_type" type="text" help="Type of the feature property (cvterm will be created if it doesn't exist)" />
+
+    <!-- options -->
+	<param name="feature_type" label="Feature Type" argument="feature_type" type="text" help="Type of the target features in sequence ontology (will speed up loading if specified)" />
+	<param name="match_on_name" label="Match On Name" argument="match_on_name" type="boolean" truevalue="--match_on_name" falsevalue="" help="Match features using their name instead of their uniquename" />
+
+	</inputs>
+	<outputs>
+		<data format="json" name="results"/>
+	</outputs>
+	<help>
+Load feature properties from a tabular file (Column1: feature name or uniquename, Column2: property value)
+
+@HELP@
+	</help>
+</tool>
