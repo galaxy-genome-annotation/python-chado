@@ -34,11 +34,11 @@ def read_global_config():
 def _get_instance(instance_name=None):
     # I don't like reading the config twice.
     conf = read_global_config()
-    print(DEFAULT_CONFIG)
+
     if not os.path.exists(global_config_path()):
         # Probably creating the file for the first time.
         return None
-
+    print(global_config_path())
     if instance_name is None or instance_name == '__default':
         try:
             instance_name = conf['__default']
@@ -47,7 +47,7 @@ def _get_instance(instance_name=None):
 
     if instance_name not in conf:
         raise Exception("Unknown Chado instance; check spelling or add to %s" % DEFAULT_CONFIG)
-
+    print(conf)
     return conf[instance_name]
 
 
