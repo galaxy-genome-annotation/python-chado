@@ -20,8 +20,7 @@ Add a new organism to the Chado database
 **Output**
 
 
-Organism information
-   
+    Organism information
     
 **Options**::
 
@@ -46,14 +45,42 @@ Delete all organisms
 **Output**
 
 
-None
-   
+    None
     
 **Options**::
 
 
       --confirm   Confirm that you really do want to delete ALL of the organisms.
       -h, --help  Show this message and exit.
+    
+
+``delete_organisms`` command
+----------------------------
+
+**Usage**::
+
+    chakin organism delete_organisms [OPTIONS]
+
+**Help**
+
+Delete all organisms
+
+
+**Output**
+
+
+    None
+    
+**Options**::
+
+
+      --organism_id INTEGER  organism_id filter
+      --genus TEXT           genus filter
+      --species TEXT         species filter
+      --common TEXT          common filter
+      --abbr TEXT            abbr filter
+      --comment TEXT         comment filter
+      -h, --help             Show this message and exit.
     
 
 ``get_organisms`` command
@@ -65,22 +92,22 @@ None
 
 **Help**
 
-Get all organisms
+Get all or some organisms
 
 
 **Output**
 
 
-Organisms information
-   
+    Organisms information
     
 **Options**::
 
 
-      --genus TEXT    genus filter
-      --species TEXT  species filter
-      --common TEXT   common filter
-      --abbr TEXT     abbr filter
-      --comment TEXT  comment filter
-      -h, --help      Show this message and exit.
+      --organism_id INTEGER  organism_id filter
+      --genus TEXT           genus filter
+      --species TEXT         species filter
+      --common TEXT          common filter
+      --abbr TEXT            abbr filter
+      --comment TEXT         comment filter
+      -h, --help             Show this message and exit.
     

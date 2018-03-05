@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<tool id="chakin_phylogeny_load_tree" name="phylogeny" version="@WRAPPER_VERSION@.0">
+ <description>load_tree</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+chakin phylogeny load_tree
+'$newick'
+'$analysis_id'
+
+#if $name:
+  --name '$name'
+#end if
+#if $xref_db:
+  --xref_db '$xref_db'
+#end if
+#if $xref_accession:
+  --xref_accession '$xref_accession'
+#end if
+#if $match_on_name:
+  $match_on_name
+#end if
+#if $prefix:
+  --prefix '$prefix'
+#end if
+
+| jq -S . > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+	<param name="newick" label="Newick" argument="newick" type="text" help="Newick file to load (or directory containing multiple newick files to load)" />
+	<param name="analysis_id" label="Analysis Id" argument="analysis_id" type="integer" value="0" help="Analysis ID" />
+
+    <!-- options -->
+	<param name="name" label="Name" argument="name" type="text" help="The name given to the phylotree entry in the database (default=<filename>)" />
+	<param name="xref_db" label="Xref Db" argument="xref_db" type="text" help="The name of the db to link dbxrefs for the trees (default: \"null\")" />
+	<param name="xref_accession" label="Xref Accession" argument="xref_accession" type="text" help="The accession to use for dbxrefs for the trees (assumed same as name unless otherwise specified)" />
+	<param name="match_on_name" label="Match On Name" argument="match_on_name" type="boolean" truevalue="--match_on_name" falsevalue="" help="Match polypeptide features using their name instead of their uniquename" />
+	<param name="prefix" label="Prefix" argument="prefix" type="text" help="Comma-separated list of prefix to be removed from identifiers (e.g species prefixes when using loading OrthoFinder output)" />
+
+	</inputs>
+	<outputs>
+		<data format="json" name="results"/>
+	</outputs>
+	<help>
+Load a phylogenetic tree (Newick format) into Chado db
+
+@HELP@
+	</help>
+</tool>

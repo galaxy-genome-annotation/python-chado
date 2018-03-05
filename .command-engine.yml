@@ -24,6 +24,9 @@ module:
             - 'dbschema'
             - 'get_cvterm_id'
             - 'get_cvterm_name'
+            - 'create_cvterm'
+            - 'get_pub_id'
+            - 'model'
         funcs:
             - get
             - post

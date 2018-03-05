@@ -1,14 +1,16 @@
 """
 Contains possible interactions with the Chado Organisms Module
 """
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
 from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 from chado.client import Client
-from chado.models import *
+
+from future import standard_library
+
+standard_library.install_aliases()
 
 
 class OrganismClient(Client):
@@ -40,12 +42,12 @@ class OrganismClient(Client):
         """
 
         # check if the organism exists
-        res = self.session.query(Organism).filter_by(common_name=common)
+        res = self.session.query(self.model.organism).filter_by(common_name=common)
 
         if (res.count() > 0):
             raise Exception("Found a preexisting organism with the same attributes in the database")
 
-        org = Organism()
+        org = self.model.organism()
         org.abbreviation = abbr
         org.genus = genus
         org.species = species
@@ -62,9 +64,12 @@ class OrganismClient(Client):
             'species': org.species,
         }
 
-    def get_organisms(self, genus=None, species=None, common=None, abbr=None, comment=None):
+    def get_organisms(self, organism_id=None, genus=None, species=None, common=None, abbr=None, comment=None):
         """
-        Get all organisms
+        Get all or some organisms
+
+        :type organism_id: int
+        :param organism_id: organism_id filter
 
         :type genus: str
         :param genus: genus filter
@@ -86,7 +91,9 @@ class OrganismClient(Client):
         """
 
         # check if the organism exists
-        res = self.session.query(Organism)
+        res = self.session.query(self.model.organism)
+        if organism_id:
+            res = res.filter_by(organism_id=organism_id)
         if genus:
             res = res.filter_by(genus=genus)
         if species:
@@ -110,6 +117,52 @@ class OrganismClient(Client):
             })
         return data
 
+    def delete_organisms(self, organism_id=None, genus=None, species=None, common=None, abbr=None, comment=None):
+        """
+        Delete all organisms
+
+        :type organism_id: int
+        :param organism_id: organism_id filter
+
+        :type genus: str
+        :param genus: genus filter
+
+        :type species: str
+        :param species: species filter
+
+        :type common: str
+        :param common: common filter
+
+        :type abbr: str
+        :param abbr: abbr filter
+
+        :type comment: str
+        :param comment: comment filter
+
+        :rtype: None
+        :return: None
+        """
+
+        # check if the organism exists
+        res = self.session.query(self.model.organism)
+        if organism_id:
+            res = res.filter_by(organism_id=organism_id)
+        if genus:
+            res = res.filter_by(genus=genus)
+        if species:
+            res = res.filter_by(species=species)
+        if common:
+            res = res.filter_by(common_name=common)
+        if abbr:
+            res = res.filter_by(abbreviation=abbr)
+        if comment:
+            res = res.filter_by(comment=comment)
+        res = res.delete()
+
+        self.session.commit()
+        return res
+
+    # Kept for compatibility
     def delete_all_organisms(self, confirm=False):
         """
         Delete all organisms
@@ -121,7 +174,5 @@ class OrganismClient(Client):
         :return: None
         """
 
-        # check if the organism exists
-        res = self.session.query(Organism).delete()
-        self.session.commit()
-        return res
+        if confirm:
+            return self.delete_organisms()

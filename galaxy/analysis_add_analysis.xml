@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<tool id="chakin.analysis.add_analysis" name="analysis" version="1.0">
+<tool id="chakin_analysis_add_analysis" name="analysis" version="@WRAPPER_VERSION@.0">
  <description>add_analysis</description>
 	<macros>
 		<import>macros.xml</import>
@@ -7,16 +7,25 @@
 	<expand macro="requirements"/>
 	<command detect_errors="aggressive">
 chakin analysis add_analysis
-"$name"
-"$program"
-"$programversion"
-"$algorithm"
-"$sourcename"
-"$sourceversion"
-"$sourceuri"
+'$name'
+'$program'
+'$programversion'
+'$sourcename'
 
+#if $algorithm:
+  --algorithm '$algorithm'
+#end if
+#if $sourceversion:
+  --sourceversion '$sourceversion'
+#end if
+#if $sourceuri:
+  --sourceuri '$sourceuri'
+#end if
+#if $description:
+  --description '$description'
+#end if
 #if $date_executed:
-  --date_executed "$date_executed"
+  --date_executed '$date_executed'
 #end if
 
 | jq -S . > $results
@@ -26,12 +35,13 @@ chakin analysis add_analysis
 	<param name="name" label="Name" argument="name" type="text" help="analysis name" />
 	<param name="program" label="Program" argument="program" type="text" help="analysis program" />
 	<param name="programversion" label="Programversion" argument="programversion" type="text" help="analysis programversion" />
-	<param name="algorithm" label="Algorithm" argument="algorithm" type="text" help="analysis algorithm" />
 	<param name="sourcename" label="Sourcename" argument="sourcename" type="text" help="analysis sourcename" />
-	<param name="sourceversion" label="Sourceversion" argument="sourceversion" type="text" help="analysis sourceversion" />
-	<param name="sourceuri" label="Sourceuri" argument="sourceuri" type="text" help="analysis sourceuri" />
 
     <!-- options -->
+	<param name="algorithm" label="Algorithm" argument="algorithm" type="text" help="analysis algorithm" />
+	<param name="sourceversion" label="Sourceversion" argument="sourceversion" type="text" help="analysis sourceversion" />
+	<param name="sourceuri" label="Sourceuri" argument="sourceuri" type="text" help="analysis sourceuri" />
+	<param name="description" label="Description" argument="description" type="text" help="analysis description" />
 	<param name="date_executed" label="Date Executed" argument="date_executed" type="text" help="analysis date_executed (yyyy-mm-dd)" />
 
 	</inputs>
@@ -40,5 +50,7 @@ chakin analysis add_analysis
 	</outputs>
 	<help>
 Create an analysis
+
+@HELP@
 	</help>
 </tool>

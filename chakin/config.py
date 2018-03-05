@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import os
-import yaml
 import chado
+import yaml
 
 DEFAULT_CONFIG = {
 }
@@ -34,6 +34,7 @@ def read_global_config():
 def _get_instance(instance_name=None):
     # I don't like reading the config twice.
     conf = read_global_config()
+
     if not os.path.exists(global_config_path()):
         # Probably creating the file for the first time.
         return None
@@ -50,11 +51,12 @@ def _get_instance(instance_name=None):
     return conf[instance_name]
 
 
-def get_instance(instance_name=None):
+def get_instance(instance_name=None, offline=False):
     conf = _get_instance(instance_name=instance_name)
     return chado.ChadoInstance(dbhost=conf['dbhost'],
-                                dbname=conf['dbname'],
-                                dbuser=conf['dbuser'],
-                                dbpass=conf['dbpass'],
-                                dbschema=conf['dbschema'],
-                                dbport=conf['dbport'])
+                               dbname=conf['dbname'],
+                               dbuser=conf['dbuser'],
+                               dbpass=conf['dbpass'],
+                               dbschema=conf['dbschema'],
+                               dbport=conf['dbport'],
+                               offline=offline)

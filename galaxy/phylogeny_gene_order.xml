@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<tool id="chakin_phylogeny_gene_order" name="phylogeny" version="@WRAPPER_VERSION@.0">
+ <description>gene_order</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+chakin phylogeny gene_order
+
+#if $nuke:
+  $nuke
+#end if
+
+ > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+
+    <!-- options -->
+	<param name="nuke" label="Nuke" argument="nuke" type="boolean" truevalue="--nuke" falsevalue="" help="Removes all previous gene ordering data" />
+
+	</inputs>
+	<outputs>
+		<data format="txt" name="results"/>
+	</outputs>
+	<help>
+Orders all the genes in the database by their order on their respective chromosomes in the gene_order table (for use in https://github.com/legumeinfo/lis_context_viewer/).
+
+@HELP@
+	</help>
+</tool>

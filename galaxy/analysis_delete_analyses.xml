@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<tool id="chakin_analysis_delete_analyses" name="analysis" version="@WRAPPER_VERSION@.0">
+ <description>delete_analyses</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+chakin analysis delete_analyses
+
+#if $analysis_id:
+  --analysis_id '$analysis_id'
+#end if
+#if $name:
+  --name '$name'
+#end if
+#if $program:
+  --program '$program'
+#end if
+#if $programversion:
+  --programversion '$programversion'
+#end if
+#if $algorithm:
+  --algorithm '$algorithm'
+#end if
+#if $sourcename:
+  --sourcename '$sourcename'
+#end if
+#if $sourceversion:
+  --sourceversion '$sourceversion'
+#end if
+#if $sourceuri:
+  --sourceuri '$sourceuri'
+#end if
+#if $description:
+  --description '$description'
+#end if
+
+ > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+
+    <!-- options -->
+	<param name="analysis_id" label="Analysis Id" argument="analysis_id" type="integer" value="0" help="analysis_id filter" />
+	<param name="name" label="Name" argument="name" type="text" help="analysis name filter" />
+	<param name="program" label="Program" argument="program" type="text" help="analysis program filter" />
+	<param name="programversion" label="Programversion" argument="programversion" type="text" help="analysis programversion filter" />
+	<param name="algorithm" label="Algorithm" argument="algorithm" type="text" help="analysis algorithm filter" />
+	<param name="sourcename" label="Sourcename" argument="sourcename" type="text" help="analysis sourcename filter" />
+	<param name="sourceversion" label="Sourceversion" argument="sourceversion" type="text" help="analysis sourceversion filter" />
+	<param name="sourceuri" label="Sourceuri" argument="sourceuri" type="text" help="analysis sourceuri filter" />
+	<param name="description" label="Description" argument="description" type="text" help="analysis description" />
+
+	</inputs>
+	<outputs>
+		<data format="txt" name="results"/>
+	</outputs>
+	<help>
+Delete analysis
+
+@HELP@
+	</help>
+</tool>

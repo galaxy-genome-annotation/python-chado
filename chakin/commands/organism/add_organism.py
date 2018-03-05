@@ -1,12 +1,12 @@
 import click
-from chakin.cli import pass_context, json_loads
-from chakin.decorators import custom_exception, dict_output, _arg_split
+from chakin.cli import pass_context
+from chakin.decorators import custom_exception, dict_output
+
 
 @click.command('add_organism')
 @click.argument("genus", type=str)
 @click.argument("common", type=str)
 @click.argument("abbr", type=str)
-
 @click.option(
     "--species",
     help="The species of the organism",
@@ -17,7 +17,6 @@ from chakin.decorators import custom_exception, dict_output, _arg_split
     help="A comment / description",
     type=str
 )
-
 @pass_context
 @custom_exception
 @dict_output
@@ -26,7 +25,6 @@ def cli(ctx, genus, common, abbr, species="", comment=""):
 
 Output:
 
-     Organism information
-        
+    Organism information
     """
     return ctx.gi.organism.add_organism(genus, common, abbr, species=species, comment=comment)

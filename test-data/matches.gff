@@ -1,0 +1,5 @@
+##gff-version 3
+PAC:18136238-protein	BIPAA	match	51	325	303	.	0	ID=PAC:18136238-protein_XP_012228303.1_match_0001;e-value=1e-27;hit_description=PREDICTED: uncharacterized protein LOC105675603 [Linepithema humile];hit_name=XP_012228303.1
+PAC:18136238-protein	BIPAA	match_part	51	325	303	.	1	ID=PAC:18136238-protein_XP_012228303.1_match_0001_1;Parent=PAC:18136238-protein_XP_012228303.1_match_0001;target=XP_012228303.1+21+302
+PAC:18136238-protein	BIPAA	match	150	358	245	.	0	ID=PAC:18136238-protein_KMQ86718.1_match_0001;e-value=2e-19;hit_description=hypothetical protein RF55_14237 [Lasius niger];hit_name=KMQ86718.1
+PAC:18136238-protein	BIPAA	match_part	150	358	245	.	1	ID=PAC:18136238-protein_KMQ86718.1_match_0001_1;Parent=PAC:18136238-protein_KMQ86718.1_match_0001;target=KMQ86718.1+161+371
