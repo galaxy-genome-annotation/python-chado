@@ -1,3 +1,4 @@
+# coding: utf-8
 import os
 
 import click
@@ -32,7 +33,7 @@ SUCCESS_MESSAGE = (
 def cli(ctx, url=None, api_key=None, admin=False, **kwds):
     """Help initialize global configuration (in home directory)
     """
-    # TODO: prompt for values someday.
+
     click.echo("""Welcome to Chado's Chakin! (茶巾)""")
     if os.path.exists(config.global_config_path()):
         info("Your chakin configuration already exists. Please edit it instead: %s" % config.global_config_path())

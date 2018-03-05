@@ -1,9 +1,14 @@
 import click
-from chakin.cli import pass_context, json_loads
-from chakin.decorators import custom_exception, list_output, _arg_split
+from chakin.cli import pass_context
+from chakin.decorators import custom_exception, list_output
+
 
 @click.command('get_organisms')
-
+@click.option(
+    "--organism_id",
+    help="organism_id filter",
+    type=int
+)
 @click.option(
     "--genus",
     help="genus filter",
@@ -29,16 +34,14 @@ from chakin.decorators import custom_exception, list_output, _arg_split
     help="comment filter",
     type=str
 )
-
 @pass_context
 @custom_exception
 @list_output
-def cli(ctx, genus="", species="", common="", abbr="", comment=""):
-    """Get all organisms
+def cli(ctx, organism_id="", genus="", species="", common="", abbr="", comment=""):
+    """Get all or some organisms
 
 Output:
 
-     Organisms information
-        
+    Organisms information
     """
-    return ctx.gi.organism.get_organisms(genus=genus, species=species, common=common, abbr=abbr, comment=comment)
+    return ctx.gi.organism.get_organisms(organism_id=organism_id, genus=genus, species=species, common=common, abbr=abbr, comment=comment)

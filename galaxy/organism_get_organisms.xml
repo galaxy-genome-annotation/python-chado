@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<tool id="chakin.organism.get_organisms" name="organism" version="1.0">
+<tool id="chakin_organism_get_organisms" name="organism" version="@WRAPPER_VERSION@.0">
  <description>get_organisms</description>
 	<macros>
 		<import>macros.xml</import>
@@ -8,20 +8,23 @@
 	<command detect_errors="aggressive">
 chakin organism get_organisms
 
+#if $organism_id:
+  --organism_id '$organism_id'
+#end if
 #if $genus:
-  --genus "$genus"
+  --genus '$genus'
 #end if
 #if $species:
-  --species "$species"
+  --species '$species'
 #end if
 #if $common:
-  --common "$common"
+  --common '$common'
 #end if
 #if $abbr:
-  --abbr "$abbr"
+  --abbr '$abbr'
 #end if
 #if $comment:
-  --comment "$comment"
+  --comment '$comment'
 #end if
 
 | jq -S . > $results
@@ -30,6 +33,7 @@ chakin organism get_organisms
     <!-- arguments -->
 
     <!-- options -->
+	<param name="organism_id" label="Organism Id" argument="organism_id" type="integer" value="0" help="organism_id filter" />
 	<param name="genus" label="Genus" argument="genus" type="text" help="genus filter" />
 	<param name="species" label="Species" argument="species" type="text" help="species filter" />
 	<param name="common" label="Common" argument="common" type="text" help="common filter" />
@@ -41,6 +45,8 @@ chakin organism get_organisms
 		<data format="json" name="results"/>
 	</outputs>
 	<help>
-Get all organisms
+Get all or some organisms
+
+@HELP@
 	</help>
 </tool>

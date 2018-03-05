@@ -20,8 +20,7 @@ Export reference sequences as fasta.
 **Output**
 
 
-None
-   
+    None
     
 **Options**::
 
@@ -45,8 +44,7 @@ Export organism features as genbank
 **Output**
 
 
-None
-   
+    None
     
 **Options**::
 
@@ -69,12 +67,10 @@ Export organism features as GFF3
 **Output**
 
 
-None
-   
+    None
     
 **Options**::
 
 
-      --file TEXT
-      -h, --help   Show this message and exit.
+      -h, --help  Show this message and exit.
     

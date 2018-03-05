@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<tool id="chakin_feature_delete_features" name="feature" version="@WRAPPER_VERSION@.0">
+ <description>delete_features</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+chakin feature delete_features
+
+#if $organism_id:
+  --organism_id '$organism_id'
+#end if
+#if $analysis_id:
+  --analysis_id '$analysis_id'
+#end if
+#if $name:
+  --name '$name'
+#end if
+#if $uniquename:
+  --uniquename '$uniquename'
+#end if
+
+| jq -S . > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+
+    <!-- options -->
+	<param name="organism_id" label="Organism Id" argument="organism_id" type="text" help="organism_id filter" />
+	<param name="analysis_id" label="Analysis Id" argument="analysis_id" type="text" help="analysis_id filter" />
+	<param name="name" label="Name" argument="name" type="text" help="name filter" />
+	<param name="uniquename" label="Uniquename" argument="uniquename" type="text" help="uniquename filter" />
+
+	</inputs>
+	<outputs>
+		<data format="json" name="results"/>
+	</outputs>
+	<help>
+Get all or some features
+
+@HELP@
+	</help>
+</tool>
