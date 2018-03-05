@@ -7,10 +7,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import csv
-import datetime
 import hashlib
 import operator
 import re
+import time
 from functools import reduce
 
 from BCBio import GFF
@@ -622,9 +622,9 @@ class FeatureClient(Client):
         elif 'Name' in f.qualifiers:
             f_uname = f.qualifiers['Name'][0]
         elif have_loc:
-            f_uname = "{}-{}-{}:{}..{}".format(datetime.datetime.now().timestamp(), f.type, rec.id, f.location.start, f.location.end)
+            f_uname = "{}-{}-{}:{}..{}".format(time.time(), f.type, rec.id, f.location.start, f.location.end)
         else:
-            f_uname = "{}-{}".format(datetime.datetime.now().timestamp(), f.type)
+            f_uname = "{}-{}".format(time.time(), f.type)
 
         if 'Name' in f.qualifiers:
             f_name = f.qualifiers['Name'][0]
