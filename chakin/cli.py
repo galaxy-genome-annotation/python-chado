@@ -1,8 +1,8 @@
 from __future__ import absolute_import
+import json
 import os
 import sys
 import click
-import json
 
 from .io import error
 from .config import read_global_config, global_config_path, set_global_config_path, get_instance  # noqa, ditto
@@ -123,7 +123,6 @@ def chakin(ctx, instance, verbose, path=None):
         set_global_config_path(path)
     # We abuse this, knowing that calls to one will fail.
     current_ctx = click.get_current_context()
-    print(current_ctx.invoked_subcommand)
     try:
         # TODO find a way to pass offline=True when running with -h option or without any subcommand
         ctx.gi = get_instance(instance, offline=(current_ctx.invoked_subcommand in ['init', 'util']))
