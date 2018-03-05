@@ -86,10 +86,9 @@ class ExportClient(Client):
             seq = Seq("A" * 1, IUPAC.unambiguous_dna)
 
             # Annotation features
-            features = self.session.query(self.model.feature, self.model.featurelocation) \
+            features = self.session.query(self.model.feature, self.model.featureloc) \
                 .filter_by(organism_id=org.organism_id) \
-                .filter(self.model.feature.seqlen is None) \
-                .join(self.model.featurelocation, self.model.feature.feature_id == self.model.featurelocation.feature_id, isouter=True)
+                .join(self.model.featureloc, self.model.feature.feature_id == self.model.featureloc.feature_id, isouter=True)
             sys.stderr.write("\tProcessing %s features\n" % features.count())
 
             biopy_features = {}
@@ -106,7 +105,7 @@ class ExportClient(Client):
                 # u'rank', u'residue_info', u'srcfeature_id', u'strand']
                 qualifiers = {
                     self.ci.get_cvterm_name(prop.type_id): prop.value for prop in
-                    self.session.query(self.model.featureproperties).filter_by(feature_id=feature.feature_id).all()
+                    self.session.query(self.model.featureprop).filter_by(feature_id=feature.feature_id).all()
                 }
 
                 qualifiers['ID'] = feature.uniquename
@@ -118,10 +117,11 @@ class ExportClient(Client):
                     strand=featureloc.strand,
                     qualifiers=qualifiers
                 )
+            sys.stderr.write("\t%s / %s\n" % (idx + 1, features.count()))
 
         # res = self.session.query(self.model.organism).filter(self.model.organism.organism_id.in_(organism_id))
-            relationships = self.session.query(self.model.featurerelationship) \
-                .filter(self.model.featurerelationship.subject_id.in_(biopy_features.keys()))
+            relationships = self.session.query(self.model.feature_relationship) \
+                .filter(self.model.feature_relationship.subject_id.in_(biopy_features.keys()))
             sys.stderr.write("\tProcessing %s relationships\n" % relationships.count())
 
             #  feature_relationship_id | subject_id | object_id | type_id | value | rank
@@ -183,7 +183,8 @@ class ExportClient(Client):
                 if alreadyProcessedChild and alreadyProcessedParent:
                     # Here we've seen both (they're BOTH in the list), so we need to remove
                     # child and not touch parent since we added to parent already
-                    features.remove(child)
+                    if child in features:
+                        features.remove(child)
                 elif alreadyProcessedChild and not alreadyProcessedParent:
                     # Here our child is already in features, so we need to remove it from
                     # the feature set, add to the parent (done) and re-place in features.
@@ -196,6 +197,8 @@ class ExportClient(Client):
                 else:
                     # Otherwise, completely new feature.
                     features.append(parent)
+
+            sys.stderr.write("\t%s / %s\n" % (idx + 1, relationships.count()))
 
             n = org.common_name if org.common_name else 'org_%s' % org.organism_id
             record = SeqRecord(
@@ -226,9 +229,9 @@ class ExportClient(Client):
             seq = None
 
             record_features = []
-            features = self.ci.session.query(self.model.feature, self.model.featurelocation) \
+            features = self.ci.session.query(self.model.feature, self.model.featureloc) \
                 .filter_by(organism_id=org.organism_id) \
-                .join(self.model.featurelocation, self.model.feature.feature_id == self.model.featurelocation.feature_id, isouter=True)
+                .join(self.model.featureloc, self.model.feature.feature_id == self.model.featureloc.feature_id, isouter=True)
 
             sys.stderr.write("\tProcessing %s features\n" % features.count())
             for idx, (feature, featureloc) in enumerate(features):
@@ -241,7 +244,7 @@ class ExportClient(Client):
                 else:
                     qualifiers = {
                         self.ci.get_cvterm_name(prop.type_id): prop.value for prop in
-                        self.ci.session.query(self.model.featureproperties).filter_by(feature_id=feature.feature_id).all()
+                        self.ci.session.query(self.model.featureprop).filter_by(feature_id=feature.feature_id).all()
                     }
                     record_features.append(
                         SeqFeature(
@@ -252,6 +255,7 @@ class ExportClient(Client):
                             qualifiers=qualifiers
                         )
                     )
+            sys.stderr.write("\t%s / %s\n" % (idx + 1, features.count()))
 
             record = SeqRecord(
                 seq, id=org.common_name,
