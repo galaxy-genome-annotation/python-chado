@@ -393,7 +393,7 @@ class FeatureClient(Client):
 
         count_ins = 0
         with open(tab_file, 'r') as tsvin:
-            tsvin = csv.reader(tsvin, delimiter='\t')
+            tsvin = csv.reader(tsvin, delimiter=str("\t"))
             for row in tsvin:
                 if len(row) != 2:
                     raise Exception("Malformed input tabular file '{}' (should be a 2-column tab delimited file)".format(tab_file))
