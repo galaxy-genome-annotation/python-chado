@@ -35,7 +35,7 @@ class FeatureClient(Client):
 
         self._reset_cache()
 
-        super().__init__(engine, metadata, session, ci)
+        Client.__init__(self, engine, metadata, session, ci)
 
     def _reset_cache(self):
 
