@@ -10,6 +10,26 @@ Chado Library
 
 A Python library for interacting with a Chado database.
 
+Installation
+------------
+
+.. code:: bash
+
+    $ pip install chado
+
+    # On first use you'll need to create a config file to connect to the database, just run:
+
+    $ chakin init
+    Welcome to Chado's Chakin! (茶巾)
+    PGHOST: xxxx
+    PGDATABASE: xxxx
+    PGUSER: xxxx
+    PGPASS:
+    PGPORT: 5432
+    PGSCHEMA: public
+
+This will create a chakin config file in ~/.chakin.yml
+
 Examples
 --------
 
