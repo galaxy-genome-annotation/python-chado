@@ -243,7 +243,7 @@ class PhylogenyClient(Client):
             if cname not in peps:
                 raise Exception("Could not find polypeptide '{}', rolling back".format(cname))
             node.feature_id = peps[cname]
-        node.label = clade.name
+        node.label = cname
         node.distance = clade.branch_length
         self.session.add(node)
 
