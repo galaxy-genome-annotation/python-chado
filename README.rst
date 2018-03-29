@@ -108,7 +108,7 @@ History
 -------
 
 - 2.1.1
-    - newick: remove prefix from node labels tool
+    - newick: remove prefix from node labels too
     - newick: fix errors with named internal nodes
 
 - 2.1
