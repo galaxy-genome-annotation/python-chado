@@ -1,11 +1,9 @@
 # http://bugs.python.org/issue15881#msg170215
-from setuptools import setup, find_packages
-
-from os import listdir
+from setuptools import find_packages, setup
 
 setup(
     name="chado",
-    version='2.1',
+    version='2.1.1',
     description="Chado library",
     author="Anthony Bretaudeau",
     author_email="anthony.bretaudeau@inra.fr",
