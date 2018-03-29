@@ -230,20 +230,21 @@ class PhylogenyClient(Client):
         node.left_idx = lindex
         node.right_idx = rindex
         node.cvterm_id = term
-        if clade.name:
-            cname = clade.name
-            # Remove prefix from id (typically added by orthofinder)
-            for p in prefixes:
-                if cname.startswith(p + '_'):
-                    cname = cname[len(p) + 1:]
-                    break
-                elif cname.startswith(p):
-                    cname = cname[len(p):]
-                    break
-            if cname not in peps:
-                raise Exception("Could not find polypeptide '{}', rolling back".format(cname))
-            node.feature_id = peps[cname]
-        node.label = cname
+        if clade.is_terminal():
+            if clade.name:
+                cname = clade.name
+                # Remove prefix from id (typically added by orthofinder)
+                for p in prefixes:
+                    if cname.startswith(p + '_'):
+                        cname = cname[len(p) + 1:]
+                        break
+                    elif cname.startswith(p):
+                        cname = cname[len(p):]
+                        break
+                if cname not in peps:
+                    raise Exception("Could not find polypeptide '{}', rolling back".format(cname))
+                node.feature_id = peps[cname]
+            node.label = cname
         node.distance = clade.branch_length
         self.session.add(node)
 
