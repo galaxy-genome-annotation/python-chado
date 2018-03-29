@@ -107,6 +107,10 @@ Or with the Chakin client:
 History
 -------
 
+- 2.1.1
+    - newick: remove prefix from node labels tool
+    - newick: fix errors with named internal nodes
+
 - 2.1
     - auto reflect db schema
     - add phylogeny module
