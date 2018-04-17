@@ -1,7 +1,6 @@
-from chado import ChadoInstance
+from chakin.config import get_instance
 
-
-ci = ChadoInstance(dbuser="postgres", dbpass="postgres", dbname="postgres")
+ci = get_instance('local')
 
 
 def setup_package():
