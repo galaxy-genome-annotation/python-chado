@@ -48,7 +48,7 @@ Examples
         print('{} {}'.format(org.genus, org.species))
 
     # Create an analysis
-    an = self.ci.analysis.add_analysis(name="My cool analysis",
+    an = ci.analysis.add_analysis(name="My cool analysis",
                                        program="Something",
                                        programversion="1.0",
                                        algorithm="Google",
@@ -58,8 +58,8 @@ Examples
                                        date_executed="2018-02-03")
 
     # And load some data
-    self.ci.feature.load_fasta(fasta="./test-data/genome.fa", analysis_id=an['analysis_id'], organism_id=orgs[0]['organism_id'])
-    self.ci.feature.load_gff(gff="./test-data/annot.gff", analysis_id=an['analysis_id'], organism_id=orgs[0]['organism_id'])
+    ci.feature.load_fasta(fasta="./test-data/genome.fa", analysis_id=an['analysis_id'], organism_id=orgs[0]['organism_id'])
+    ci.feature.load_gff(gff="./test-data/annot.gff", analysis_id=an['analysis_id'], organism_id=orgs[0]['organism_id'])
 
 Or with the Chakin client:
 
@@ -80,18 +80,6 @@ Or with the Chakin client:
     ]
 
     # Then load some data
-    $ chakin organism get_organisms
-    [
-        {
-            "organism_id": 1133,
-            "genus": "Homo",
-            "species": "sapiens",
-            "abbreviation": "H.sapiens",
-            "common_name": "Human",
-            "comment": null
-        }
-    ]
-
     $ my_analysis=`chakin analysis add_analysis \
         "My cool analysis" \
         "Something" \
