@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 import os
-import chado
+from chado import ChadoInstance
 import yaml
 
 DEFAULT_CONFIG = {
@@ -53,10 +53,10 @@ def _get_instance(instance_name=None):
 
 def get_instance(instance_name=None, offline=False):
     conf = _get_instance(instance_name=instance_name)
-    return chado.ChadoInstance(dbhost=conf['dbhost'],
-                               dbname=conf['dbname'],
-                               dbuser=conf['dbuser'],
-                               dbpass=conf['dbpass'],
-                               dbschema=conf['dbschema'],
-                               dbport=conf['dbport'],
-                               offline=offline)
+    return ChadoInstance(dbhost=conf['dbhost'],
+                         dbname=conf['dbname'],
+                         dbuser=conf['dbuser'],
+                         dbpass=conf['dbpass'],
+                         dbschema=conf['dbschema'],
+                         dbport=conf['dbport'],
+                         offline=offline)
