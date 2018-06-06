@@ -374,7 +374,7 @@ class PhylogenyClient(Client):
 
     def gene_families(self, family_name='', nuke=False):
         """
-        Adds an entry in the featureprop table in a chado database for each each family a gene belongs to (for use in https://github.com/legumeinfo/lis_context_viewer/).
+        Adds an entry in the featureprop table in a chado database for each family a gene belongs to (for use in https://github.com/legumeinfo/lis_context_viewer/).
 
         :type family_name: str
         :param family_name: Restrict to families beginning with given prefix

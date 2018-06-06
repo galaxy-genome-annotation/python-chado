@@ -18,7 +18,7 @@ from chakin.decorators import custom_exception, None_output
 @custom_exception
 @None_output
 def cli(ctx, family_name="", nuke=False):
-    """Adds an entry in the featureprop table in a chado database for each each family a gene belongs to (for use in https://github.com/legumeinfo/lis_context_viewer/).
+    """Adds an entry in the featureprop table in a chado database for each family a gene belongs to (for use in https://github.com/legumeinfo/lis_context_viewer/).
 
 Output:
 

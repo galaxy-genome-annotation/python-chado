@@ -37,7 +37,7 @@ Make sure required cvterms are loaded
 
 **Help**
 
-Adds an entry in the featureprop table in a chado database for each each family a gene belongs to (for use in https://github.com/legumeinfo/lis_context_viewer/).
+Adds an entry in the featureprop table in a chado database for each family a gene belongs to (for use in https://github.com/legumeinfo/lis_context_viewer/).
 
 
 **Output**
