@@ -20,6 +20,7 @@ from Bio.SeqFeature import FeatureLocation, SeqFeature
 
 import chado
 from chado.client import Client
+
 from chakin.io import warn
 
 from future import standard_library
