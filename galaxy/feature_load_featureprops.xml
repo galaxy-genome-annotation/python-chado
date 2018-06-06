@@ -23,7 +23,7 @@ chakin feature load_featureprops
 </command>
 	<inputs>
     <!-- arguments -->
-	<param name="tab_file" label="Tab File" argument="tab_file" type="text" help="Path to the tabular file file to load" />
+	<param name="tab_file" label="Tab File" argument="tab_file" type="text" help="Path to the tabular file to load" />
 	<param name="analysis_id" label="Analysis Id" argument="analysis_id" type="integer" value="0" help="Analysis ID" />
 	<param name="organism_id" label="Organism Id" argument="organism_id" type="integer" value="0" help="Organism ID" />
 	<param name="prop_type" label="Prop Type" argument="prop_type" type="text" help="Type of the feature property (cvterm will be created if it doesn't exist)" />

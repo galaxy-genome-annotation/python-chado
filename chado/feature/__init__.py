@@ -351,7 +351,7 @@ class FeatureClient(Client):
         Load feature properties from a tabular file (Column1: feature name or uniquename, Column2: property value)
 
         :type tab_file: str
-        :param tab_file: Path to the tabular file file to load
+        :param tab_file: Path to the tabular file to load
 
         :type analysis_id: int
         :param analysis_id: Analysis ID
