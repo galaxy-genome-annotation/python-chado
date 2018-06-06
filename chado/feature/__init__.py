@@ -20,6 +20,7 @@ from Bio.SeqFeature import FeatureLocation, SeqFeature
 
 import chado
 from chado.client import Client
+from chakin.io import warn
 
 from future import standard_library
 
@@ -484,9 +485,20 @@ class FeatureClient(Client):
         gff_handle.close()
 
         # Check that we have all the cvterms in the db
+        self._blacklisted_cvterms = []
         for feat_type in gff_limits['gff_type']:
+            type_to_check = feat_type[0]
+            # Be tolerant for proteins (shameless hard coding)
+            if type_to_check == 'protein':
+                type_to_check = 'polypeptide'
+
             # Will raise an exception if not present + keep value in cache
-            self.ci.get_cvterm_id(feat_type[0], 'sequence', True)
+            try:
+                self.ci.get_cvterm_id(type_to_check, 'sequence', True)
+            except chado.RecordNotFoundError:
+                if type_to_check not in self._blacklisted_cvterms:
+                    warn("WARNING: will skip features of unknown type: %s", type_to_check)
+                    self._blacklisted_cvterms.append(type_to_check)
 
         # Read optional fasta file
         self._fasta_sequence_cache = {}
@@ -555,6 +567,17 @@ class FeatureClient(Client):
         return {'inserted': count_ins}
 
     def _load_gff_feature_with_children(self, rec, f, analysis_id, organism_id, re_protein_capture, re_protein, parent=None, no_seq_compute=False):
+
+        # Be tolerant for proteins (shameless hard coding)
+        if f.type == 'protein':
+            f.type = 'polypeptide'
+
+        if f.type in self._blacklisted_cvterms:
+            if 'ID' in f.qualifiers and len(f.qualifiers['ID']) > 1:
+                warn("WARNING: skipping feature %s of unknown type %s" % (f.qualifiers['ID'][0], f.type))
+            else:
+                warn("WARNING: skipping feature of unknown type %s" % (f.type))
+            return
 
         full_transcript_seq = None
         if f.type == 'mRNA':
