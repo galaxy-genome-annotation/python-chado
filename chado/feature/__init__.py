@@ -621,7 +621,7 @@ class FeatureClient(Client):
                 mrna_has_polypeptide = mrna_has_polypeptide or (subf.type == 'polypeptide')
 
         # Create a polypeptide feature
-        if f.type == 'mRNA' and not mrna_has_polypeptide and min_cds and max_cds:
+        if f.type == 'mRNA' and not mrna_has_polypeptide and min_cds is not None and max_cds is not None:
 
             if re_protein:
                 pep_uname = re.sub(re_protein_capture, re_protein, added_feat['uniquename'])
