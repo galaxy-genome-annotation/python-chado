@@ -143,8 +143,6 @@ class ExportClient(Client):
                             yield x
 
             # Now to re-parent things properly
-            # This is BioPython 1.67 ONLY since they broke compatability with bcbio-gff
-            # https://github.com/biopython/biopython/issues/928
             for idx, rel in enumerate(relationships):
                 if idx % 5000 == 0:
                     sys.stderr.write("\t%s / %s\n" % (idx, relationships.count()))
