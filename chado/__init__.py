@@ -14,24 +14,20 @@ from chado.util import UtilClient
 
 from future import standard_library
 
-from sqlalchemy import MetaData, Table, create_engine
+from sqlalchemy import BigInteger, Column, MetaData, String, TIMESTAMP, Table, Text, create_engine
 from sqlalchemy import exc as sa_exc
 from sqlalchemy.ext.automap import automap_base
-from sqlalchemy.orm import mapper, relationship, sessionmaker
+from sqlalchemy.orm import relationship, sessionmaker
 
 standard_library.install_aliases()
 
 
-class Analysis(object):
-    pass
-
-
-class Organism(object):
-    pass
-
-
 class RecordNotFoundError(Exception):
     """Raised when a db select failed."""
+
+
+class ChadoModel(object):
+    pass
 
 
 class ChadoInstance(object):
@@ -58,22 +54,38 @@ class ChadoInstance(object):
         self.model = None
 
         if not self._mapped and not offline:
-            with warnings.catch_warnings():
-                # https://stackoverflow.com/a/5225951
-                warnings.simplefilter("ignore", category=sa_exc.SAWarning)
 
-                if no_reflect:
-                    # No need to do a full reflection of all tables for simple operations
-                    Base = automap_base()
-                    self.model = Base.classes
+            if no_reflect:
+                # No need to do a full reflection of all tables for simple operations
+                self.model = ChadoModel()
 
-                    analysis = Table('analysis', self._metadata, autoload=True)
-                    mapper(Analysis, analysis)
-                    self.model.analysis = Analysis
-                    organism = Table('organism', self._metadata, autoload=True)
-                    mapper(Organism, organism)
-                    self.model.organism = Organism
-                else:
+                self.model.analysis = Table('analysis', self._metadata,
+                                            Column('analysis_id', BigInteger(), primary_key=True, nullable=False),
+                                            Column('name', String()),
+                                            Column('description', Text()),
+                                            Column('program', String()),
+                                            Column('programversion', String()),
+                                            Column('algorithm', String()),
+                                            Column('sourcename', String()),
+                                            Column('sourceversion', String()),
+                                            Column('sourceuri', Text()),
+                                            Column('timeexecuted', TIMESTAMP()),
+                                            )
+
+                self.model.organism = Table('organism', self._metadata,
+                                            Column('organism_id', BigInteger(), primary_key=True, nullable=False),
+                                            Column('abbreviation', String()),
+                                            Column('genus', Text()),
+                                            Column('species', String()),
+                                            Column('common_name', String()),
+                                            Column('infraspecific_name', String()),
+                                            Column('type_id', BigInteger()),
+                                            Column('comment', Text()),
+                                            )
+            else:
+                with warnings.catch_warnings():
+                    # https://stackoverflow.com/a/5225951
+                    warnings.simplefilter("ignore", category=sa_exc.SAWarning)
                     self._reflect_tables()
             self._mapped = True
 
