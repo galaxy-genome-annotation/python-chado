@@ -14,12 +14,20 @@ from chado.util import UtilClient
 
 from future import standard_library
 
-from sqlalchemy import MetaData, create_engine
+from sqlalchemy import MetaData, Table, create_engine
 from sqlalchemy import exc as sa_exc
 from sqlalchemy.ext.automap import automap_base
-from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.orm import mapper, relationship, sessionmaker
 
 standard_library.install_aliases()
+
+
+class Analysis(object):
+    pass
+
+
+class Organism(object):
+    pass
 
 
 class RecordNotFoundError(Exception):
@@ -28,7 +36,7 @@ class RecordNotFoundError(Exception):
 
 class ChadoInstance(object):
 
-    def __init__(self, dbhost="localhost", dbname="chado", dbuser="chado", dbpass="chado", dbschema="public", dbport=5432, offline=False, **kwargs):
+    def __init__(self, dbhost="localhost", dbname="chado", dbuser="chado", dbpass="chado", dbschema="public", dbport=5432, offline=False, no_reflect=False, **kwargs):
         self.dbhost = dbhost
         self.dbname = dbname
         self.dbuser = dbuser
@@ -53,8 +61,21 @@ class ChadoInstance(object):
             with warnings.catch_warnings():
                 # https://stackoverflow.com/a/5225951
                 warnings.simplefilter("ignore", category=sa_exc.SAWarning)
-                self._reflect_tables()
-                self._mapped = True
+
+                if no_reflect:
+                    # No need to do a full reflection of all tables for simple operations
+                    Base = automap_base()
+                    self.model = Base.classes
+
+                    analysis = Table('analysis', self._metadata, autoload=True)
+                    mapper(Analysis, analysis)
+                    self.model.analysis = Analysis
+                    organism = Table('organism', self._metadata, autoload=True)
+                    mapper(Organism, organism)
+                    self.model.organism = Organism
+                else:
+                    self._reflect_tables()
+            self._mapped = True
 
         # Initialize Clients
         args = (self._engine, self._metadata, self.session, self)
