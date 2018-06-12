@@ -156,10 +156,9 @@ Load features from a gff file
                                  Sequence ontology)
       --re_protein TEXT          Replacement string for the protein name using
                                  capturing groups defined by --re_protein_capture
-      --re_protein_capture TEXT  Regular expression to capture groups in protein
-                                 name to use in --re_protein (e.g.
-                                 "^(.*?)-R([A-Z]+)$", default="^(.*?)$")  [default:
-                                 ^(.*?)$]
+      --re_protein_capture TEXT  Regular expression to capture groups in mRNA name
+                                 to use in --re_protein (e.g. "^(.*?)-R([A-Z]+)$",
+                                 default="^(.*?)$")  [default: ^(.*?)$]
       --fasta TEXT               Path to a Fasta containing sequences for some
                                  features. When creating a feature, if its sequence
                                  is in this fasta file it will be loaded. Otherwise

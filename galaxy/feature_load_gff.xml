@@ -44,7 +44,7 @@ chakin feature load_gff
     <!-- options -->
 	<param name="landmark_type" label="Landmark Type" argument="landmark_type" type="text" help="Type of the landmarks (will speed up loading if provided, e.g. contig, should be a term of the Sequence ontology)" />
 	<param name="re_protein" label="Re Protein" argument="re_protein" type="text" help="Replacement string for the protein name using capturing groups defined by --re_protein_capture" />
-	<param name="re_protein_capture" label="Re Protein Capture" argument="re_protein_capture" type="text" help="Regular expression to capture groups in protein name to use in --re_protein (e.g. \"^(.*?)-R([A-Z]+)$\", default=\"^(.*?)$\")" />
+	<param name="re_protein_capture" label="Re Protein Capture" argument="re_protein_capture" type="text" help="Regular expression to capture groups in mRNA name to use in --re_protein (e.g. \"^(.*?)-R([A-Z]+)$\", default=\"^(.*?)$\")" />
 	<param name="fasta" label="Fasta" argument="fasta" type="text" help="Path to a Fasta containing sequences for some features. When creating a feature, if its sequence is in this fasta file it will be loaded. Otherwise for mRNA and polypeptides it will be computed from the genome sequence (if available), otherwise it will be left empty." />
 	<param name="no_seq_compute" label="No Seq Compute" argument="no_seq_compute" type="boolean" truevalue="--no_seq_compute" falsevalue="" help="Disable the computation of mRNA and polypeptides sequences based on genome sequence and positions." />
 	<param name="quiet" label="Quiet" argument="quiet" type="boolean" truevalue="--quiet" falsevalue="" help="Hide progress information" />

@@ -433,7 +433,7 @@ class FeatureClient(Client):
         :param re_protein: Replacement string for the protein name using capturing groups defined by --re_protein_capture
 
         :type re_protein_capture: str
-        :param re_protein_capture: Regular expression to capture groups in protein name to use in --re_protein (e.g. "^(.*?)-R([A-Z]+)$", default="^(.*?)$")
+        :param re_protein_capture: Regular expression to capture groups in mRNA name to use in --re_protein (e.g. "^(.*?)-R([A-Z]+)$", default="^(.*?)$")
 
         :type fasta: str
         :param fasta: Path to a Fasta containing sequences for some features. When creating a feature, if its sequence is in this fasta file it will be loaded. Otherwise for mRNA and polypeptides it will be computed from the genome sequence (if available), otherwise it will be left empty.
