@@ -19,7 +19,7 @@ from chakin.decorators import custom_exception, None_output
 )
 @click.option(
     "--re_protein_capture",
-    help="Regular expression to capture groups in protein name to use in --re_protein (e.g. \"^(.*?)-R([A-Z]+)$\", default=\"^(.*?)$\")",
+    help="Regular expression to capture groups in mRNA name to use in --re_protein (e.g. \"^(.*?)-R([A-Z]+)$\", default=\"^(.*?)$\")",
     default="^(.*?)$",
     show_default=True,
     type=str
