@@ -230,7 +230,7 @@ class ExportClient(Client):
 
         sys.stderr.write("Processing %s sequences\n" % res.count())
         for org in res:
-            seq = None
+            seq = Seq('', IUPAC.unambiguous_dna)
 
             record_features = []
             features = self.ci.session.query(self.model.feature, self.model.featureloc) \
