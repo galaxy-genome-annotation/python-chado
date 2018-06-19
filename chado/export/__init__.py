@@ -67,6 +67,8 @@ class ExportClient(Client):
             if file:
                 output.close()
 
+        return ""  # Return an empty string to avoid getting a "None" when printing on stdout
+
     def export_gff3(self, organism_id):
         """
         Export organism features as GFF3
@@ -207,6 +209,8 @@ class ExportClient(Client):
 
             GFF.write([record], sys.stdout)
 
+        return ""  # Return an empty string to avoid getting a "None" when printing on stdout
+
     def export_gbk(self, organism_id):
         """
         Export organism features as genbank
@@ -263,3 +267,5 @@ class ExportClient(Client):
             record.features = record_features
 
             SeqIO.write([record], sys.stdout, 'genbank')
+
+        return ""  # Return an empty string to avoid getting a "None" when printing on stdout
