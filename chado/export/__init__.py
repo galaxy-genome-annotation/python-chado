@@ -94,6 +94,7 @@ class ExportClient(Client):
             sys.stderr.write("\tProcessing %s features\n" % features.count())
 
             biopy_features = {}
+            idx = 0
             for idx, (feature, featureloc) in enumerate(features):
                 if idx % 5000 == 0:
                     sys.stderr.write("\t%s / %s\n" % (idx, features.count()))
@@ -145,6 +146,7 @@ class ExportClient(Client):
                             yield x
 
             # Now to re-parent things properly
+            idx = 0
             for idx, rel in enumerate(relationships):
                 if idx % 5000 == 0:
                     sys.stderr.write("\t%s / %s\n" % (idx, relationships.count()))
@@ -236,6 +238,7 @@ class ExportClient(Client):
                 .join(self.model.featureloc, self.model.feature.feature_id == self.model.featureloc.feature_id, isouter=True)
 
             sys.stderr.write("\tProcessing %s features\n" % features.count())
+            idx = 0
             for idx, (feature, featureloc) in enumerate(features):
                 if idx % 5000 == 0:
                     sys.stderr.write("\t%s / %s\n" % (idx, features.count()))
