@@ -100,8 +100,8 @@ class FeatureClient(Client):
                 'type_id': feat.feature.type_id,
                 'is_analysis': feat.feature.is_analysis,
                 'is_obsolete': feat.feature.is_obsolete,
-                'timeaccessioned': feat.feature.timeaccessioned,
-                'timelastmodified': feat.feature.timelastmodified,
+                'timeaccessioned': str(feat.feature.timeaccessioned),
+                'timelastmodified': str(feat.feature.timelastmodified),
             })
         return data
 
