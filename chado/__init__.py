@@ -200,35 +200,34 @@ class ChadoInstance(object):
 
             return self.get_pub_id(name)
 
-    def create_cvterm(self, term, cv, db, term_definition="", cv_definition="", db_definition=""):
+    def create_cvterm(self, term, cv_name, db_name, term_definition="", cv_definition="", db_definition=""):
 
         try:
-            cvterm = self.get_cvterm_id(cv, term, True)
+            cvterm = self.get_cvterm_id(term, cv_name, True)
         except RecordNotFoundError:
 
             # Not found, we need to create it
             # check if the db exists
-            res = self.session.query(self.model.db).filter_by(name=db)
+            res = self.session.query(self.model.db).filter_by(name=db_name)
 
             if res.count() > 0:
                 db = res.one()
             else:
                 db = self.model.db()
-                db.name = db
+                db.name = db_name
                 db.definition = db_definition
 
                 self.session.add(db)
 
             # check if the cv exists
-            res = self.session.query(self.model.cv).filter_by(name=cv)
+            res = self.session.query(self.model.cv).filter_by(name=cv_name)
 
             if res.count() > 0:
                 cv = res.one()
             else:
-                cv_record = self.model.cv()
-                cv_record.name = cv
-                cv_record.definition = cv_definition
-                cv = cv_record
+                cv = self.model.cv()
+                cv.name = cv_name
+                cv.definition = cv_definition
 
                 self.session.add(cv)
 
