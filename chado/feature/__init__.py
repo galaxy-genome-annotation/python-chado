@@ -378,6 +378,8 @@ class FeatureClient(Client):
         if len(self.ci.organism.get_organisms(organism_id=organism_id)) != 1:
             raise Exception("Could not find organism with id '{}'".format(organism_id))
 
+        self.cache_everything = False
+
         # Cache all existing features
         existing = self.session.query(self.model.feature.feature_id, self.model.feature.name, self.model.feature.uniquename) \
             .filter_by(organism_id=organism_id)
