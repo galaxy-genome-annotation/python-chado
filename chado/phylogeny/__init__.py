@@ -170,7 +170,9 @@ class PhylogenyClient(Client):
         if not peps:
             peps = self._fetch_peptides(match_on_name)
 
-        prefixes = prefix.split(',')
+        prefixes = []
+        if prefix:
+            prefixes = prefix.split(',')
 
         indexes = []
         for tree in trees:
@@ -372,6 +374,8 @@ class PhylogenyClient(Client):
 
         self.session.commit()
 
+        return ""
+
     def gene_families(self, family_name='', nuke=False):
         """
         Adds an entry in the featureprop table in a chado database for each family a gene belongs to (for use in https://github.com/legumeinfo/lis_context_viewer/).
@@ -478,3 +482,5 @@ class PhylogenyClient(Client):
                     self.session.add(gfa)
 
         self.session.commit()
+
+        return ""
