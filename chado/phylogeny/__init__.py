@@ -274,7 +274,7 @@ class PhylogenyClient(Client):
             try:
                 cvterm_id = self.ci.get_cvterm_id(term, 'tripal_phylotree')
             except chado.RecordNotFoundError:
-                cvterm_id = self.ci.create_cvterm(term=term, term_definition=terms[term], cv='tripal_phylotree', db='tripal', cv_definition="Terms used by the Tripal phylotree module for phylogenetic and taxonomic trees.", db_definition="Used as a database placeholder for tripal defined objects such as tripal cvterms")
+                cvterm_id = self.ci.create_cvterm(term=term, term_definition=terms[term], cv_name='tripal_phylotree', db_name='tripal', cv_definition="Terms used by the Tripal phylotree module for phylogenetic and taxonomic trees.", db_definition="Used as a database placeholder for tripal defined objects such as tripal cvterms")
 
             out[term] = {
                 'cvterm_id': cvterm_id,
@@ -286,7 +286,7 @@ class PhylogenyClient(Client):
         try:
             cvterm_id = self.ci.get_cvterm_id('gene family', 'GCV_properties')
         except chado.RecordNotFoundError:
-            cvterm_id = self.ci.create_cvterm(term='gene family', term_definition='A group of genes presumed to be related by common ancestry', cv='GCV_properties', db='null', cv_definition="Used by https://github.com/legumeinfo/lis_context_viewer/", db_definition="A fake database for local items")
+            cvterm_id = self.ci.create_cvterm(term='gene family', term_definition='A group of genes presumed to be related by common ancestry', cv_name='GCV_properties', db_name='null', cv_definition="Used by https://github.com/legumeinfo/lis_context_viewer/", db_definition="A fake database for local items")
 
         out['gene family'] = {
             'cvterm_id': cvterm_id,
