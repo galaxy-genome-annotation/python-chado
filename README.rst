@@ -95,6 +95,13 @@ Or with the Chakin client:
 History
 -------
 
+- 2.1.2
+    - skip whole database schema reflection for simple tasks (analysis and organism management)
+    - fix polypeptide creation for genes beginning at position 0
+    - fix various small bugs in phylogeny and featureprop loading
+    - fix bug in cvterm creation
+    - fix crashes in gbk/gff exporters
+
 - 2.1.1
     - newick: remove prefix from node labels too
     - newick: fix errors with named internal nodes
