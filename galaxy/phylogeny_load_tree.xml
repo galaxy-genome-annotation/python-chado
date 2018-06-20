@@ -38,7 +38,7 @@ chakin phylogeny load_tree
 	<param name="xref_db" label="Xref Db" argument="xref_db" type="text" help="The name of the db to link dbxrefs for the trees (default: \"null\")" />
 	<param name="xref_accession" label="Xref Accession" argument="xref_accession" type="text" help="The accession to use for dbxrefs for the trees (assumed same as name unless otherwise specified)" />
 	<param name="match_on_name" label="Match On Name" argument="match_on_name" type="boolean" truevalue="--match_on_name" falsevalue="" help="Match polypeptide features using their name instead of their uniquename" />
-	<param name="prefix" label="Prefix" argument="prefix" type="text" help="Comma-separated list of prefix to be removed from identifiers (e.g species prefixes when using loading OrthoFinder output)" />
+	<param name="prefix" label="Prefix" argument="prefix" type="text" help="Comma-separated list of prefix to be removed from identifiers (e.g species prefixes when loading OrthoFinder output)" />
 
 	</inputs>
 	<outputs>

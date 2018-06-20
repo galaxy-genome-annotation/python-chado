@@ -54,7 +54,7 @@ class PhylogenyClient(Client):
         :param match_on_name: Match polypeptide features using their name instead of their uniquename
 
         :type prefix: str
-        :param prefix: Comma-separated list of prefix to be removed from identifiers (e.g species prefixes when using loading OrthoFinder output)
+        :param prefix: Comma-separated list of prefix to be removed from identifiers (e.g species prefixes when loading OrthoFinder output)
 
         :rtype: dict
         :return: Number of inserted trees
@@ -108,7 +108,7 @@ class PhylogenyClient(Client):
         :param match_on_name: Match polypeptide features using their name instead of their uniquename
 
         :type prefix: str
-        :param prefix: Comma-separated list of prefix to be removed from identifiers (e.g species prefixes when using loading OrthoFinder output)
+        :param prefix: Comma-separated list of prefix to be removed from identifiers (e.g species prefixes when loading OrthoFinder output)
 
         :rtype: dict
         :return: Tree description
