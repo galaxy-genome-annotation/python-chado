@@ -114,10 +114,10 @@ class ExportClient(Client):
                 qualifiers['ID'] = feature.uniquename
 
                 biopy_features[feature.feature_id] = SeqFeature(
-                    BioFeatureLocation(featureloc.fmin, featureloc.fmax),
+                    location=BioFeatureLocation(featureloc.fmin, featureloc.fmax) if featureloc else None,
                     id=feature.uniquename,
                     type=self.ci.get_cvterm_name(feature.type_id),
-                    strand=featureloc.strand,
+                    strand=featureloc.strand if featureloc else None,
                     qualifiers=qualifiers
                 )
             sys.stderr.write("\t%s / %s\n" % (idx + 1, features.count()))
