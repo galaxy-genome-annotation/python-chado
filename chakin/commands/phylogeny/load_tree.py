@@ -30,7 +30,7 @@ from chakin.decorators import custom_exception, dict_output
 )
 @click.option(
     "--prefix",
-    help="Comma-separated list of prefix to be removed from identifiers (e.g species prefixes when using loading OrthoFinder output)",
+    help="Comma-separated list of prefix to be removed from identifiers (e.g species prefixes when loading OrthoFinder output)",
     type=str
 )
 @pass_context

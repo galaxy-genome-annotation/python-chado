@@ -106,7 +106,7 @@ Load a phylogenetic tree (Newick format) into Chado db
       --match_on_name        Match polypeptide features using their name instead of
                              their uniquename
       --prefix TEXT          Comma-separated list of prefix to be removed from
-                             identifiers (e.g species prefixes when using loading
+                             identifiers (e.g species prefixes when loading
                              OrthoFinder output)
       -h, --help             Show this message and exit.
     
