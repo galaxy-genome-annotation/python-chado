@@ -1,6 +1,6 @@
 import unittest
 
-from . import ci
+from . import ci_no_reflect
 
 
 class OrganismTest(unittest.TestCase):
@@ -32,7 +32,7 @@ class OrganismTest(unittest.TestCase):
         assert len(orgs) == 0, "orgs properly deleted"
 
     def setUp(self):
-        self.ci = ci
+        self.ci = ci_no_reflect
         self.ci.organism.delete_organisms()
 
         self.ci.session.commit()
