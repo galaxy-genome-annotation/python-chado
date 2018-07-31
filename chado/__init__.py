@@ -17,6 +17,7 @@ from future import standard_library
 from sqlalchemy import BigInteger, Column, MetaData, String, TIMESTAMP, Table, Text, create_engine
 from sqlalchemy import exc as sa_exc
 from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 
 standard_library.install_aliases()
@@ -59,29 +60,40 @@ class ChadoInstance(object):
                 # No need to do a full reflection of all tables for simple operations
                 self.model = ChadoModel()
 
-                self.model.analysis = Table('analysis', self._metadata,
-                                            Column('analysis_id', BigInteger(), primary_key=True, nullable=False),
-                                            Column('name', String()),
-                                            Column('description', Text()),
-                                            Column('program', String()),
-                                            Column('programversion', String()),
-                                            Column('algorithm', String()),
-                                            Column('sourcename', String()),
-                                            Column('sourceversion', String()),
-                                            Column('sourceuri', Text()),
-                                            Column('timeexecuted', TIMESTAMP()),
-                                            )
+                analysis = Table('analysis', self._metadata,
+                                 Column('analysis_id', BigInteger(), primary_key=True, nullable=False),
+                                 Column('name', String()),
+                                 Column('description', Text()),
+                                 Column('program', String()),
+                                 Column('programversion', String()),
+                                 Column('algorithm', String()),
+                                 Column('sourcename', String()),
+                                 Column('sourceversion', String()),
+                                 Column('sourceuri', Text()),
+                                 Column('timeexecuted', TIMESTAMP()),
+                                 )
 
-                self.model.organism = Table('organism', self._metadata,
-                                            Column('organism_id', BigInteger(), primary_key=True, nullable=False),
-                                            Column('abbreviation', String()),
-                                            Column('genus', Text()),
-                                            Column('species', String()),
-                                            Column('common_name', String()),
-                                            Column('infraspecific_name', String()),
-                                            Column('type_id', BigInteger()),
-                                            Column('comment', Text()),
-                                            )
+                organism = Table('organism', self._metadata,
+                                 Column('organism_id', BigInteger(), primary_key=True, nullable=False),
+                                 Column('abbreviation', String()),
+                                 Column('genus', Text()),
+                                 Column('species', String()),
+                                 Column('common_name', String()),
+                                 Column('infraspecific_name', String()),
+                                 Column('type_id', BigInteger()),
+                                 Column('comment', Text()),
+                                 )
+
+                Base = declarative_base(metadata=self._metadata)
+
+                class Analysis(Base):
+                    __table__ = analysis
+
+                class Organism(Base):
+                    __table__ = organism
+
+                self.model.analysis = Analysis
+                self.model.organism = Organism
             else:
                 with warnings.catch_warnings():
                     # https://stackoverflow.com/a/5225951
