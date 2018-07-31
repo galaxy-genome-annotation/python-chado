@@ -1,6 +1,6 @@
 import unittest
 
-from . import ci
+from . import ci_no_reflect
 
 
 class AnalysisTest(unittest.TestCase):
@@ -40,7 +40,7 @@ class AnalysisTest(unittest.TestCase):
         assert len(ans) == 0, "analysis properly deleted"
 
     def setUp(self):
-        self.ci = ci
+        self.ci = ci_no_reflect
         self.ci.analysis.delete_analyses()
 
         self.ci.session.commit()
