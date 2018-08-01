@@ -1,9 +1,7 @@
-import unittest
-
-from . import ci
+from . import ChadoTestCase, ci
 
 
-class FeaturePropTest(unittest.TestCase):
+class FeaturePropTest(ChadoTestCase):
 
     def test_load_props(self):
         org = self._create_fake_org()
@@ -26,27 +24,6 @@ class FeaturePropTest(unittest.TestCase):
         assert gene_f.featureprop_collection[0].rank == 0, "prop correctly loaded"
         assert gene_f.featureprop_collection[0].cvterm.name == "Foobar", "prop correctly loaded"
         assert gene_f.featureprop_collection[0].cvterm.cv.name == "feature_property", "prop correctly loaded"
-
-    def _create_fake_org(self, uniqid=''):
-        genus = "Testus" + uniqid
-        common = "Testorg" + uniqid
-        abbr = "Ttesta" + uniqid
-        species = "testa" + uniqid
-        comment = "A test org sta" + uniqid
-
-        return self.ci.organism.add_organism(genus=genus, common=common, abbr=abbr, species=species, comment=comment)
-
-    def _create_fake_an(self, uniqid=''):
-        name = "analysis x" + uniqid
-        program = "Magic" + uniqid
-        programversion = "1.0" + uniqid
-        algorithm = "mind" + uniqid
-        sourcename = "src" + uniqid
-        sourceversion = "2.1beta" + uniqid
-        sourceuri = "http://example.org/"
-        date_executed = "2018-02-03"
-
-        return self.ci.analysis.add_analysis(name=name, program=program, programversion=programversion, algorithm=algorithm, sourcename=sourcename, sourceversion=sourceversion, sourceuri=sourceuri, date_executed=date_executed)
 
     def _del_dbxref(self):
         self.ci.session.query(self.ci.model.dbxref).filter(
