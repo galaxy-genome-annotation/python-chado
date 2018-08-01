@@ -95,6 +95,10 @@ Or with the Chakin client:
 History
 -------
 
+- 2.1.3
+    - bugfix: make --species a mandatory arg for organism creation
+    - bugfix: fix features deletion when deleting an analysis or an organism
+
 - 2.1.2
     - skip whole database schema reflection for simple tasks (analysis and organism management)
     - fix polypeptide creation for genes beginning at position 0
