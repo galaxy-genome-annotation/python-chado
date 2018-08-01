@@ -98,6 +98,7 @@ History
 - 2.1.3
     - bugfix: make --species a mandatory arg for organism creation
     - bugfix: fix features deletion when deleting an analysis or an organism
+    - update chado docker image
 
 - 2.1.2
     - skip whole database schema reflection for simple tasks (analysis and organism management)
