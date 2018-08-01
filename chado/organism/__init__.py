@@ -18,21 +18,21 @@ class OrganismClient(Client):
     Access to the chado organism table
     """
 
-    def add_organism(self, genus, common, abbr, species=None, comment=None):
+    def add_organism(self, genus, species, common, abbr, comment=None):
         """
         Add a new organism to the Chado database
 
         :type genus: str
         :param genus: The genus of the organism
 
+        :type species: str
+        :param species: The species of the organism
+
         :type common: str
         :param common: The common name of the organism
 
         :type abbr: str
         :param abbr: The abbreviation of the organism
-
-        :type species: str
-        :param species: The species of the organism
 
         :type comment: str
         :param comment: A comment / description

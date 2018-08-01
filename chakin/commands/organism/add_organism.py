@@ -5,13 +5,9 @@ from chakin.decorators import custom_exception, dict_output
 
 @click.command('add_organism')
 @click.argument("genus", type=str)
+@click.argument("species", type=str)
 @click.argument("common", type=str)
 @click.argument("abbr", type=str)
-@click.option(
-    "--species",
-    help="The species of the organism",
-    type=str
-)
 @click.option(
     "--comment",
     help="A comment / description",
@@ -20,11 +16,11 @@ from chakin.decorators import custom_exception, dict_output
 @pass_context
 @custom_exception
 @dict_output
-def cli(ctx, genus, common, abbr, species="", comment=""):
+def cli(ctx, genus, species, common, abbr, comment=""):
     """Add a new organism to the Chado database
 
 Output:
 
     Organism information
     """
-    return ctx.gi.organism.add_organism(genus, common, abbr, species=species, comment=comment)
+    return ctx.gi.organism.add_organism(genus, species, common, abbr, comment=comment)
