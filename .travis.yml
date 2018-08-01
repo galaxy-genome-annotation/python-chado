@@ -21,8 +21,9 @@ jobs:
         - python setup.py install
         - export CHAKIN_GLOBAL_CONFIG_PATH=`pwd`/test-data/chakin.yml
         - sudo service postgresql stop
-        - chakin util launch_docker_image --background
-        - sleep 360 # Wait for the container to be ready
+        - DID=$(chakin util launch_docker_image --background)
+        - sleep 300 # Wait for the container to be ready
+        - docker logs $DID
       script:
         - python setup.py nosetests
     - stage: test
@@ -32,8 +33,9 @@ jobs:
         - python setup.py install
         - export CHAKIN_GLOBAL_CONFIG_PATH=`pwd`/test-data/chakin.yml
         - sudo service postgresql stop
-        - chakin util launch_docker_image --background
-        - sleep 360 # Wait for the container to be ready
+        - DID=$(chakin util launch_docker_image --background)
+        - sleep 300 # Wait for the container to be ready
+        - docker logs $DID
       script:
         - python setup.py nosetests
     - stage: deploy
