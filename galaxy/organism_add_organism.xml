@@ -8,12 +8,10 @@
 	<command detect_errors="aggressive">
 chakin organism add_organism
 '$genus'
+'$species'
 '$common'
 '$abbr'
 
-#if $species:
-  --species '$species'
-#end if
 #if $comment:
   --comment '$comment'
 #end if
@@ -23,11 +21,11 @@ chakin organism add_organism
 	<inputs>
     <!-- arguments -->
 	<param name="genus" label="Genus" argument="genus" type="text" help="The genus of the organism" />
+	<param name="species" label="Species" argument="species" type="text" help="The species of the organism" />
 	<param name="common" label="Common" argument="common" type="text" help="The common name of the organism" />
 	<param name="abbr" label="Abbr" argument="abbr" type="text" help="The abbreviation of the organism" />
 
     <!-- options -->
-	<param name="species" label="Species" argument="species" type="text" help="The species of the organism" />
 	<param name="comment" label="Comment" argument="comment" type="text" help="A comment / description" />
 
 	</inputs>
