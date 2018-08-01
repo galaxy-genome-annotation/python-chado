@@ -20,7 +20,7 @@ class CvtermTest(ChadoTestCase):
 
         term = self.ci.get_cvterm_id(name='lives inside of', cv='relationship', allow_synonyms=True)
 
-        assert term == 415, "Got cvterm id by synonym"
+        assert term == 431, "Got cvterm id by synonym"
 
     def test_get_id_by_name_synmultiple(self):
 
@@ -30,7 +30,7 @@ class CvtermTest(ChadoTestCase):
 
     def test_get_name(self):
 
-        term = self.ci.get_cvterm_name(415)
+        term = self.ci.get_cvterm_name(431)
 
         assert term == 'endoparasite_of', "Got cvterm name"
 
