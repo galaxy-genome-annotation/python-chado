@@ -14,7 +14,7 @@ from chado.util import UtilClient
 
 from future import standard_library
 
-from sqlalchemy import BigInteger, Column, MetaData, String, TIMESTAMP, Table, Text, create_engine
+from sqlalchemy import BigInteger, Column, ForeignKey, MetaData, Numeric, String, TIMESTAMP, Text, create_engine
 from sqlalchemy import exc as sa_exc
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.ext.declarative import declarative_base
@@ -58,42 +58,7 @@ class ChadoInstance(object):
 
             if no_reflect:
                 # No need to do a full reflection of all tables for simple operations
-                self.model = ChadoModel()
-
-                analysis = Table('analysis', self._metadata,
-                                 Column('analysis_id', BigInteger(), primary_key=True, nullable=False),
-                                 Column('name', String()),
-                                 Column('description', Text()),
-                                 Column('program', String()),
-                                 Column('programversion', String()),
-                                 Column('algorithm', String()),
-                                 Column('sourcename', String()),
-                                 Column('sourceversion', String()),
-                                 Column('sourceuri', Text()),
-                                 Column('timeexecuted', TIMESTAMP()),
-                                 )
-
-                organism = Table('organism', self._metadata,
-                                 Column('organism_id', BigInteger(), primary_key=True, nullable=False),
-                                 Column('abbreviation', String()),
-                                 Column('genus', Text()),
-                                 Column('species', String()),
-                                 Column('common_name', String()),
-                                 Column('infraspecific_name', String()),
-                                 Column('type_id', BigInteger()),
-                                 Column('comment', Text()),
-                                 )
-
-                Base = declarative_base(metadata=self._metadata)
-
-                class Analysis(Base):
-                    __table__ = analysis
-
-                class Organism(Base):
-                    __table__ = organism
-
-                self.model.analysis = Analysis
-                self.model.organism = Organism
+                self._reflect_tables_subset()
             else:
                 with warnings.catch_warnings():
                     # https://stackoverflow.com/a/5225951
@@ -128,6 +93,65 @@ class ChadoInstance(object):
         self.model.featureloc.feature = relationship("feature", foreign_keys=[self.model.featureloc.feature_id], back_populates="featureloc_collection")
         self.model.feature.featureloc_collection = relationship("featureloc", foreign_keys=[self.model.featureloc.feature_id], back_populates="feature")
         self.model.featureloc.srcfeature = relationship("feature", foreign_keys=[self.model.featureloc.srcfeature_id])
+
+    def _reflect_tables_subset(self):
+
+        self.model = ChadoModel()
+
+        Base = declarative_base(metadata=self._metadata)
+
+        class Analysis(Base):
+            __tablename__ = "analysis"
+
+            analysis_id = Column(BigInteger(), primary_key=True, nullable=False)
+            name = Column(String())
+            description = Column(Text())
+            program = Column(String())
+            programversion = Column(String())
+            algorithm = Column(String())
+            sourcename = Column(String())
+            sourceversion = Column(String())
+            sourceuri = Column(Text())
+            timeexecuted = Column(TIMESTAMP())
+
+            analysisfeature = relationship("AnalysisFeature", back_populates="analysis", cascade="save-update, merge, delete", passive_deletes=False)  # Force sqlalchemy to manage deletion cascade
+
+        class Organism(Base):
+            __tablename__ = "organism"
+
+            organism_id = Column(BigInteger(), primary_key=True, nullable=False)
+            abbreviation = Column(String())
+            genus = Column(Text())
+            species = Column(String())
+            common_name = Column(String())
+            infraspecific_name = Column(String())
+            type_id = Column(BigInteger())
+            comment = Column(Text())
+
+        class Feature(Base):
+            __tablename__ = "feature"
+
+            feature_id = Column(BigInteger(), primary_key=True, nullable=False)
+
+            analysisfeature = relationship("AnalysisFeature", back_populates="feature")
+
+        class AnalysisFeature(Base):
+            __tablename__ = "analysisfeature"
+
+            analysisfeature_id = Column(BigInteger(), primary_key=True, nullable=False)
+            feature_id = Column(BigInteger(), ForeignKey('feature.feature_id'), nullable=False)
+            analysis_id = Column(BigInteger(), ForeignKey('analysis.analysis_id'), nullable=False)
+            rawscore = Column(Numeric())
+            normscore = Column(Numeric())
+            significance = Column(Numeric())
+            identity = Column(Numeric())
+
+            feature = relationship("Feature", cascade="save-update, merge, delete")  # add a deletion cascade from analysisfeature to feature
+            analysis = relationship("Analysis")
+
+        self.model.analysis = Analysis
+        self.model.organism = Organism
+        self.model.feature = Feature
 
     def _test_db_access(self):
         tables = self._engine.table_names(schema=self.dbschema)

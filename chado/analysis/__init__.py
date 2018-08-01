@@ -217,7 +217,9 @@ class AnalysisClient(Client):
         if description:
             res = res.filter_by(description=description)
 
-        res = res.delete()
+        num = res.count()
+        for an in res:
+            self.session.delete(an)
 
         self.session.commit()
-        return res
+        return num
