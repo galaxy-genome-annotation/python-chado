@@ -1,11 +1,9 @@
-import unittest
-
 from nose.tools import raises
 
-from . import ci
+from . import ChadoTestCase, ci
 
 
-class CvtermTest(unittest.TestCase):
+class CvtermTest(ChadoTestCase):
 
     def test_get_id_by_name(self):
 

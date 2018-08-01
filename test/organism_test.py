@@ -1,9 +1,7 @@
-import unittest
-
-from . import ci_no_reflect
+from . import ChadoTestCase, ci, ci_no_reflect
 
 
-class OrganismTest(unittest.TestCase):
+class OrganismTest(ChadoTestCase):
 
     def test_add_orgs(self):
 
@@ -31,13 +29,69 @@ class OrganismTest(unittest.TestCase):
 
         assert len(orgs) == 0, "orgs properly deleted"
 
-    def setUp(self):
-        self.ci = ci_no_reflect
-        self.ci.organism.delete_organisms()
+    def test_delete_cascade(self):
+        org = self._create_fake_org()
 
-        self.ci.session.commit()
+        ci.feature.load_fasta(fasta="./test-data/proteins.fa", organism_id=org['organism_id'])
+
+        ci_no_reflect.organism.delete_organisms(genus=org["genus"])
+
+        feats = ci.feature.get_features(organism_id=org['organism_id'])
+
+        assert(len(feats) == 0)
+
+    def test_delete_cascade_featureprops(self):
+        org = self._create_fake_org()
+        an = self._create_fake_an()
+        an_gff = self._create_fake_an('gff')
+
+        props = ci.session.query(ci.model.featureprop).count()
+        assert(props == 0)
+
+        ci.feature.load_fasta(fasta="./test-data/genome.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], sequence_type='supercontig')
+        ci.feature.load_gff(gff="./test-data/annot.gff", analysis_id=an_gff['analysis_id'], organism_id=org['organism_id'], no_seq_compute=True)
+
+        props = ci.session.query(ci.model.featureprop).count()
+        assert(props == 174)
+
+        locs = ci.session.query(ci.model.featureloc).count()
+        assert(locs == 182)
+
+        rels = ci.session.query(ci.model.feature_relationship).count()
+        assert(rels == 180)
+
+        ci_no_reflect.organism.delete_organisms(genus=org["genus"])
+
+        feats = len(ci.feature.get_features(organism_id=org['organism_id']))
+        assert(feats == 0)
+
+        props = ci.session.query(ci.model.featureprop).count()
+        assert(props == 0)
+
+        locs = ci.session.query(ci.model.featureloc).count()
+        assert(locs == 0)
+
+        rels = ci.session.query(ci.model.feature_relationship).count()
+        assert(rels == 0)
+
+    def setUp(self):
+        ci.feature.delete_features()
+        ci_no_reflect.organism.delete_organisms()
+        ci_no_reflect.analysis.delete_analyses()
+        ci.session.query(ci.model.featureprop).delete()
+        ci.session.query(ci.model.featureloc).delete()
+        ci.session.query(ci.model.feature_relationship).delete()
+
+        ci.session.commit()
+
+        self.ci = ci_no_reflect
 
     def tearDown(self):
-        self.ci.organism.delete_organisms()
+        ci.feature.delete_features()
+        ci_no_reflect.organism.delete_organisms()
+        ci_no_reflect.analysis.delete_analyses()
+        ci.session.query(ci.model.featureprop).delete()
+        ci.session.query(ci.model.featureloc).delete()
+        ci.session.query(ci.model.feature_relationship).delete()
 
-        self.ci.session.commit()
+        ci.session.commit()
