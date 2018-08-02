@@ -114,8 +114,6 @@ class ChadoInstance(object):
             sourceuri = Column(Text())
             timeexecuted = Column(TIMESTAMP())
 
-            analysisfeature = relationship("AnalysisFeature", back_populates="analysis", cascade="save-update, merge, delete", passive_deletes=False)  # Force sqlalchemy to manage deletion cascade
-
         class Organism(Base):
             __tablename__ = "organism"
 
@@ -133,8 +131,6 @@ class ChadoInstance(object):
 
             feature_id = Column(BigInteger(), primary_key=True, nullable=False)
 
-            analysisfeature = relationship("AnalysisFeature", back_populates="feature")
-
         class AnalysisFeature(Base):
             __tablename__ = "analysisfeature"
 
@@ -146,12 +142,15 @@ class ChadoInstance(object):
             significance = Column(Numeric())
             identity = Column(Numeric())
 
-            feature = relationship("Feature", cascade="save-update, merge, delete")  # add a deletion cascade from analysisfeature to feature
-            analysis = relationship("Analysis")
-
         self.model.analysis = Analysis
+        self.model.analysisfeature = AnalysisFeature
         self.model.organism = Organism
         self.model.feature = Feature
+
+        self.model.analysisfeature.analysis = relationship("Analysis")
+        self.model.analysisfeature.feature = relationship("Feature", cascade="save-update, merge, delete")  # add a deletion cascade from analysisfeature to feature
+        self.model.analysis.analysisfeature = relationship("AnalysisFeature", back_populates="analysis", cascade="save-update, merge, delete", passive_deletes=False)  # Force sqlalchemy to manage deletion cascade
+        self.model.feature.analysisfeature = relationship("AnalysisFeature", back_populates="feature")
 
     def _test_db_access(self):
         tables = self._engine.table_names(schema=self.dbschema)
