@@ -10,7 +10,7 @@ This section is auto-generated from the help text for the chakin command
 
 **Usage**::
 
-    chakin organism add_organism [OPTIONS] GENUS COMMON ABBR
+    chakin organism add_organism [OPTIONS] GENUS SPECIES COMMON ABBR
 
 **Help**
 
@@ -25,7 +25,6 @@ Add a new organism to the Chado database
 **Options**::
 
 
-      --species TEXT  The species of the organism
       --comment TEXT  A comment / description
       -h, --help      Show this message and exit.
     
