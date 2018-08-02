@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="chado",
-    version='2.1.3',
+    version='2.1.4',
     description="Chado library",
     author="Anthony Bretaudeau",
     author_email="anthony.bretaudeau@inra.fr",
