@@ -95,6 +95,9 @@ Or with the Chakin client:
 History
 -------
 
+- 2.1.4
+    - bugfix: fix sporadic errors with AnalysisFeature class declaration
+
 - 2.1.3
     - bugfix: make --species a mandatory arg for organism creation
     - bugfix: fix features deletion when deleting an analysis or an organism
