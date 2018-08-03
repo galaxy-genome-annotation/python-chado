@@ -83,6 +83,30 @@ class AnalysisTest(ChadoTestCase):
         rels = ci.session.query(ci.model.feature_relationship).count()
         assert(rels == 0)
 
+    def test_delete_cascade_multiple(self):
+        # When deleting analysis A don't delete features that are part of analysis A and B
+        org = self._create_fake_org()
+        an = self._create_fake_an()
+        an2 = self._create_fake_an("second")
+
+        ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'])
+
+        feat = ci.feature.get_features(organism_id=org['organism_id'], name='Q02123|VNBP_POPMV')[0]
+
+        af = ci.model.analysisfeature()
+        af.analysis_id = an2['analysis_id']
+        af.feature_id = feat['feature_id']
+        ci.session.add(af)
+        ci.session.commit()
+
+        ci_no_reflect.analysis.delete_analyses(analysis_id=an['analysis_id'])
+
+        afs = ci.session.query(ci.model.analysisfeature).filter_by(feature_id=feat['feature_id'], analysis_id=an['analysis_id'])
+        assert(len(afs) == 0)
+
+        afs = ci.session.query(ci.model.analysisfeature).filter_by(feature_id=feat['feature_id'], analysis_id=an2['analysis_id'])
+        assert(len(afs) == 1)
+
     def setUp(self):
         ci.feature.delete_features()
         ci_no_reflect.organism.delete_organisms()
