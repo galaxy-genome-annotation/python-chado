@@ -15,7 +15,7 @@ from chado.util import UtilClient
 from future import standard_library
 
 from sqlalchemy import BigInteger, Column, ForeignKey, MetaData, Numeric, String, TIMESTAMP, Text, create_engine
-from sqlalchemy import exc as sa_exc
+from sqlalchemy import event, exc as sa_exc
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
@@ -147,9 +147,26 @@ class ChadoInstance(object):
         self.model.organism = Organism
         self.model.feature = Feature
 
+        # Inspired from https://bitbucket.org/zzzeek/sqlalchemy/wiki/UsageRecipes/ManyToManyOrphan
+        # In chado, a feature can be part of multiple analysis, using the analysisfeature table
+        # With the following code, when we delete an analysis, it also deletes all features that were only part of this single analysis
+        @event.listens_for(self.session, 'after_flush')
+        def delete_feature_orphans(session, ctx):
+            # List all features that were attached to a deleted analysis
+            if any(isinstance(i, Analysis) for i in session.deleted):
+                deleted_ids = []
+                for i in session.deleted:
+                    if isinstance(i, AnalysisFeature):
+                        deleted_ids.append(i.feature_id)
+                # Look for features that were part of the deleted analysis and are not part of any other analysis
+                query = session.query(Feature).filter(~Feature.analysisfeature.any()).filter(Feature.feature_id.in_(deleted_ids))
+                orphans = query.all()
+                for orphan in orphans:
+                    session.delete(orphan)
+
         self.model.analysisfeature.analysis = relationship("Analysis")
-        self.model.analysisfeature.feature = relationship("Feature", cascade="save-update, merge, delete")  # add a deletion cascade from analysisfeature to feature
-        self.model.analysis.analysisfeature = relationship("AnalysisFeature", back_populates="analysis", cascade="save-update, merge, delete", passive_deletes=False)  # Force sqlalchemy to manage deletion cascade
+        self.model.analysisfeature.feature = relationship("Feature")
+        self.model.analysis.analysisfeature = relationship("AnalysisFeature", back_populates="analysis", cascade="save-update, merge, delete")
         self.model.feature.analysisfeature = relationship("AnalysisFeature", back_populates="feature")
 
     def _test_db_access(self):
