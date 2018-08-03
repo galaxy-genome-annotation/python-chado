@@ -102,10 +102,10 @@ class AnalysisTest(ChadoTestCase):
         ci_no_reflect.analysis.delete_analyses(analysis_id=an['analysis_id'])
 
         afs = ci.session.query(ci.model.analysisfeature).filter_by(feature_id=feat['feature_id'], analysis_id=an['analysis_id'])
-        assert(len(afs) == 0)
+        assert(afs.count() == 0)
 
         afs = ci.session.query(ci.model.analysisfeature).filter_by(feature_id=feat['feature_id'], analysis_id=an2['analysis_id'])
-        assert(len(afs) == 1)
+        assert(afs.count() == 1)
 
     def setUp(self):
         ci.feature.delete_features()
