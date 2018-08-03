@@ -95,6 +95,9 @@ Or with the Chakin client:
 History
 -------
 
+- 2.1.5
+    - bugfix: fix features deletion when deleting an analysis
+
 - 2.1.4
     - bugfix: fix sporadic errors with AnalysisFeature class declaration
 
