@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<tool id="chakin_feature_load_go" name="feature" version="@WRAPPER_VERSION@.0">
+ <description>load_go</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+chakin feature load_go
+'$input'
+'$organism_id'
+'$analysis_id'
+
+#if $query_type:
+  --query_type '$query_type'
+#end if
+#if $match_on_name:
+  $match_on_name
+#end if
+#if $name_column:
+  --name_column '$name_column'
+#end if
+#if $go_column:
+  --go_column '$go_column'
+#end if
+#if $re_name:
+  --re_name '$re_name'
+#end if
+#if $skip_missing:
+  $skip_missing
+#end if
+
+| jq -S . > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+	<param name="input" label="Input" argument="input" type="text" help="Path to the input tabular file to load" />
+	<param name="organism_id" label="Organism Id" argument="organism_id" type="integer" value="0" help="Organism ID" />
+	<param name="analysis_id" label="Analysis Id" argument="analysis_id" type="integer" value="0" help="Analysis ID" />
+
+    <!-- options -->
+	<param name="query_type" label="Query Type" argument="query_type" type="text" help="The feature type (e.g. 'gene', 'mRNA', 'polypeptide', 'contig') of the query. It must be a valid Sequence Ontology term." />
+	<param name="match_on_name" label="Match On Name" argument="match_on_name" type="boolean" truevalue="--match_on_name" falsevalue="" help="Match features using their name instead of their uniquename" />
+	<param name="name_column" label="Name Column" argument="name_column" type="integer" value="2" help="Column containing the feature identifiers (2, 3, 10 or 11; default=2)." />
+	<param name="go_column" label="Go Column" argument="go_column" type="integer" value="5" help="Column containing the GO id (default=5)." />
+	<param name="re_name" label="Re Name" argument="re_name" type="text" help="Regular expression to extract the feature name from the input file (first capturing group will be used)." />
+	<param name="skip_missing" label="Skip Missing" argument="skip_missing" type="boolean" truevalue="--skip_missing" falsevalue="" help="Skip lines with unknown features or GO id instead of aborting everything." />
+
+	</inputs>
+	<outputs>
+		<data format="json" name="results"/>
+	</outputs>
+	<help>
+Load GO annotation from a tabular file
+
+@HELP@
+	</help>
+</tool>

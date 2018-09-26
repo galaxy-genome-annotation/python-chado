@@ -73,7 +73,6 @@ class FeatureClient(Client):
         :return: Features information
         """
 
-        # check if the organism exists
         res = self.session.query(self.model.feature, self.model.analysisfeature.analysis_id)
         if organism_id:
             res = res.filter_by(organism_id=organism_id)
@@ -104,6 +103,102 @@ class FeatureClient(Client):
                 'timelastmodified': str(feat.feature.timelastmodified),
             })
         return data
+
+    def get_feature_cvterms(self, feature_id):
+        """
+        Get cvterms associated with a feature
+
+        :type feature_id: str
+        :param feature_id: Id of the feature
+
+        :rtype: list
+        :return: Feature cvterms
+        """
+
+        res = self.session.query(self.model.feature_cvterm, self.model.cvterm, self.model.cv, self.model.db, self.model.dbxref) \
+                          .join(self.model.cvterm, self.model.feature_cvterm.cvterm_id == self.model.cvterm.cvterm_id) \
+                          .join(self.model.cv, self.model.cvterm.cv_id == self.model.cv.cv_id) \
+                          .join(self.model.dbxref, self.model.cvterm.dbxref_id == self.model.dbxref.dbxref_id) \
+                          .join(self.model.db, self.model.dbxref.db_id == self.model.db.db_id) \
+                          .filter(self.model.feature_cvterm.feature_id == feature_id)
+
+        data = []
+        for term in res:
+            data.append({
+                'cvterm_id': term.cvterm.cvterm_id,
+                'cvterm_name': term.cvterm.name,
+                'cvterm_definition': term.cvterm.definition,
+                'rank': term.feature_cvterm.rank,
+                'cv_name': term.cv.name,
+                'cv_definition': term.cv.definition,
+                'db_name': term.db.name,
+                'db_description': term.db.description,
+                'dbxref_accession': term.dbxref.accession,
+                'dbxref_description': term.dbxref.description,
+            })
+        return data
+
+    def get_feature_analyses(self, feature_id):
+        """
+        Get analyses associated with a feature
+
+        :type feature_id: str
+        :param feature_id: Id of the feature
+
+        :rtype: list
+        :return: Feature analyses
+        """
+
+        res = self.session.query(self.model.analysisfeature, self.model.analysis, self.model.analysisfeatureprop, self.model.cvterm, self.model.cv, self.model.db, self.model.dbxref) \
+                          .join(self.model.analysis, self.model.analysisfeature.analysis_id == self.model.analysis.analysis_id) \
+                          .outerjoin(self.model.analysisfeatureprop, self.model.analysisfeature.analysisfeature_id == self.model.analysisfeatureprop.analysisfeature_id) \
+                          .outerjoin(self.model.cvterm, self.model.analysisfeatureprop.type_id == self.model.cvterm.cvterm_id) \
+                          .outerjoin(self.model.cv, self.model.cvterm.cv_id == self.model.cv.cv_id) \
+                          .outerjoin(self.model.dbxref, self.model.cvterm.dbxref_id == self.model.dbxref.dbxref_id) \
+                          .outerjoin(self.model.db, self.model.dbxref.db_id == self.model.db.db_id) \
+                          .filter(self.model.analysisfeature.feature_id == feature_id)
+
+        data = {}
+        for an in res:
+            if an.analysis.analysis_id in data:
+                data[an.analysis.analysis_id]['analysisfeatureprop'].append({
+                    'value': an.analysisfeatureprop.value,
+                    'rank': an.analysisfeatureprop.rank,
+                    'type_id': an.analysisfeatureprop.type_id,
+                    'cvterm_name': an.cvterm.name,
+                    'cvterm_definition': an.cvterm.definition,
+                    'cv_name': an.cv.name,
+                    'cv_definition': an.cv.definition,
+                    'db_name': an.db.name,
+                    'db_description': an.db.description,
+                    'dbxref_accession': an.dbxref.accession,
+                    'dbxref_description': an.dbxref.description,
+                })
+            else:
+                data[an.analysis.analysis_id] = {
+                    'analysis_id': an.analysis.analysis_id,
+                    'rawscore': an.analysisfeature.rawscore,
+                    'normscore': an.analysisfeature.normscore,
+                    'significance': an.analysisfeature.significance,
+                    'identity': an.analysisfeature.identity,
+                }
+                data[an.analysis.analysis_id]['analysisfeatureprop'] = []
+                if an.analysisfeatureprop:
+                    data[an.analysis.analysis_id]['analysisfeatureprop'].append({
+                        'value': an.analysisfeatureprop.value,
+                        'rank': an.analysisfeatureprop.rank,
+                        'type_id': an.analysisfeatureprop.type_id,
+                        'cvterm_name': an.cvterm.name,
+                        'cvterm_definition': an.cvterm.definition,
+                        'cv_name': an.cv.name,
+                        'cv_definition': an.cv.definition,
+                        'db_name': an.db.name,
+                        'db_description': an.db.description,
+                        'dbxref_accession': an.dbxref.accession,
+                        'dbxref_description': an.dbxref.description,
+                    })
+
+        return list(data.values())
 
     def delete_features(self, organism_id=None, analysis_id=None, name=None, uniquename=None):
         """
@@ -923,15 +1018,7 @@ class FeatureClient(Client):
                         self._featxref_cache[x.feature_id] = []
                     self._featxref_cache[x.feature_id].append(x.dbxref_id)
 
-        if self._featcvterm_cache is None:
-            self._featcvterm_cache = {}
-            if self.cache_everything:
-                res = self.session.query(self.model.feature_cvterm.feature_id, self.model.feature_cvterm.cvterm_id)
-
-                for x in res:
-                    if x.feature_id not in self._featcvterm_cache:
-                        self._featcvterm_cache[x.feature_id] = []
-                    self._featcvterm_cache[x.feature_id].append(x.cvterm_id)
+        self._populate_featcvterm_cache()
 
         if 'Dbxref' in f.qualifiers:
 
@@ -950,6 +1037,17 @@ class FeatureClient(Client):
             for term in f.qualifiers['Ontology_term']:
 
                 self._add_feat_cvterm(feat, term)
+
+    def _populate_featcvterm_cache(self):
+        if self._featcvterm_cache is None:
+            self._featcvterm_cache = {}
+            if self.cache_everything:
+                res = self.session.query(self.model.feature_cvterm.feature_id, self.model.feature_cvterm.cvterm_id)
+
+                for x in res:
+                    if x.feature_id not in self._featcvterm_cache:
+                        self._featcvterm_cache[x.feature_id] = []
+                    self._featcvterm_cache[x.feature_id].append(x.cvterm_id)
 
     def _add_feat_dbxref(self, feat, xref):
 
@@ -1149,3 +1247,135 @@ class FeatureClient(Client):
         self.session.add(afeat)
 
         return feat
+
+    def load_go(self, input, organism_id, analysis_id, query_type='polypeptide', match_on_name=False,
+                name_column=2, go_column=5, re_name=None, skip_missing=False):
+        """
+        Load GO annotation from a tabular file
+
+        :type input: str
+        :param input: Path to the input tabular file to load
+
+        :type organism_id: int
+        :param organism_id: Organism ID
+
+        :type analysis_id: int
+        :param analysis_id: Analysis ID
+
+        :type query_type: str
+        :param query_type: The feature type (e.g. \'gene\', \'mRNA\', 'polypeptide', \'contig\') of the query. It must be a valid Sequence Ontology term.
+
+        :type match_on_name: bool
+        :param match_on_name: Match features using their name instead of their uniquename
+
+        :type name_column: int
+        :param name_column: Column containing the feature identifiers (2, 3, 10 or 11; default=2).
+
+        :type go_column: int
+        :param go_column: Column containing the GO id (default=5).
+
+        :type re_name: str
+        :param re_name: Regular expression to extract the feature name from the input file (first capturing group will be used).
+
+        :type skip_missing: bool
+        :param skip_missing: Skip lines with unknown features or GO id instead of aborting everything.
+
+        :rtype: dict
+        :return: Number of inserted GO terms
+        """
+
+        if analysis_id and len(self.ci.analysis.get_analyses(analysis_id=analysis_id)) != 1:
+            raise Exception("Could not find analysis with id '{}'".format(analysis_id))
+
+        if len(self.ci.organism.get_organisms(organism_id=organism_id)) != 1:
+            raise Exception("Could not find organism with id '{}'".format(organism_id))
+
+        self.cache_everything = True
+        seqterm = self.ci.get_cvterm_id(query_type, 'sequence')
+
+        # Cache all possibly existing features
+        existing = self.session.query(self.model.feature.feature_id, self.model.feature.name, self.model.feature.uniquename) \
+            .filter_by(organism_id=organism_id, type_id=seqterm) \
+            .all()
+        if match_on_name:
+            existing = {ex.name: ex.feature_id for ex in existing}
+        else:
+            existing = {ex.uniquename: ex.feature_id for ex in existing}
+
+        # Cache all existing cvterms from GO cv
+        db = 'GO'
+        self.ci._preload_dbxref2cvterms(db)
+
+        count_ins = 0
+
+        # Cache anaysisfeature content for given analysis_id
+        _analysisfeature_cache = []
+        res = self.session.query(self.model.analysisfeature.feature_id) \
+                          .filter(self.model.analysisfeature.analysis_id == analysis_id)
+        for x in res:
+            if x.feature_id not in _analysisfeature_cache:
+                _analysisfeature_cache.append(x.feature_id)
+
+        # Parse the tab file
+        with open(input) as in_gaf:
+            rd = csv.reader(in_gaf, delimiter="\t")
+            for row in rd:
+                if row[0] and row[0][0] in ('!', '#'):
+                    # skip header
+                    continue
+
+                term = row[go_column - 1]
+                term_sp = term.split(':')
+                if len(term_sp) != 2:
+                    return
+                term_db = term_sp[0]
+                term_acc = term_sp[1]
+
+                feat_id = row[name_column - 1]
+                if re_name:
+                    re_res = re.search(re_name, feat_id)
+                    if re_res:
+                        feat_id = re_res.group(1)
+
+                if feat_id not in existing:
+                    if skip_missing:
+                        print('Could not find feature with name "%s", skipping it' % feat_id)
+                        continue
+                    else:
+                        raise Exception('Could not find feature with name "%s"' % feat_id)
+
+                term_id = self.ci.get_cvterm_id(term_acc, term_db)
+                if not term_id:
+                    if skip_missing:
+                        print('Could not find term with name "%s", skipping it' % term_acc)
+                        continue
+                    else:
+                        raise Exception('Could not find term with name "%s"' % term_acc)
+
+                # Add feature<->cvterm association
+                self._populate_featcvterm_cache()
+                self._add_feat_cvterm(existing[feat_id], term)
+
+                # Associate the feature to the analysis
+                if existing[feat_id] not in _analysisfeature_cache:
+                    afeat = self.model.analysisfeature()
+                    afeat.feature_id = existing[feat_id]
+                    afeat.analysis_id = analysis_id
+                    self.session.add(afeat)
+                    _analysisfeature_cache.append(existing[feat_id])
+
+                    # Add to analysisfeatureprop too (we're sure it doesn't already exist as we just created the analysisfeature)
+                    afeatp = self.model.analysisfeatureprop()
+                    afeatp.analysisfeature = afeat
+                    afeatp.type_id = term_id
+                    afeatp.value = term
+                    afeatp.rank = 0
+                    self.session.add(afeatp)
+
+                count_ins += 1
+
+        self.session.commit()
+
+        self._reset_cache()
+
+        return {'inserted': count_ins}
