@@ -1318,7 +1318,7 @@ class FeatureClient(Client):
 
         # Parse the tab file
         with open(input) as in_gaf:
-            rd = csv.reader(in_gaf, delimiter="\t")
+            rd = csv.reader(in_gaf, delimiter=str("\t"))
             for row in rd:
                 if row[0] and row[0][0] in ('!', '#'):
                     # skip header
