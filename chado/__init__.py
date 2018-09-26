@@ -230,6 +230,22 @@ class ChadoInstance(object):
 
             return self.get_cvterm_id(name, cv, allow_synonyms)
 
+    def _preload_dbxref2cvterms(self, cv):
+        """
+        This method caches all cvterms from a db in order to not hit the DB for every
+        query.
+        """
+
+        res = self.session.query(self.model.cvterm.cvterm_id, self.model.dbxref.accession) \
+                          .join(self.model.dbxref, self.model.dbxref.dbxref_id == self.model.cvterm.dbxref_id) \
+                          .join(self.model.db, self.model.dbxref.db_id == self.model.db.db_id) \
+                          .filter(self.model.db.name == cv) \
+                          .all()
+
+        for term in res:
+            cvhash = cv + '____' + term.accession
+            self._cv_name_cache[cvhash] = term.cvterm_id
+
     def get_pub_id(self, name):
         """
         Allows lookup of publication by their uniquename.

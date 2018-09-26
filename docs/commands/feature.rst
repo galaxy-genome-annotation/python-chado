@@ -32,6 +32,52 @@ Get all or some features
       -h, --help          Show this message and exit.
     
 
+``get_feature_analyses`` command
+--------------------------------
+
+**Usage**::
+
+    chakin feature get_feature_analyses [OPTIONS] FEATURE_ID
+
+**Help**
+
+Get analyses associated with a feature
+
+
+**Output**
+
+
+    Feature analyses
+    
+**Options**::
+
+
+      -h, --help  Show this message and exit.
+    
+
+``get_feature_cvterms`` command
+-------------------------------
+
+**Usage**::
+
+    chakin feature get_feature_cvterms [OPTIONS] FEATURE_ID
+
+**Help**
+
+Get cvterms associated with a feature
+
+
+**Output**
+
+
+    Feature cvterms
+    
+**Options**::
+
+
+      -h, --help  Show this message and exit.
+    
+
 ``get_features`` command
 ------------------------
 
@@ -174,4 +220,39 @@ Load features from a gff file
                                  loading, and reduce memory usage, but might produce
                                  errors in case of already existing feature.
       -h, --help                 Show this message and exit.
+    
+
+``load_go`` command
+-------------------
+
+**Usage**::
+
+    chakin feature load_go [OPTIONS] INPUT ORGANISM_ID ANALYSIS_ID
+
+**Help**
+
+Load GO annotation from a tabular file
+
+
+**Output**
+
+
+    Number of inserted GO terms
+    
+**Options**::
+
+
+      --query_type TEXT      The feature type (e.g. 'gene', 'mRNA', 'polypeptide',
+                             'contig') of the query. It must be a valid Sequence
+                             Ontology term.  [default: polypeptide]
+      --match_on_name        Match features using their name instead of their
+                             uniquename
+      --name_column INTEGER  Column containing the feature identifiers (2, 3, 10 or
+                             11; default=2).  [default: 2]
+      --go_column INTEGER    Column containing the GO id (default=5).  [default: 5]
+      --re_name TEXT         Regular expression to extract the feature name from the
+                             input file (first capturing group will be used).
+      --skip_missing         Skip lines with unknown features or GO id instead of
+                             aborting everything.
+      -h, --help             Show this message and exit.
     

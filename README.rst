@@ -95,6 +95,11 @@ Or with the Chakin client:
 History
 -------
 
+- 2.2.0
+    - Added feature.load_go() to load GO annotation (blast2go results)
+    - Added feature.get_feature_analyses() to fetch the analyses associated with a feature
+    - Added feature.get_feature_cvterms() to fetch the cvterms associated with a feature
+
 - 2.1.5
     - bugfix: fix features deletion when deleting an analysis
 

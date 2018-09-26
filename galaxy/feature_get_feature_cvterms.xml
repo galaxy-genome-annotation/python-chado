@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<tool id="chakin_feature_get_feature_cvterms" name="feature" version="@WRAPPER_VERSION@.0">
+ <description>get_feature_cvterms</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+chakin feature get_feature_cvterms
+'$feature_id'
+
+
+| jq -S . > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+	<param name="feature_id" label="Feature Id" argument="feature_id" type="text" help="Id of the feature" />
+
+    <!-- options -->
+
+	</inputs>
+	<outputs>
+		<data format="json" name="results"/>
+	</outputs>
+	<help>
+Get cvterms associated with a feature
+
+@HELP@
+	</help>
+</tool>
