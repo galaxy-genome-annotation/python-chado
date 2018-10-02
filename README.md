@@ -8,7 +8,6 @@ A Python library for interacting with a Chado database.
 ## Installation
 
 ```bash
-
 $ pip install chado
 
 # On first use you'll need to create a config file to connect to the database, just run:
