@@ -70,8 +70,7 @@ class ExpressionClient(Client):
                 'dbxref_id': biomat.dbxref_id,
                 'name': biomat.name,
             })
-#        return data
-        return(res[0].items)
+        return data
 
 
 # WIP
@@ -108,4 +107,8 @@ class ExpressionClient(Client):
         """
 
         biomat = self.model.biomaterial()
+
+
+
+
         return ""
