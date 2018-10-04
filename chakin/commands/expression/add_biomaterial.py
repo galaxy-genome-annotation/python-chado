@@ -1,14 +1,19 @@
 import click
 from chakin.cli import pass_context
-from chakin.decorators import custom_exception, dict_output
+from chakin.decorators import custom_exception, str_output
 
 
 @click.command('add_biomaterial')
-@click.argument("organism_id", type=str)
 @click.argument("biomaterial_name", type=str)
+@click.argument("organism_id", type=str)
 @click.option(
-    "--organism_name",
-    help="Orgnaism name (can be different from the organism ID provided)",
+    "--description",
+    help="Description of the biomaterial",
+    type=str
+)
+@click.option(
+    "--analysis_id",
+    help="Analysis ID",
     type=str
 )
 @click.option(
@@ -17,18 +22,13 @@ from chakin.decorators import custom_exception, dict_output
     type=str
 )
 @click.option(
-    "--accession",
-    help="Biomaterial accession",
+    "--biosample_accession",
+    help="Biosample accession",
     type=str
 )
 @click.option(
     "--sra_accession",
     help="SRA acession",
-    type=str
-)
-@click.option(
-    "--bioproject_accession",
-    help="Bioproject accession",
     type=str
 )
 @click.option(
@@ -38,12 +38,12 @@ from chakin.decorators import custom_exception, dict_output
 )
 @pass_context
 @custom_exception
-@dict_output
-def cli(ctx, organism_id, biomaterial_name, organism_name="", provider="", accession="", sra_accession="", bioproject_accession="", attributes={}):
+@str_output
+def cli(ctx, biomaterial_name, organism_id, description="", analysis_id="", provider="", biosample_accession="", sra_accession="", attributes={}):
     """Add a new biomaterial to the database
 
 Output:
 
-    Job information
+    Biomaterial id
     """
-    return ctx.gi.expression.add_biomaterial(organism_id, biomaterial_name, organism_name=organism_name, provider=provider, accession=accession, sra_accession=sra_accession, bioproject_accession=bioproject_accession, attributes=attributes)
+    return ctx.gi.expression.add_biomaterial(biomaterial_name, organism_id, description=description, analysis_id=analysis_id, provider=provider, biosample_accession=biosample_accession, sra_accession=sra_accession, attributes=attributes)
