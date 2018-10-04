@@ -33,7 +33,7 @@ class ExpressionClient(Client):
 
 #To test
 
-    def get_biomaterials(self, provider_id="", biomaterial_id="", organism_id="", dbxref_id="", biomaterial_name=""):
+    def get_biomaterials(self, provider_id="", biomaterial_id="", organism_id="", biomaterial_name=""):
         """
         List biomaterials in the database
 
@@ -45,9 +45,6 @@ class ExpressionClient(Client):
 
         :type provider_id: str
         :param provider_id: Limit query to the selected provider
-
-        :type dbxref_id: str
-        :param dbxref_id: Limit query to the selected ref
 
         :type biomaterial_name: str
         :param biomaterial_name: Limit query to the selected biomaterial name
@@ -64,8 +61,6 @@ class ExpressionClient(Client):
             res = res.filter_by(biosourceprovider_id=provider_id)
         if organism_id:
             res = res.filter_by(taxon_id=organism_id)
-        if dbxref_id:
-            res = res.filter_by(dbxref_id=dbxref_id)
         if biomaterial_name:
             res = res.filter_by(name=biomaterial_name)
 
