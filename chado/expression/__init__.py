@@ -6,8 +6,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import chado
 import json
-
 
 from chado.client import Client
 
@@ -105,14 +105,14 @@ class ExpressionClient(Client):
         :type sra_accession: str
         :param sra_accession: SRA acession
 
-        :type attributes: dict
+        :type attributes: str
         :param attributes: Custom attributes (In JSON dict form)
 
         :rtype: str
         :return: Biomaterial id
 
         """
-
+# TODO : Check all attributes beforehand
         biosourceprovider_id = None
         dbxref_id = None
 
@@ -128,18 +128,19 @@ class ExpressionClient(Client):
         # Create DB for accession type, add to dbxref table, and then add to biomaterial_dbxref
         if sra_accession:
             dbxref_id = self._register_accession('sra', 'NCBI SRA', '', sra_accession)
-            self._add_to_biomaterial_dbxref(self, biomaterial_id, dbxref_id)
+            self._add_to_biomaterial_dbxref(biomaterial_id, dbxref_id)
         # Unused in the V3 version.. Mixup of accession type?
 #       if bioproject_accession:
 #            dbxref_id = self._register_accession('bioproject', 'NCBI BioProject', '', bioproject_accession)
 #            self._add_to_biomaterial_dbxref(self, biomaterial_id, dbxref_id)
         if biosample_accession:
             dbxref_id = self._register_accession('biosample', 'NCBI BioSample', '', biosample_accession)
-            self._add_to_biomaterial_dbxref(self, biomaterial_id, dbxref_id)
+            self._add_to_biomaterial_dbxref(biomaterial_id, dbxref_id)
 
         # Load attributes
         if attributes:
-            self._add_biomaterial_props(biomaterial_id, json.load(attributes))
+            dict = json.loads(attributes)
+            self._add_biomaterial_props(biomaterial_id, dict)
 
         return biomaterial_id
 
@@ -163,7 +164,7 @@ class ExpressionClient(Client):
             db_id = database.db_id
         # Update DB
         else:
-            self.session.query(self.model.biomaterial).filter_by(db_id=db_id).update({
+            self.session.query(self.model.db).filter_by(db_id=db_id).update({
                 'name' : db_name,
                 'description' : db_description,
                 'urlprefix': urlprefix,
@@ -263,7 +264,7 @@ class ExpressionClient(Client):
     def _add_biomaterial_props(self, biomaterial_id, prop_dict):
 
         # Insert in Controlled Vocabulary table if not existing
-        for key, value in prop_dict:
+        for key, value in prop_dict.items():
             try:
                 propterm = self.ci.get_cvterm_id(key, 'biomaterial_property')
             # 'Internal DB?'
@@ -273,16 +274,16 @@ class ExpressionClient(Client):
             # Cache management go here (one day)
             # We need unicity for (biomaterial_id, term_id, rank)
             rank = 0
-            res = self.session.query(self.model.biomaterialprop).filter_by(biomaterial_id=biomaterial_id, term_id=propterm)
+            res = self.session.query(self.model.biomaterialprop).filter_by(biomaterial_id=biomaterial_id, type_id=propterm)
             # Make sure to increment the rank if existing
             if res.count():
                 rank = len(res)
             # Add to DB
             prop = self.model.biomaterialprop()
-            prop.term_id=propterm
+            prop.type_id=propterm
             prop.biomaterial_id=biomaterial_id
             prop.value = value
             prop.rank = rank
-            prop.session.add(prop)
+            self.session.add(prop)
 
         self.session.commit()
