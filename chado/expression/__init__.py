@@ -79,8 +79,8 @@ class ExpressionClient(Client):
 
 # WIP
     def add_biomaterial(self, biomaterial_name, organism_id,
-                        description="", analysis_id="", provider="", biosample_accession="", sra_accession="",
-                        attributes={}):
+                        description="", analysis_id="", biomaterial_provider="", biosample_accession="", sra_accession="",
+                        bioproject_accession="", attributes={}):
         """
         Add a new biomaterial to the database
 
@@ -96,53 +96,56 @@ class ExpressionClient(Client):
         :type analysis_id: str
         :param analysis_id: Analysis ID
 
-        :type provider: str
-        :param provider: Biomaterial provider name
+        :type biomaterial_provider: str
+        :param biomaterial_provider: Biomaterial provider name
 
         :type biosample_accession: str
-        :param biosample_accession: Biosample accession
+        :param biosample_accession: Biosample accession number
 
         :type sra_accession: str
-        :param sra_accession: SRA acession
+        :param sra_accession: SRA accession number
+
+        :type bioproject_accession: str
+        :param bioproject_accession: Bioproject accession number
 
         :type attributes: str
         :param attributes: Custom attributes (In JSON dict form)
 
         :rtype: str
-        :return: Biomaterial id
+        :return: Biomaterial
 
         """
-# TODO : Check all attributes beforehand
         biosourceprovider_id = None
         dbxref_id = None
+        json_attributes = []
+
+        if attributes:
+            json_attributes = json.loads(attributes)
 
         # Add provider into table if not existing
-        if provider:
-            biosourceprovider_id = self._create_biomaterial_contact(provider)
-
-        # Create DB if not existing. Add into dbxref table.
+        if biomaterial_provider:
+            biosourceprovider_id = self._create_biomaterial_contact(biomaterial_provider)
 
         # Create biomaterial
         biomaterial_id = self._create_biomaterial(biomaterial_name, analysis_id, organism_id, biosourceprovider_id, dbxref_id, description)
 
         # Create DB for accession type, add to dbxref table, and then add to biomaterial_dbxref
+
         if sra_accession:
             dbxref_id = self._register_accession('sra', 'NCBI SRA', '', sra_accession)
             self._add_to_biomaterial_dbxref(biomaterial_id, dbxref_id)
-        # Unused in the V3 version.. Mixup of accession type?
-#       if bioproject_accession:
-#            dbxref_id = self._register_accession('bioproject', 'NCBI BioProject', '', bioproject_accession)
-#            self._add_to_biomaterial_dbxref(self, biomaterial_id, dbxref_id)
+        if bioproject_accession:
+            dbxref_id = self._register_accession('bioproject', 'NCBI BioProject', '', bioproject_accession)
+            self._add_to_biomaterial_dbxref(self, biomaterial_id, dbxref_id)
         if biosample_accession:
             dbxref_id = self._register_accession('biosample', 'NCBI BioSample', '', biosample_accession)
             self._add_to_biomaterial_dbxref(biomaterial_id, dbxref_id)
 
         # Load attributes
-        if attributes:
-            dict = json.loads(attributes)
-            self._add_biomaterial_props(biomaterial_id, dict)
+        if json_attributes:
+            self._add_biomaterial_props(biomaterial_id, json_attributes)
 
-        return biomaterial_id
+        return self.get_biomaterials(biomaterial_id=biomaterial_id)[0]
 
 
     def _register_accession(self, url_name, db_name, db_description, accession):
@@ -277,7 +280,7 @@ class ExpressionClient(Client):
             res = self.session.query(self.model.biomaterialprop).filter_by(biomaterial_id=biomaterial_id, type_id=propterm)
             # Make sure to increment the rank if existing
             if res.count():
-                rank = len(res)
+                rank = res.count()
             # Add to DB
             prop = self.model.biomaterialprop()
             prop.type_id=propterm
