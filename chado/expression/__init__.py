@@ -7,7 +7,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import chado
+import csv
 import json
+import sys
 
 from chado.client import Client
 
@@ -20,18 +22,6 @@ class ExpressionClient(Client):
     """
     Interact with expressions
     """
-
-
-#WIP separator)
-#    def add_expression(self, organism, analysis, match_type, file_path,
-#                       separator="tab", biomaterial_provider=None, array_design=None, assay_id=None,
-#                       acquisition_id=None, quantification_id=None, file_extension=None,
-#                       start_regex=None, stop_regex=None, use_column=False):
-
-#        return ""
-
-
-#To test
 
     def get_biomaterials(self, provider_id="", biomaterial_id="", organism_id="", biomaterial_name=""):
         """
@@ -76,8 +66,6 @@ class ExpressionClient(Client):
             })
         return data
 
-
-# WIP
     def add_biomaterial(self, biomaterial_name, organism_id,
                         description="", analysis_id="", biomaterial_provider="", biosample_accession="", sra_accession="",
                         bioproject_accession="", attributes={}):
@@ -127,7 +115,7 @@ class ExpressionClient(Client):
             biosourceprovider_id = self._create_biomaterial_contact(biomaterial_provider)
 
         # Create biomaterial
-        biomaterial_id = self._create_biomaterial(biomaterial_name, analysis_id, organism_id, biosourceprovider_id, dbxref_id, description)
+        biomaterial_id = self._create_biomaterial(biomaterial_name, organism_id, analysis_id=analysis_id, biosourceprovider_id = biosourceprovider_id, dbxref_id = dbxref_id, description = deescription)
 
         # Create DB for accession type, add to dbxref table, and then add to biomaterial_dbxref
 
@@ -147,6 +135,54 @@ class ExpressionClient(Client):
 
         return self.get_biomaterials(biomaterial_id=biomaterial_id)[0]
 
+
+    def add_expression(self, organism_id, analysis_id, file_path,
+                       separator="tab"):
+
+        # Will expect matrix file (comma or tab separated)
+        # No regex
+        # Seqtype?
+        # Optional fields?
+        """
+        :type organism_id: str
+        :param organism_id: The id of the associated organism
+
+        :type analysis_id: str
+        :param analysis_id: The id of the associated analysis
+
+        :type file_path: str
+        :param file_path: File path
+
+        :type separator: str
+        :param separator: Separator in the file : default 'tab'
+
+        """
+        uniq_name = self._get_unique_name(organism_id, analysis_id)
+        contact_id = self._create_generic_contact()
+        array_design_id = self._create_generic_arraydesign(contact_id)
+
+        # TODO: Manage separator
+        results = self._process_matrix_file(file_path, separator)
+
+        # Create all biomaterials, get quantification ID
+        quant_list = [];
+        for biomaterial in results.biomaterial_list:
+            quant_list.append(self._expression_create_biomaterial_structure(biomaterial, organism_id, analysis_id, array_design_id, contact_id, uniq_name))
+
+        
+
+
+
+
+
+
+
+
+
+
+
+    def _create_generic_contact(self):
+        return  self._create_biomaterial_contact("Not provided", "Caution: This is a generic contact created by the expression module. Delete with caution.")
 
     def _register_accession(self, url_name, db_name, db_description, accession):
         # Create DB if not existing, get id and update otherwise
@@ -191,8 +227,7 @@ class ExpressionClient(Client):
 
         return dbxref_id
 
-    def _create_biomaterial_contact(self, contact_name):
-
+    def _create_biomaterial_contact(self, contact_name, description=""):
         contact_id = ""
         res = self.session.query(self.model.contact).filter_by(name=contact_name)
         if res.count():
@@ -201,10 +236,14 @@ class ExpressionClient(Client):
         if not contact_id:
             contact = self.model.contact()
             contact.name = contact_name
+            contact.description = description
             self.session.add(contact)
             self.session.commit()
             contact_id = contact.contact_id
-
+        else:
+            if not res.one().description == description:
+                res.one().update({'description': description})
+                self.session.commit()
         return contact_id
 
     def _add_to_biomaterial_dbxref(self, biomaterial_id, dbxref_id):
@@ -224,14 +263,22 @@ class ExpressionClient(Client):
 
         return biomaterial_dbxref_id
 
-    def _create_biomaterial(self, biomaterial_name, analysis_id, organism_id, biosourceprovider_id, dbxref_id, description):
+    def _create_biomaterial(self, biomaterial_name, organism_id, analysis_id = None, biosourceprovider_id = None, dbxref_id = None, description = None):
 
         # Check if biomaterial exist
-        res_biomaterial = self.session.query(self.model.biomaterial).filter_by(name=biomaterial_name, taxon_id=organism_id)
+        # TODO : Update biosourceprovider if provided
+        res_biomaterial = self.session.query(self.model.biomaterial).filter_by(name=biomaterial_name)
         biomaterial_id = ""
         if res_biomaterial.count():
-            print("Biomaterial already exists for this organism. Will update")
+            print("Biomaterial already exists. Will update")
             biomaterial_id = res_biomaterial.one().biomaterial_id
+            # Do not update if not set and existing in DB
+            if not description:
+                description = res_biomaterial.one().description
+            if not dbxref_id:
+                dbxref = res_biomaterial.one().dbxref
+            if not biosourceprovider_id:
+                res_biomaterial.one().biosourceprovider_id
 
         if analysis_id:
             analysis_name = ""
@@ -239,9 +286,9 @@ class ExpressionClient(Client):
             if res_analysis.count():
                 analysis_name = res_analysis.one().name
             else:
-                print("Analysis with not found : will ignore")
+                print("Analysis not found : will ignore")
 
-        if (description == "" and analysis_name):
+        if (not description and analysis_name):
             description = 'This biomaterial: ' + biomaterial_name + ', was created for the analysis: ' + analysis_name
 
         if not biomaterial_id:
@@ -290,3 +337,232 @@ class ExpressionClient(Client):
             self.session.add(prop)
 
         self.session.commit()
+
+    def _create_generic_arraydesign(self, contact_id):
+        res = self.session.query(self.model.arraydesign).filter_by(name = 'Not provided', manufacturer_id = contact_id)
+        if res.count():
+            array_id = res.one().arraydesign_id
+
+        if not array_id:
+            array = self.model.arraydesign()
+            array.name = 'Not provided'
+            array.description = 'Caution: This is a generic arraydesign created by the expression module. This arraydesign may be a dependency for an expression analysis. Delete with caution.'
+            array.manufacturer_id = contact_id
+            array.platformtype_id = 1
+            self.session.add(array)
+            self.session.commit()
+            array_id = array.arraydesign_id
+
+        return arraydesign_id
+
+    def _create_generic_assay(self, contact_id, arraydesign_id, uniq_name):
+
+        res = self.session.query(self.model.assay).filter_by(name = uniq_name)
+        if res.count():
+            assay_id = res.one().assay_id
+
+        if not assay_id:
+            assay = self.model.assay()
+            assay.name = uniq_name
+            assay.arraydesign_id = arraydesign_id
+            assay.operator_id = contact_id
+            self.session.add(assay)
+            self.session.commit()
+            assay_id = assay.assay_id
+
+        return assay_id
+
+
+    def _create_generic_acquisition(self, assay_id, uniq_name):
+        res = self.session.query(self.model.acquisition).filter_by(name = uniq_name)
+        if res.count():
+            acqui_id = res.one().acqui_id
+
+        if not acqui_id:
+            acqui = self.model.assay()
+            acqui.name = uniq_name
+            acqui.assay_id = assay_id_id
+            self.session.add(acqui)
+            self.session.commit()
+            acqui_id = acqui.assay_id
+
+        return acqui_id
+
+    def _create_generic_quantification(self, acquisition_id, analysis_id, uniq_name):
+        res = self.session.query(self.model.quantification).filter_by(name = uniq_name)
+        if res.count():
+            quantification_id = res.one().quantification_id
+
+        if not quantification_id:
+            quantification = self.model.quantification()
+            quantification.name = uniq_name
+            quantification.acquisition_id = acquisition_id
+            quantification.analysis_id = analysis_id
+            self.session.add(quantification)
+            self.session.commit()
+            quantification_id = quantification.quantification_id
+
+        return quantification_id
+
+    def _create_generic_channel(self):
+        res = self.session.query(self.model.channel).filter_by(name = 'Not provided')
+        if res.count():
+            channel_id = res.one().channel_id
+
+        if not channel_id:
+            channel = self.model.channel()
+            channel.name = 'Not provided'
+            channel.description = 'Caution: This is a generic channel created by the expression module'
+            self.session.add(channel)
+            self.session.commit()
+            channel_id = channel.channel_id
+
+        return channel_id
+
+    def _create_assay_biomaterial(self, assay_id, biomaterial_id, channel_id):
+        res = self.session.query(self.model.assay_biomaterial).filter_by(rank = 1, assay_id = assay_id, biomaterial_id = biomaterial_id, channel_id = channel_id)
+        if res.count():
+            assay_biomaterial_id = res.one().assay_biomaterial_id
+
+        if not assay_biomaterial_id:
+            assay_biomaterial = self.model.assay_biomaterial()
+            assay_biomaterial.rank = 1
+            assay_biomaterial.assay_id = assay_id
+            assay_biomaterial.organism_id = organism_id
+            assay_biomaterial.channel_id = channel_id
+            self.session.add(assay_biomaterial)
+            self.session.commit()
+            assay_biomaterial_id = assay_biomaterial.assay_biomaterial_id
+
+        return assay_biomaterial_id
+
+
+    def _get_unique_name(self, organism_id, analysis_id):
+        # Generate 'unique' name for couple (organism, analysis)
+        uniq_name = " from "
+        res = self.session.query(self.model.organism).filter_by(organism_id = organism_id)
+        if not res.count():
+            print("No organism found with id " + organism_id)
+            sys.exit(1)
+        uniq_name += res.one().common_name
+        uniq_name += "  for  "
+        res = self.session.query(self.model.analysis).filter_by(analysis_id = analysis_id)
+        if not res.count():
+            print("No analysis found with id " + analysis_id)
+            sys.exit(1)
+        uniq_name += res.one().name
+
+        return uniq_name
+
+
+    def _process_matrix_file(self, file_path, separator):
+        # Return a dict with 'biomaterial_list', 'data', and 'feature_list'
+        data = []
+        feature_list = []
+        try:
+            with open(file_path) as f:
+                reader = csv.read(f)
+                # Get headers (biomat list)
+                biomaterial_list = csv.next()
+                expected_len = len(biomaterial_list)
+                for line in reader:
+                    # Get feature name
+                    feature_list.append(line.pop())
+                    int_line = int(line)
+                    if not len(int_line) == expected_len:
+                        print("Error : Different number of expressions values and biomaterials for feature")
+                        print(feature_list[-1])
+                        sys.exit(1)
+                    data.append(int_line)
+
+            if not len(biomaterial_list) == len(set(biomaterial_list)):
+                print("Duplicates found in Biomaterials")
+                sys.exit(1)
+
+            if not len(feature_list) == len(set(feature_list)):
+                print("Duplicates found in Features")
+                sys.exit(1)
+
+            return {'biomaterial_list' : biomaterial_list, 'feature_list': feature_list, 'data' : data}
+
+        except IOexception:
+            print("Could not read file at path " + file_path)
+            sys.exit(1)
+
+    def _expression_create_biomaterial_structure(self, biomaterial, organism_id, analysis_id, array_design_id, contact_id, uniq_name):
+        # Will create the biomaterial with minimum info and set up DBs
+        biomaterial_id = self._create_biomaterial(self, biomaterial, organism_id, analysis_id = analysis_id, biosourceprovider_id = contact_id)
+        uniq_name = biomaterial + uniq_name
+        # Create default values for the following
+        assay_id = self._create_generic_assay(contact_id, arraydesign_id, uniq_name)
+        acquisition_id = self._create_generic_acquisition(assay_id, uniq_name)
+        quantification_id = self._create_generic_quantification(acquisition_id, analysis_id, uniq_name)
+
+        # Create generic channel (required for assay_biomaterial table)
+
+        channel_id = self._create_generic_channel()
+        assay_biomaterial_id = self._create_assay_biomaterial(assay_id, biomaterial_id, channel_id)
+
+        return quantification_id
+
+    def _set_analysis_feature(self, feature_id, analysis_id):
+        res = self.session.query(self.model.analysisfeature).filter_by(analysis_id = analysis_id, feature_id = feature_id)
+        if res.count():
+            analysisfeature_id = res.one().analysisfeature_id
+        if not analysisfeature_id:
+            analysisfeature = self.model.analysisfeature()
+            analysisfeature.analysis_id  = analysis_id
+            analysisfeature.feature_id  = feature_id
+            self.session.add(analysisfeature)
+            self.session.commit()
+            analysisfeature_id = analysisfeature.analysisfeature_id
+
+        return analysisfeature_id
+
+    def _create_expression_element(self, feature_id, arraydesign_id):
+        res = self.session.query(self.model.element).filter_by(arraydesign_id = arraydesign_id, feature_id = feature_id)
+        if res.count():
+            element_id = res.one().element_id
+        if not element_id:
+            element = self.model.element()
+            element.arraydesign_id  = arraydesign_id
+            element.feature_id  = feature_id
+            self.session.add(element)
+            self.session.commit()
+            element_id = element.element_id
+
+        return element_id
+
+    def _set_elementresult(self, element_id, quantification_id, signal):
+        res = self.session.query(self.model.elementresult).filter_by(element_id = element_id, quantification_id = quantification_id)
+        if res.count():
+            elementresult_id = res.one().elementresult_id
+        if not elementresult_id:
+            elementresult = self.model.elementresult()
+            elementresult.element_id  = element_id
+            elementresult.feature_id  = feature_id
+            elementresult.signal  = signal
+            self.session.add(elementresult)
+            self.session.commit()
+            elementresult_id = elementresult.elementresult_id
+        else:
+            res.one().update({
+                'signal': signal
+            })
+            self.session.commit()
+
+        return elementresult_id
+
+    def _manage_feature_expression(self, feature_name, feature_expression_list, quantification_list, organism_id, analysis_id, arraydesign_id):
+        # Get the feature ID
+        res = self.session.query(self.model.analysis).filter_by(uniquename = feature_name)
+        if res.count():
+            feature_id = res.one().feature_id
+        else:
+            print("No feature found with the unique name " + feature_name +" . Make sure it exists beforehand")
+            sys.exit(1)
+        element_id = self._create_expression_element(feature_id, arraydesign_id)
+        elementresult_id = self.set_analysis_feature(feature_id, analysis_id)
+        # Iterate over quantification (one per biomaterial), and expression value for the selected feature
+        for index, quantification_id in enumerate(quantification_list):
+            elementresult_id = self._set_elementresult(self, element_id, quantification_id, feature_expression_list[index])
