@@ -115,7 +115,9 @@ class ExpressionClient(Client):
             biosourceprovider_id = self._create_biomaterial_contact(biomaterial_provider)
 
         # Create biomaterial
-        biomaterial_id = self._create_biomaterial(biomaterial_name, organism_id, analysis_id=analysis_id, biosourceprovider_id = biosourceprovider_id, dbxref_id = dbxref_id, description = deescription)
+        biomaterial_id = self._create_biomaterial(biomaterial_name, organism_id,
+                                                  analysis_id=analysis_id, biosourceprovider_id=biosourceprovider_id,
+                                                  dbxref_id=dbxref_id, description=description)
 
         # Create DB for accession type, add to dbxref table, and then add to biomaterial_dbxref
 
@@ -135,9 +137,7 @@ class ExpressionClient(Client):
 
         return self.get_biomaterials(biomaterial_id=biomaterial_id)[0]
 
-
-    def add_expression(self, organism_id, analysis_id, file_path,
-                       separator="tab"):
+    def add_expression(self, organism_id, analysis_id, file_path, separator="tab"):
 
         # Will expect matrix file (comma or tab separated)
         # No regex
@@ -165,24 +165,16 @@ class ExpressionClient(Client):
         results = self._process_matrix_file(file_path, separator)
 
         # Create all biomaterials, get quantification ID
-        quant_list = [];
+        quant_list = []
         for biomaterial in results.biomaterial_list:
             quant_list.append(self._expression_create_biomaterial_structure(biomaterial, organism_id, analysis_id, array_design_id, contact_id, uniq_name))
-
-        
-
-
-
-
-
-
-
-
-
+        # Manage features
+        for index, feature in enumerate(results.feature_list):
+            self._manage_feature_expression(feature, results.data[index], quantification_list, organism_id, analysis_id, arraydesign_id)
 
 
     def _create_generic_contact(self):
-        return  self._create_biomaterial_contact("Not provided", "Caution: This is a generic contact created by the expression module. Delete with caution.")
+        return self._create_biomaterial_contact("Not provided", "Caution: This is a generic contact created by the expression module. Delete with caution.")
 
     def _register_accession(self, url_name, db_name, db_description, accession):
         # Create DB if not existing, get id and update otherwise
@@ -204,10 +196,10 @@ class ExpressionClient(Client):
         # Update DB
         else:
             self.session.query(self.model.db).filter_by(db_id=db_id).update({
-                'name' : db_name,
-                'description' : db_description,
+                'name': db_name,
+                'description': db_description,
                 'urlprefix': urlprefix,
-                'url' : url
+                'url': url
             })
             self.session.commit()
         # Register in dbxref
@@ -263,10 +255,10 @@ class ExpressionClient(Client):
 
         return biomaterial_dbxref_id
 
-    def _create_biomaterial(self, biomaterial_name, organism_id, analysis_id = None, biosourceprovider_id = None, dbxref_id = None, description = None):
+    def _create_biomaterial(self, biomaterial_name, organism_id, analysis_id=None,
+                            biosourceprovider_id=None, dbxref_id=None, description=None):
 
         # Check if biomaterial exist
-        # TODO : Update biosourceprovider if provided
         res_biomaterial = self.session.query(self.model.biomaterial).filter_by(name=biomaterial_name)
         biomaterial_id = ""
         if res_biomaterial.count():
@@ -330,8 +322,8 @@ class ExpressionClient(Client):
                 rank = res.count()
             # Add to DB
             prop = self.model.biomaterialprop()
-            prop.type_id=propterm
-            prop.biomaterial_id=biomaterial_id
+            prop.type_id = propterm
+            prop.biomaterial_id = biomaterial_id
             prop.value = value
             prop.rank = rank
             self.session.add(prop)
@@ -339,14 +331,14 @@ class ExpressionClient(Client):
         self.session.commit()
 
     def _create_generic_arraydesign(self, contact_id):
-        res = self.session.query(self.model.arraydesign).filter_by(name = 'Not provided', manufacturer_id = contact_id)
+        res = self.session.query(self.model.arraydesign).filter_by(name='Not provided', manufacturer_id=contact_id)
         if res.count():
             array_id = res.one().arraydesign_id
 
         if not array_id:
             array = self.model.arraydesign()
             array.name = 'Not provided'
-            array.description = 'Caution: This is a generic arraydesign created by the expression module. This arraydesign may be a dependency for an expression analysis. Delete with caution.'
+            array.description = 'Caution: This is a generic arraydesign created by the expression module. Delete with caution.'
             array.manufacturer_id = contact_id
             array.platformtype_id = 1
             self.session.add(array)
@@ -357,7 +349,7 @@ class ExpressionClient(Client):
 
     def _create_generic_assay(self, contact_id, arraydesign_id, uniq_name):
 
-        res = self.session.query(self.model.assay).filter_by(name = uniq_name)
+        res = self.session.query(self.model.assay).filter_by(name=uniq_name)
         if res.count():
             assay_id = res.one().assay_id
 
@@ -372,9 +364,8 @@ class ExpressionClient(Client):
 
         return assay_id
 
-
     def _create_generic_acquisition(self, assay_id, uniq_name):
-        res = self.session.query(self.model.acquisition).filter_by(name = uniq_name)
+        res = self.session.query(self.model.acquisition).filter_by(name=uniq_name)
         if res.count():
             acqui_id = res.one().acqui_id
 
@@ -389,7 +380,7 @@ class ExpressionClient(Client):
         return acqui_id
 
     def _create_generic_quantification(self, acquisition_id, analysis_id, uniq_name):
-        res = self.session.query(self.model.quantification).filter_by(name = uniq_name)
+        res = self.session.query(self.model.quantification).filter_by(name=uniq_name)
         if res.count():
             quantification_id = res.one().quantification_id
 
@@ -405,7 +396,7 @@ class ExpressionClient(Client):
         return quantification_id
 
     def _create_generic_channel(self):
-        res = self.session.query(self.model.channel).filter_by(name = 'Not provided')
+        res = self.session.query(self.model.channel).filter_by(name='Not provided')
         if res.count():
             channel_id = res.one().channel_id
 
@@ -420,7 +411,7 @@ class ExpressionClient(Client):
         return channel_id
 
     def _create_assay_biomaterial(self, assay_id, biomaterial_id, channel_id):
-        res = self.session.query(self.model.assay_biomaterial).filter_by(rank = 1, assay_id = assay_id, biomaterial_id = biomaterial_id, channel_id = channel_id)
+        res = self.session.query(self.model.assay_biomaterial).filter_by(rank=1, assay_id=assay_id, biomaterial_id=biomaterial_id, channel_id=channel_id)
         if res.count():
             assay_biomaterial_id = res.one().assay_biomaterial_id
 
@@ -436,24 +427,22 @@ class ExpressionClient(Client):
 
         return assay_biomaterial_id
 
-
     def _get_unique_name(self, organism_id, analysis_id):
         # Generate 'unique' name for couple (organism, analysis)
         uniq_name = " from "
-        res = self.session.query(self.model.organism).filter_by(organism_id = organism_id)
+        res = self.session.query(self.model.organism).filter_by(organism_id=organism_id)
         if not res.count():
             print("No organism found with id " + organism_id)
             sys.exit(1)
         uniq_name += res.one().common_name
         uniq_name += "  for  "
-        res = self.session.query(self.model.analysis).filter_by(analysis_id = analysis_id)
+        res = self.session.query(self.model.analysis).filter_by(analysis_id=analysis_id)
         if not res.count():
             print("No analysis found with id " + analysis_id)
             sys.exit(1)
         uniq_name += res.one().name
 
         return uniq_name
-
 
     def _process_matrix_file(self, file_path, separator):
         # Return a dict with 'biomaterial_list', 'data', and 'feature_list'
@@ -483,7 +472,7 @@ class ExpressionClient(Client):
                 print("Duplicates found in Features")
                 sys.exit(1)
 
-            return {'biomaterial_list' : biomaterial_list, 'feature_list': feature_list, 'data' : data}
+            return {'biomaterial_list': biomaterial_list, 'feature_list': feature_list, 'data': data}
 
         except IOexception:
             print("Could not read file at path " + file_path)
@@ -491,7 +480,7 @@ class ExpressionClient(Client):
 
     def _expression_create_biomaterial_structure(self, biomaterial, organism_id, analysis_id, array_design_id, contact_id, uniq_name):
         # Will create the biomaterial with minimum info and set up DBs
-        biomaterial_id = self._create_biomaterial(self, biomaterial, organism_id, analysis_id = analysis_id, biosourceprovider_id = contact_id)
+        biomaterial_id = self._create_biomaterial(self, biomaterial, organism_id, analysis_id=analysis_id, biosourceprovider_id=contact_id)
         uniq_name = biomaterial + uniq_name
         # Create default values for the following
         assay_id = self._create_generic_assay(contact_id, arraydesign_id, uniq_name)
@@ -506,13 +495,13 @@ class ExpressionClient(Client):
         return quantification_id
 
     def _set_analysis_feature(self, feature_id, analysis_id):
-        res = self.session.query(self.model.analysisfeature).filter_by(analysis_id = analysis_id, feature_id = feature_id)
+        res = self.session.query(self.model.analysisfeature).filter_by(analysis_id=analysis_id, feature_id=feature_id)
         if res.count():
             analysisfeature_id = res.one().analysisfeature_id
         if not analysisfeature_id:
             analysisfeature = self.model.analysisfeature()
-            analysisfeature.analysis_id  = analysis_id
-            analysisfeature.feature_id  = feature_id
+            analysisfeature.analysis_id = analysis_id
+            analysisfeature.feature_id = feature_id
             self.session.add(analysisfeature)
             self.session.commit()
             analysisfeature_id = analysisfeature.analysisfeature_id
@@ -520,13 +509,13 @@ class ExpressionClient(Client):
         return analysisfeature_id
 
     def _create_expression_element(self, feature_id, arraydesign_id):
-        res = self.session.query(self.model.element).filter_by(arraydesign_id = arraydesign_id, feature_id = feature_id)
+        res = self.session.query(self.model.element).filter_by(arraydesign_id=arraydesign_id, feature_id=feature_id)
         if res.count():
             element_id = res.one().element_id
         if not element_id:
             element = self.model.element()
-            element.arraydesign_id  = arraydesign_id
-            element.feature_id  = feature_id
+            element.arraydesign_id = arraydesign_id
+            element.feature_id = feature_id
             self.session.add(element)
             self.session.commit()
             element_id = element.element_id
@@ -534,14 +523,14 @@ class ExpressionClient(Client):
         return element_id
 
     def _set_elementresult(self, element_id, quantification_id, signal):
-        res = self.session.query(self.model.elementresult).filter_by(element_id = element_id, quantification_id = quantification_id)
+        res = self.session.query(self.model.elementresult).filter_by(element_id=element_id, quantification_id=quantification_id)
         if res.count():
             elementresult_id = res.one().elementresult_id
         if not elementresult_id:
             elementresult = self.model.elementresult()
-            elementresult.element_id  = element_id
-            elementresult.feature_id  = feature_id
-            elementresult.signal  = signal
+            elementresult.element_id = element_id
+            elementresult.feature_id = feature_id
+            elementresult.signal = signal
             self.session.add(elementresult)
             self.session.commit()
             elementresult_id = elementresult.elementresult_id
@@ -555,11 +544,11 @@ class ExpressionClient(Client):
 
     def _manage_feature_expression(self, feature_name, feature_expression_list, quantification_list, organism_id, analysis_id, arraydesign_id):
         # Get the feature ID
-        res = self.session.query(self.model.analysis).filter_by(uniquename = feature_name)
+        res = self.session.query(self.model.analysis).filter_by(uniquename=feature_name)
         if res.count():
             feature_id = res.one().feature_id
         else:
-            print("No feature found with the unique name " + feature_name +" . Make sure it exists beforehand")
+            print("No feature found with the unique name " + feature_name + " . Make sure it exists beforehand")
             sys.exit(1)
         element_id = self._create_expression_element(feature_id, arraydesign_id)
         elementresult_id = self.set_analysis_feature(feature_id, analysis_id)
