@@ -6,10 +6,11 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import chado
 import csv
 import json
 import sys
+
+import chado
 
 from chado.client import Client
 
@@ -189,7 +190,7 @@ class ExpressionClient(Client):
         if not db_id:
             database = self.model.db()
             database.name = db_name
-            database.description = description
+            database.description = db_description
             database.urlprefix = urlprefix
             database.url = url
             self.session.add(database)
@@ -271,7 +272,7 @@ class ExpressionClient(Client):
             if not description:
                 description = res_biomaterial.one().description
             if not dbxref_id:
-                dbxref = res_biomaterial.one().dbxref
+                dbxref_id = res_biomaterial.one().dbxref_id
             if not biosourceprovider_id:
                 res_biomaterial.one().biosourceprovider_id
 
@@ -502,7 +503,7 @@ class ExpressionClient(Client):
 
         # Create generic channel (required for assay_biomaterial table)
         channel_id = self._create_generic_channel()
-        assay_biomaterial_id = self._create_assay_biomaterial(assay_id, biomaterial_id, channel_id)
+        self._create_assay_biomaterial(assay_id, biomaterial_id, channel_id)
 
         return quantification_id
 
@@ -566,7 +567,7 @@ class ExpressionClient(Client):
             print("No feature found with the unique name " + feature_name + " . Make sure it exists beforehand")
             sys.exit(1)
         element_id = self._create_expression_element(feature_id, arraydesign_id)
-        elementresult_id = self._set_analysis_feature(feature_id, analysis_id)
+        self._set_analysis_feature(feature_id, analysis_id)
         # Iterate over quantification (one per biomaterial), and expression value for the selected feature
         for index, quantification_id in enumerate(quantification_list):
-            elementresult_id = self._set_elementresult(element_id, quantification_id, feature_expression_list[index])
+            self._set_elementresult(element_id, quantification_id, feature_expression_list[index])
