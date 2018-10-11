@@ -11,7 +11,6 @@ import json
 import sys
 
 import chado
-
 from chado.client import Client
 
 from future import standard_library
