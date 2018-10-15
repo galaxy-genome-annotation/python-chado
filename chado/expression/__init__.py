@@ -100,7 +100,7 @@ class ExpressionClient(Client):
         :param attributes: Custom attributes (In JSON dict form)
 
         :rtype: str
-        :return: Biomaterial
+        :return: Nothing
 
         """
         biosourceprovider_id = None
@@ -137,13 +137,15 @@ class ExpressionClient(Client):
 
         return self.get_biomaterials(biomaterial_id=biomaterial_id)[0]
 
-    def add_expression(self, organism_id, analysis_id, file_path, separator="tab"):
+    def add_expression(self, organism_id, analysis_id, file_path, separator="\t"):
 
         # Will expect matrix file (comma or tab separated)
         # No regex
         # Seqtype?
         # Optional fields?
         """
+        Add an expression matrix file to the database
+
         :type organism_id: str
         :param organism_id: The id of the associated organism
 
@@ -154,7 +156,7 @@ class ExpressionClient(Client):
         :param file_path: File path
 
         :type separator: str
-        :param separator: Separator in the file : default 'tab'
+        :param separator: Separating character in the matrix file (ex : ','). Default character is "\t".
 
         :rtype: str
         :return: I have no idea
@@ -174,6 +176,64 @@ class ExpressionClient(Client):
         # Manage features
         for index, feature in enumerate(results["feature_list"]):
             self._manage_feature_expression(feature, results["data"][index], quant_list, organism_id, analysis_id, arraydesign_id)
+
+    def delete_biomaterials(self, names="[]", ids="[]", organism_id="", analysis_id=""):
+        """
+        Will delete biomaterials based on selector. Only one selector will be used.
+
+        :type names: str
+        :param names: JSON list of biomaterial names to delete.
+
+        :type ids: str
+        :param ids: JSON list of biomaterial ids to delete.
+
+        :type organism_id: str
+        :param organism_id: Delete all biomaterial associated with this organism id.
+
+        :type analysis_id: str
+        :param analysis_id: Delete all biomaterial associated with this analysis id.
+
+        :rtype: str
+        :return: Number of deleted biomaterials
+
+        """
+        if not (names or ids or organism_id or analysis_id):
+            return("Please select one selector")
+
+        if not names == "[]":
+            names = json.loads(names)
+            res = self.session.query(self.model.biomaterial).filter(self.model.biomaterial.name.in_(names))
+            if not res.count():
+                return("No biomaterials with these names were found")
+
+        elif not ids == "[]":
+            ids = json.loads(ids)
+            res = self.session.query(self.model.biomaterial).filter(self.model.biomaterial.biomaterial_id.in_(ids))
+            if not res.count():
+                return ("No biomaterials with these ids were found")
+
+        elif organism_id:
+            res = self.session.query(self.model.biomaterial).filter_by(taxon_id=organism_id)
+            if not res.count():
+                return("No biomaterials associated with this organism were found")
+
+        elif analysis_id:
+            res = self.session.query(self.model.biomaterial.biomaterial_id) \
+                .join(self.model.assay_biomaterial, self.model.biomaterial.biomaterial_id == self.model.assay_biomaterial.biomaterial_id) \
+                .join(self.model.assay, self.model.assay_biomaterial.assay_id == self.model.assay.assay_id) \
+                .join(self.model.acquisition, self.model.assay.assay_id == self.model.acquisition.assay_id) \
+                .join(self.model.quantification, self.model.acquisition.acquisition_id == self.model.quantification.acquisition_id) \
+                .filter(self.model.quantification.analysis_id == analysis_id)
+            if not res.count():
+                return("No biomaterials associated with this analysis ID were found")
+            else:
+                print(str(res.count()) + " biomaterials associated with this analysis ID were found")
+                ids = [biomat[0] for biomat in res]
+                res = self.session.query(self.model.biomaterial).filter(self.model.biomaterial.biomaterial_id.in_(ids))
+
+        number = str(res.delete(synchronize_session=False))
+        self.session.commit()
+        return(number + " biomaterial(s) deleted")
 
     def _create_generic_contact(self):
         return self._create_biomaterial_contact("Not provided", "Caution: This is a generic contact created by the expression module. Delete with caution.")
@@ -458,7 +518,7 @@ class ExpressionClient(Client):
         feature_list = []
         try:
             with open(file_path) as f:
-                reader = csv.reader(f, delimiter='\t')
+                reader = csv.reader(f, delimiter=separator)
                 # Get headers (biomat list)
                 # TODO : python2 compat (reader.next())
                 biomaterial__full_list = next(reader)
