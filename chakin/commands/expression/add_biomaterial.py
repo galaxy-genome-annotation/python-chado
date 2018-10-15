@@ -49,6 +49,6 @@ def cli(ctx, biomaterial_name, organism_id, description="", analysis_id="", biom
 
 Output:
 
-    Biomaterial
+    Nothing
     """
     return ctx.gi.expression.add_biomaterial(biomaterial_name, organism_id, description=description, analysis_id=analysis_id, biomaterial_provider=biomaterial_provider, biosample_accession=biosample_accession, sra_accession=sra_accession, bioproject_accession=bioproject_accession, attributes=attributes)
