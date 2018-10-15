@@ -24,14 +24,19 @@ from chakin.decorators import custom_exception, list_output
     help="Limit query to the selected biomaterial name",
     type=str
 )
+@click.option(
+    "--analysis_id",
+    help="Limit query to the selected analysis_id",
+    type=str
+)
 @pass_context
 @custom_exception
 @list_output
-def cli(ctx, provider_id="", biomaterial_id="", organism_id="", biomaterial_name=""):
+def cli(ctx, provider_id="", biomaterial_id="", organism_id="", biomaterial_name="", analysis_id=""):
     """List biomaterials in the database
 
 Output:
 
     List of biomaterials
     """
-    return ctx.gi.expression.get_biomaterials(provider_id=provider_id, biomaterial_id=biomaterial_id, organism_id=organism_id, biomaterial_name=biomaterial_name)
+    return ctx.gi.expression.get_biomaterials(provider_id=provider_id, biomaterial_id=biomaterial_id, organism_id=organism_id, biomaterial_name=biomaterial_name, analysis_id=analysis_id)

@@ -9,7 +9,7 @@ from chakin.decorators import custom_exception, str_output
 @click.argument("file_path", type=str)
 @click.option(
     "--separator",
-    help="Separating character in the matrix file (ex : ','). Default character is \" \".",
+    help="Separating character in the matrix file (ex : ','). Default character is tab.",
     default="	",
     show_default=True,
     type=str

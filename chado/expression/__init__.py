@@ -23,7 +23,7 @@ class ExpressionClient(Client):
     Interact with expressions
     """
 
-    def get_biomaterials(self, provider_id="", biomaterial_id="", organism_id="", biomaterial_name=""):
+    def get_biomaterials(self, provider_id="", biomaterial_id="", organism_id="", biomaterial_name="", analysis_id=""):
         """
         List biomaterials in the database
 
@@ -39,11 +39,23 @@ class ExpressionClient(Client):
         :type biomaterial_name: str
         :param biomaterial_name: Limit query to the selected biomaterial name
 
+        :type analysis_id: str
+        :param analysis_id: Limit query to the selected analysis_id
 
         :rtype: list
         :return: List of biomaterials
         """
-        res = self.session.query(self.model.biomaterial)
+
+        if analysis_id:
+            res = self.session.query(self.model.biomaterial) \
+                .join(self.model.assay_biomaterial, self.model.biomaterial.biomaterial_id == self.model.assay_biomaterial.biomaterial_id) \
+                .join(self.model.assay, self.model.assay_biomaterial.assay_id == self.model.assay.assay_id) \
+                .join(self.model.acquisition, self.model.assay.assay_id == self.model.acquisition.assay_id) \
+                .join(self.model.quantification, self.model.acquisition.acquisition_id == self.model.quantification.acquisition_id) \
+                .filter(self.model.quantification.analysis_id == analysis_id)
+            print(res.count())
+        else:
+            res = self.session.query(self.model.biomaterial)
 
         if biomaterial_id:
             res = res.filter_by(biomaterial_id=biomaterial_id)
@@ -67,7 +79,7 @@ class ExpressionClient(Client):
         return data
 
     def add_biomaterial(self, biomaterial_name, organism_id,
-                        description="", analysis_id="", biomaterial_provider="", biosample_accession="", sra_accession="",
+                        description="", biomaterial_provider="", biosample_accession="", sra_accession="",
                         bioproject_accession="", attributes={}):
         """
         Add a new biomaterial to the database
@@ -80,9 +92,6 @@ class ExpressionClient(Client):
 
         :type description: str
         :param description: Description of the biomaterial
-
-        :type analysis_id: str
-        :param analysis_id: Analysis ID
 
         :type biomaterial_provider: str
         :param biomaterial_provider: Biomaterial provider name
@@ -106,6 +115,8 @@ class ExpressionClient(Client):
         biosourceprovider_id = None
         dbxref_id = None
         json_attributes = []
+        # Set to none because it only change the description, and does not add it to DB. Misleading
+        analysis_id = None
 
         if attributes:
             json_attributes = json.loads(attributes)
@@ -156,7 +167,7 @@ class ExpressionClient(Client):
         :param file_path: File path
 
         :type separator: str
-        :param separator: Separating character in the matrix file (ex : ','). Default character is "\t".
+        :param separator: Separating character in the matrix file (ex : ','). Default character is tab.
 
         :rtype: str
         :return: I have no idea

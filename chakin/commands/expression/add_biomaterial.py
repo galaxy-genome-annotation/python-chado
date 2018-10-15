@@ -12,11 +12,6 @@ from chakin.decorators import custom_exception, str_output
     type=str
 )
 @click.option(
-    "--analysis_id",
-    help="Analysis ID",
-    type=str
-)
-@click.option(
     "--biomaterial_provider",
     help="Biomaterial provider name",
     type=str
@@ -44,11 +39,11 @@ from chakin.decorators import custom_exception, str_output
 @pass_context
 @custom_exception
 @str_output
-def cli(ctx, biomaterial_name, organism_id, description="", analysis_id="", biomaterial_provider="", biosample_accession="", sra_accession="", bioproject_accession="", attributes={}):
+def cli(ctx, biomaterial_name, organism_id, description="", biomaterial_provider="", biosample_accession="", sra_accession="", bioproject_accession="", attributes={}):
     """Add a new biomaterial to the database
 
 Output:
 
     Nothing
     """
-    return ctx.gi.expression.add_biomaterial(biomaterial_name, organism_id, description=description, analysis_id=analysis_id, biomaterial_provider=biomaterial_provider, biosample_accession=biosample_accession, sra_accession=sra_accession, bioproject_accession=bioproject_accession, attributes=attributes)
+    return ctx.gi.expression.add_biomaterial(biomaterial_name, organism_id, description=description, biomaterial_provider=biomaterial_provider, biosample_accession=biosample_accession, sra_accession=sra_accession, bioproject_accession=bioproject_accession, attributes=attributes)
