@@ -246,6 +246,24 @@ class ExpressionClient(Client):
         self.session.commit()
         return(number + " biomaterial(s) deleted")
 
+    def delete_all_biomaterials(self, confirm=False):
+        """
+        Delete all biomaterials
+
+        :type confirm: bool
+        :param confirm: Confirm that you really do want to delete ALL of the organisms.
+
+        :rtype: None
+        :return: None
+
+        """
+        if confirm:
+            res = self.session.query(self.model.biomaterial).delete(synchronize_session=False)
+            self.session.commit()
+            return res
+        else:
+            print("No --confirm option set. Not doing anything")
+
     def _create_generic_contact(self):
         return self._create_biomaterial_contact("Not provided", "Caution: This is a generic contact created by the expression module. Delete with caution.")
 
