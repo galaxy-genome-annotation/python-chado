@@ -40,7 +40,7 @@ class ExpressionTest(ChadoTestCase):
         ci.feature.delete_features()
         ci_no_reflect.organism.delete_organisms()
         ci_no_reflect.analysis.delete_analyses()
-        ci.no_reflect.expression.delete_all_biomaterials(confirm=True)
+        ci_no_reflect.expression.delete_all_biomaterials(confirm=True)
 
         ci.session.commit()
         self.ci = ci_no_reflect
@@ -49,6 +49,6 @@ class ExpressionTest(ChadoTestCase):
         ci.feature.delete_features()
         ci_no_reflect.organism.delete_organisms()
         ci_no_reflect.analysis.delete_analyses()
-        ci.no_reflect.expression.delete_all_biomaterials(confirm=True)
+        ci_no_reflect.expression.delete_all_biomaterials(confirm=True)
 
         ci.session.commit()
