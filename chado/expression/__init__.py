@@ -15,6 +15,12 @@ from chado.client import Client
 
 from future import standard_library
 
+
+from sqlalchemy import Column, ForeignKey, Index, Integer, String, Table, UniqueConstraint
+from sqlalchemy import exc as sa_exc
+from sqlalchemy.orm import aliased
+
+
 standard_library.install_aliases()
 
 
@@ -364,8 +370,8 @@ class ExpressionClient(Client):
             if not biosourceprovider_id:
                 res_biomaterial.one().biosourceprovider_id
 
+        analysis_name = ""
         if analysis_id:
-            analysis_name = ""
             res_analysis = self.session.query(self.model.analysis).filter_by(analysis_id=analysis_id)
             if res_analysis.count():
                 analysis_name = res_analysis.one().name
@@ -659,3 +665,18 @@ class ExpressionClient(Client):
         # Iterate over quantification (one per biomaterial), and expression value for the selected feature
         for index, quantification_id in enumerate(quantification_list):
             self._set_elementresult(element_id, quantification_id, feature_expression_list[index])
+
+    def _setup():
+        """
+        if not hasattr(self.model, 'biomaterial'):
+            biomaterial_table = Table(
+                'biomaterial', self.metadata,
+                Column(biomaterial_id, Integer, primary_key=True),
+                Column(),
+                Column(),
+                Column(),
+                Column(),
+                Column(),
+            )
+        """
+        return None
