@@ -41,7 +41,7 @@ class FastaTest(ChadoTestCase):
         org = self._create_fake_org()
         an = self._create_fake_an()
 
-        self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], re_name='([a-zA-Z0-9]+)\|[a-zA-Z0-9_]+')
+        self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], re_name=r'([a-zA-Z0-9]+)\|[a-zA-Z0-9_]+')
         feats = self.ci.feature.get_features(organism_id=org['organism_id'], name='Q02123')
 
         f = feats[0]
@@ -52,7 +52,7 @@ class FastaTest(ChadoTestCase):
         org = self._create_fake_org()
         an = self._create_fake_an()
 
-        self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], re_uniquename='[a-zA-Z0-9]+\|([a-zA-Z0-9_]+)')
+        self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], re_uniquename=r'[a-zA-Z0-9]+\|([a-zA-Z0-9_]+)')
         feats = self.ci.feature.get_features(organism_id=org['organism_id'], name='Q02123|VNBP_POPMV')
 
         f = feats[0]
@@ -63,7 +63,7 @@ class FastaTest(ChadoTestCase):
         org = self._create_fake_org()
         an = self._create_fake_an()
 
-        self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], re_name='([a-zA-Z]+)\|[a-zA-Z0-9_]+', re_uniquename='([a-zA-Z]+)\|[a-zA-Z0-9_]+')
+        self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], re_name=r'([a-zA-Z]+)\|[a-zA-Z0-9_]+', re_uniquename=r'([a-zA-Z]+)\|[a-zA-Z0-9_]+')
         feats = self.ci.feature.get_features(organism_id=org['organism_id'], name='Q02123|VNBP_POPMV')
 
         f = feats[0]
@@ -102,7 +102,7 @@ class FastaTest(ChadoTestCase):
         org = self._create_fake_org()
         an = self._create_fake_an()
 
-        self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], re_uniquename='[a-zA-Z0-9]+\|([a-zA-Z0-9_]+)')
+        self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], re_uniquename=r'[a-zA-Z0-9]+\|([a-zA-Z0-9_]+)')
         self.ci.feature.load_fasta(fasta="./test-data/proteins_alt.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], update=True)
         feats = self.ci.feature.get_features(organism_id=org['organism_id'], uniquename='Q02123|VNBP_POPMV')
 
@@ -119,7 +119,7 @@ class FastaTest(ChadoTestCase):
         org = self._create_fake_org()
         an = self._create_fake_an()
 
-        self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], re_uniquename='[a-zA-Z0-9]+\|([a-zA-Z0-9_]+)')
+        self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], re_uniquename=r'[a-zA-Z0-9]+\|([a-zA-Z0-9_]+)')
         self.ci.feature.load_fasta(fasta="./test-data/proteins_alt.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], update=True, match_on_name=True)
         feats = self.ci.feature.get_features(organism_id=org['organism_id'], name='Q02123|VNBP_POPMV')
 
@@ -135,7 +135,7 @@ class FastaTest(ChadoTestCase):
         # get a test db
         db = self.ci.session.query(self.ci.model.db).filter_by(name='null')[0]
 
-        self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], db=db.db_id, re_db_accession='[a-zA-Z0-9]+\|([a-zA-Z0-9_]+)')
+        self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], db=db.db_id, re_db_accession=r'[a-zA-Z0-9]+\|([a-zA-Z0-9_]+)')
         feats = self.ci.feature.get_features(organism_id=org['organism_id'], name='Q02123|VNBP_POPMV')
 
         f = feats[0]
@@ -148,8 +148,8 @@ class FastaTest(ChadoTestCase):
         org = self._create_fake_org()
         an = self._create_fake_an()
 
-        self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], re_name='[a-zA-Z0-9]+\|([a-zA-Z0-9_]+)', re_uniquename='[a-zA-Z0-9]+\|([a-zA-Z0-9_]+)', sequence_type='supercontig')
-        self.ci.feature.load_fasta(fasta="./test-data/proteins_alt.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], re_name='([a-zA-Z0-9]+)\|[a-zA-Z0-9_]+', re_uniquename='([a-zA-Z0-9]+)\|[a-zA-Z0-9_]+', rel_type='part_of', re_parent='[a-zA-Z0-9]+\|([a-zA-Z0-9_]+)', parent_type='supercontig')
+        self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], re_name=r'[a-zA-Z0-9]+\|([a-zA-Z0-9_]+)', re_uniquename=r'[a-zA-Z0-9]+\|([a-zA-Z0-9_]+)', sequence_type='supercontig')
+        self.ci.feature.load_fasta(fasta="./test-data/proteins_alt.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], re_name=r'([a-zA-Z0-9]+)\|[a-zA-Z0-9_]+', re_uniquename=r'([a-zA-Z0-9]+)\|[a-zA-Z0-9_]+', rel_type='part_of', re_parent=r'[a-zA-Z0-9]+\|([a-zA-Z0-9_]+)', parent_type='supercontig')
 
         child = self.ci.feature.get_features(organism_id=org['organism_id'], name='Q02123')[0]
         parent = self.ci.feature.get_features(organism_id=org['organism_id'], name='VNBP_POPMV')[0]
