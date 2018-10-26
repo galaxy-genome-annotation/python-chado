@@ -15,12 +15,6 @@ from chado.client import Client
 
 from future import standard_library
 
-
-from sqlalchemy import Column, ForeignKey, Index, Integer, String, Table, UniqueConstraint
-from sqlalchemy import exc as sa_exc
-from sqlalchemy.orm import aliased
-
-
 standard_library.install_aliases()
 
 
