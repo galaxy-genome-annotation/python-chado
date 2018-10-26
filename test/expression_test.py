@@ -1,4 +1,4 @@
-from . import ChadoTestCase, ci, ci_no_reflect
+from . import ChadoTestCase, ci
 
 
 class ExpressionTest(ChadoTestCase):
