@@ -29,7 +29,7 @@ class ExpressionTest(ChadoTestCase):
 
         # Feature file (fasta)
         feature_file_path = "./test-data/proteins.fa"
-        self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'])
+        self.ci.feature.load_fasta(fasta=feature_file_path, analysis_id=an['analysis_id'], organism_id=org['organism_id'])
         self.ci.expression.add_expression(org['organism_id'], an['analysis_id'], expression_file_path, separator="\t")
 
         biomat_list = self.ci.expression.get_biomaterials()
