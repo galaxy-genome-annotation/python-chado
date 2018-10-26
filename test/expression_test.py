@@ -37,6 +37,7 @@ class ExpressionTest(ChadoTestCase):
 
     def setUp(self):
 
+        self.ci = ci
         ci.feature.delete_features()
         ci.organism.delete_organisms()
         ci.analysis.delete_analyses()
