@@ -38,17 +38,16 @@ class ExpressionTest(ChadoTestCase):
     def setUp(self):
 
         ci.feature.delete_features()
-        ci_no_reflect.organism.delete_organisms()
-        ci_no_reflect.analysis.delete_analyses()
-        ci_no_reflect.expression.delete_all_biomaterials(confirm=True)
+        ci.organism.delete_organisms()
+        ci.analysis.delete_analyses()
+        ci.expression.delete_all_biomaterials(confirm=True)
 
         ci.session.commit()
-        self.ci = ci_no_reflect
 
     def tearDown(self):
         ci.feature.delete_features()
-        ci_no_reflect.organism.delete_organisms()
-        ci_no_reflect.analysis.delete_analyses()
-        ci_no_reflect.expression.delete_all_biomaterials(confirm=True)
+        ci.organism.delete_organisms()
+        ci.analysis.delete_analyses()
+        ci.expression.delete_all_biomaterials(confirm=True)
 
         ci.session.commit()
