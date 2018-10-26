@@ -557,13 +557,13 @@ class ExpressionClient(Client):
                 for line in reader:
                     # Get feature name
                     feature_list.append(line.pop(0))
-                    int_line = [int(i) for i in line]
-                    if not len(int_line) == expected_len:
+                    float_line = [float(i) for i in line]
+                    if not len(float_line) == expected_len:
                         print("Error : Different number of expressions values and biomaterials for feature")
                         print(feature_list[-1])
                         print(biomaterial_list)
                         sys.exit(1)
-                    data.append(int_line)
+                    data.append(float_line)
 
             if not len(biomaterial_list) == len(set(biomaterial_list)):
                 print("Duplicates found in Biomaterials")
