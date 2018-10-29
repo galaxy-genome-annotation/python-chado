@@ -7,6 +7,7 @@ import warnings
 
 from chado.analysis import AnalysisClient
 from chado.export import ExportClient
+from chado.expression import ExpressionClient
 from chado.feature import FeatureClient
 from chado.organism import OrganismClient
 from chado.phylogeny import PhylogenyClient
@@ -74,6 +75,7 @@ class ChadoInstance(object):
         self.analysis = AnalysisClient(*args)
         self.feature = FeatureClient(*args)
         self.phylogeny = PhylogenyClient(*args)
+        self.expression = ExpressionClient(*args)
 
     def __str__(self):
         return '<ChadoInstance at %s>' % self.dbhost
