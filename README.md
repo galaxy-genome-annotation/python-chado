@@ -91,6 +91,7 @@ $ chakin feature load_fasta \
     - Added feature.load_go() to load GO annotation (blast2go results)
     - Added feature.get_feature_analyses() to fetch the analyses associated with a feature
     - Added feature.get_feature_cvterms() to fetch the cvterms associated with a feature
+    - Added support for biomaterial/expression data (as used by tripal_analysis_expression)
 
 - 2.1.5
     - bugfix: fix features deletion when deleting an analysis
