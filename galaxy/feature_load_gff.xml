@@ -32,6 +32,9 @@ chakin feature load_gff
 #if $add_only:
   $add_only
 #end if
+#if $protein_id_attr:
+  --protein_id_attr '$protein_id_attr'
+#end if
 
  > $results
 </command>
@@ -49,6 +52,7 @@ chakin feature load_gff
 	<param name="no_seq_compute" label="No Seq Compute" argument="no_seq_compute" type="boolean" truevalue="--no_seq_compute" falsevalue="" help="Disable the computation of mRNA and polypeptides sequences based on genome sequence and positions." />
 	<param name="quiet" label="Quiet" argument="quiet" type="boolean" truevalue="--quiet" falsevalue="" help="Hide progress information" />
 	<param name="add_only" label="Add Only" argument="add_only" type="boolean" truevalue="--add_only" falsevalue="" help="Use this flag if you're not updating existing features, but just adding new features to the selected analysis and organism. It will speedup loading, and reduce memory usage, but might produce errors in case of already existing feature." />
+	<param name="protein_id_attr" label="Protein Id Attr" argument="protein_id_attr" type="text" help="Attribute containing the protein uniquename. It is searched at the mRNA level, and if not found at CDS level." />
 
 	</inputs>
 	<outputs>

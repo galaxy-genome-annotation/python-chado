@@ -44,14 +44,19 @@ from chakin.decorators import custom_exception, None_output
     help="Use this flag if you're not updating existing features, but just adding new features to the selected analysis and organism. It will speedup loading, and reduce memory usage, but might produce errors in case of already existing feature.",
     is_flag=True
 )
+@click.option(
+    "--protein_id_attr",
+    help="Attribute containing the protein uniquename. It is searched at the mRNA level, and if not found at CDS level.",
+    type=str
+)
 @pass_context
 @custom_exception
 @None_output
-def cli(ctx, gff, analysis_id, organism_id, landmark_type="", re_protein="", re_protein_capture="^(.*?)$", fasta="", no_seq_compute=False, quiet=False, add_only=False):
+def cli(ctx, gff, analysis_id, organism_id, landmark_type="", re_protein="", re_protein_capture="^(.*?)$", fasta="", no_seq_compute=False, quiet=False, add_only=False, protein_id_attr=""):
     """Load features from a gff file
 
 Output:
 
     None
     """
-    return ctx.gi.feature.load_gff(gff, analysis_id, organism_id, landmark_type=landmark_type, re_protein=re_protein, re_protein_capture=re_protein_capture, fasta=fasta, no_seq_compute=no_seq_compute, quiet=quiet, add_only=add_only)
+    return ctx.gi.feature.load_gff(gff, analysis_id, organism_id, landmark_type=landmark_type, re_protein=re_protein, re_protein_capture=re_protein_capture, fasta=fasta, no_seq_compute=no_seq_compute, quiet=quiet, add_only=add_only, protein_id_attr=protein_id_attr)
