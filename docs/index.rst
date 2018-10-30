@@ -8,6 +8,7 @@ Contents:
 
    README
    commands
+   api/chado
 
 
 Indices and tables
