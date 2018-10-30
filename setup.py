@@ -1,6 +1,9 @@
 # http://bugs.python.org/issue15881#msg170215
 from setuptools import find_packages, setup
 
+with open('requirements.txt') as f:
+    requires = f.read().splitlines()
+
 setup(
     name="chado",
     version='2.2.0',
