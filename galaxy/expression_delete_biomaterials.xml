@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<tool id="chakin_expression_delete_biomaterials" name="expression" version="@WRAPPER_VERSION@.0">
+ <description>delete_biomaterials</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+chakin expression delete_biomaterials
+
+#if $names:
+  --names '$names'
+#end if
+#if $ids:
+  --ids '$ids'
+#end if
+#if $organism_id:
+  --organism_id '$organism_id'
+#end if
+#if $analysis_id:
+  --analysis_id '$analysis_id'
+#end if
+
+| jq -S . > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+
+    <!-- options -->
+	<param name="names" label="Names" argument="names" type="text" help="JSON list of biomaterial names to delete." />
+	<param name="ids" label="Ids" argument="ids" type="text" help="JSON list of biomaterial ids to delete." />
+	<param name="organism_id" label="Organism Id" argument="organism_id" type="text" help="Delete all biomaterial associated with this organism id." />
+	<param name="analysis_id" label="Analysis Id" argument="analysis_id" type="text" help="Delete all biomaterial associated with this analysis id." />
+
+	</inputs>
+	<outputs>
+		<data format="json" name="results"/>
+	</outputs>
+	<help>
+Will delete biomaterials based on selector. Only one selector will be used.
+
+@HELP@
+	</help>
+</tool>
