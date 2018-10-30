@@ -11,7 +11,7 @@ setup(
     author="Anthony Bretaudeau",
     author_email="anthony.bretaudeau@inra.fr",
     url="https://github.com/galaxy-genome-annotation/python-chado",
-    install_requires=['sqlalchemy', 'psycopg2', 'biopython', 'bcbio-gff==0.6.4', 'wrapt', 'click', 'pyyaml', 'future'],
+    install_requires=requires,
     packages=find_packages(),
     license='MIT',
     platforms="Posix; MacOS X; Windows",
