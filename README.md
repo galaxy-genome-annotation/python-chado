@@ -87,6 +87,9 @@ $ chakin feature load_fasta \
 
 ## History
 
+- 2.2.1
+    - Minor release to fix broken package at pypi, no code change
+
 - 2.2.0
     - Added feature.load_go() to load GO annotation (blast2go results)
     - Added feature.get_feature_analyses() to fetch the analyses associated with a feature
