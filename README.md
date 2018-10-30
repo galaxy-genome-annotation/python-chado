@@ -92,6 +92,7 @@ $ chakin feature load_fasta \
     - Added feature.get_feature_analyses() to fetch the analyses associated with a feature
     - Added feature.get_feature_cvterms() to fetch the cvterms associated with a feature
     - Added support for biomaterial/expression data (as used by tripal_analysis_expression)
+    - New --protein_id_attr option for feature.load_gff()
 
 - 2.1.5
     - bugfix: fix features deletion when deleting an analysis

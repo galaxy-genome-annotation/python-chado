@@ -510,7 +510,7 @@ class FeatureClient(Client):
 
         return {'inserted': count_ins}
 
-    def load_gff(self, gff, analysis_id, organism_id, landmark_type=None, re_protein=None, re_protein_capture="^(.*?)$", fasta=None, no_seq_compute=False, quiet=False, add_only=False):
+    def load_gff(self, gff, analysis_id, organism_id, landmark_type=None, re_protein=None, re_protein_capture="^(.*?)$", fasta=None, no_seq_compute=False, quiet=False, add_only=False, protein_id_attr=None):
         """
         Load features from a gff file
 
@@ -531,6 +531,9 @@ class FeatureClient(Client):
 
         :type re_protein_capture: str
         :param re_protein_capture: Regular expression to capture groups in mRNA name to use in --re_protein (e.g. "^(.*?)-R([A-Z]+)$", default="^(.*?)$")
+
+        :type protein_id_attr: str
+        :param protein_id_attr: Attribute containing the protein uniquename. It is searched at the mRNA level, and if not found at CDS level.
 
         :type fasta: str
         :param fasta: Path to a Fasta containing sequences for some features. When creating a feature, if its sequence is in this fasta file it will be loaded. Otherwise for mRNA and polypeptides it will be computed from the genome sequence (if available), otherwise it will be left empty.
@@ -553,6 +556,9 @@ class FeatureClient(Client):
 
         if len(self.ci.organism.get_organisms(organism_id=organism_id)) != 1:
             raise Exception("Could not find organism with id '{}'".format(organism_id))
+
+        if protein_id_attr and re_protein:
+            raise Exception("--protein_id_attr and --re_protein cannot be used at the same time.".format(organism_id))
 
         self.cache_everything = not add_only
 
@@ -650,7 +656,7 @@ class FeatureClient(Client):
 
             for f in rec.features:
 
-                self._load_gff_feature_with_children(rec, f, analysis_id, organism_id, re_protein_capture, re_protein, no_seq_compute=no_seq_compute)
+                self._load_gff_feature_with_children(rec, f, analysis_id, organism_id, re_protein_capture, re_protein, protein_id_attr, no_seq_compute=no_seq_compute)
                 count_ins += 1
 
                 if not quiet:
@@ -664,7 +670,7 @@ class FeatureClient(Client):
 
         return {'inserted': count_ins}
 
-    def _load_gff_feature_with_children(self, rec, f, analysis_id, organism_id, re_protein_capture, re_protein, parent=None, no_seq_compute=False):
+    def _load_gff_feature_with_children(self, rec, f, analysis_id, organism_id, re_protein_capture, re_protein, protein_id_attr, parent=None, no_seq_compute=False):
 
         # Be tolerant for proteins (shameless hard coding)
         if f.type == 'protein':
@@ -684,6 +690,11 @@ class FeatureClient(Client):
             min_cds = None
             max_cds = None
 
+            detected_protein_id = None
+            if protein_id_attr:
+                if protein_id_attr in f.qualifiers and f.qualifiers[protein_id_attr]:
+                    detected_protein_id = f.qualifiers[protein_id_attr][0]
+
             # To compute mRNA and polypeptide
             for subrna in f.sub_features:
                 if subrna.type == 'CDS':
@@ -693,6 +704,10 @@ class FeatureClient(Client):
                         min_cds = subrna.location.start
                     if max_cds is None or subrna.location.end > max_cds:
                         max_cds = subrna.location.end
+
+                    if protein_id_attr and not detected_protein_id:
+                        if protein_id_attr in subrna.qualifiers and subrna.qualifiers[protein_id_attr]:
+                            detected_protein_id = subrna.qualifiers[protein_id_attr][0]
                 if subrna.type == 'exon':
                     seq_exons.append(rec.seq[subrna.location.nofuzzy_start:subrna.location.nofuzzy_end])
 
@@ -712,7 +727,7 @@ class FeatureClient(Client):
         mrna_has_polypeptide = False
         for subf in f.sub_features:
 
-            self._load_gff_feature_with_children(rec, subf, analysis_id, organism_id, re_protein_capture, re_protein, parent=added_feat['feature_id'], no_seq_compute=no_seq_compute)
+            self._load_gff_feature_with_children(rec, subf, analysis_id, organism_id, re_protein_capture, re_protein, protein_id_attr, parent=added_feat['feature_id'], no_seq_compute=no_seq_compute)
 
             if f.type == 'mRNA':
                 mrna_has_polypeptide = mrna_has_polypeptide or (subf.type == 'polypeptide')
@@ -722,6 +737,8 @@ class FeatureClient(Client):
 
             if re_protein:
                 pep_uname = re.sub(re_protein_capture, re_protein, added_feat['uniquename'])
+            elif detected_protein_id:
+                pep_uname = detected_protein_id
             else:
                 pep_uname = added_feat['uniquename'] + '-protein'
             polypeptide = SeqFeature(FeatureLocation(min_cds, max_cds), type="polypeptide", strand=f.location.strand, qualifiers={"source": subrna.qualifiers['source'], 'ID': [pep_uname], 'Name': [added_feat['name']]})
