@@ -20,7 +20,7 @@ chakin export export_gbk
 
 	</inputs>
 	<outputs>
-		<data format="genbank" name="results"/>
+		<data format="txt" name="results"/>
 	</outputs>
 	<help>
 Export organism features as genbank
