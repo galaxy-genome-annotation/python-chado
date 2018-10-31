@@ -79,7 +79,7 @@ Delete all biomaterials
 **Options**::
 
 
-      --confirm   Confirm that you really do want to delete ALL of the organisms.
+      --confirm   Confirm that you really do want to delete ALL of the biomaterials.
       -h, --help  Show this message and exit.
     
 
