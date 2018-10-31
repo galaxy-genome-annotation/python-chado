@@ -20,7 +20,7 @@ Add a new biomaterial to the database
 **Output**
 
 
-    Nothing
+    Biomaterial details
     
 **Options**::
 

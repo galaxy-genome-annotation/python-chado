@@ -8,10 +8,11 @@ from __future__ import unicode_literals
 
 import csv
 import json
-import sys
 
 import chado
 from chado.client import Client
+
+from chakin.io import warn
 
 from future import standard_library
 
@@ -53,7 +54,6 @@ class ExpressionClient(Client):
                 .join(self.model.acquisition, self.model.assay.assay_id == self.model.acquisition.assay_id) \
                 .join(self.model.quantification, self.model.acquisition.acquisition_id == self.model.quantification.acquisition_id) \
                 .filter(self.model.quantification.analysis_id == analysis_id)
-            print(res.count())
         else:
             res = self.session.query(self.model.biomaterial)
 
@@ -108,8 +108,8 @@ class ExpressionClient(Client):
         :type attributes: str
         :param attributes: Custom attributes (In JSON dict form)
 
-        :rtype: str
-        :return: Nothing
+        :rtype: dict
+        :return: Biomaterial details
 
         """
         biosourceprovider_id = None
@@ -350,11 +350,9 @@ class ExpressionClient(Client):
                             biosourceprovider_id=None, dbxref_id=None, description=None):
 
         # Check if biomaterial exist
-        print("Creating biomaterial " + biomaterial_name)
         res_biomaterial = self.session.query(self.model.biomaterial).filter_by(name=biomaterial_name)
         biomaterial_id = ""
         if res_biomaterial.count():
-            print("Biomaterial already exists. Will update")
             biomaterial_id = res_biomaterial.one().biomaterial_id
             # Do not update if not set and existing in DB
             if not description:
@@ -370,7 +368,7 @@ class ExpressionClient(Client):
             if res_analysis.count():
                 analysis_name = res_analysis.one().name
             else:
-                print("Analysis not found : will ignore")
+                warn("Analysis not found: will ignore")
 
         if (not description and analysis_name):
             description = 'This biomaterial: ' + biomaterial_name + ', was created for the analysis: ' + analysis_name
@@ -529,14 +527,12 @@ class ExpressionClient(Client):
         uniq_name = " from "
         res = self.session.query(self.model.organism).filter_by(organism_id=organism_id)
         if not res.count():
-            print("No organism found with id " + organism_id)
-            sys.exit(1)
+            raise Exception("No organism found with id " + organism_id)
         uniq_name += res.one().common_name
         uniq_name += "  for  "
         res = self.session.query(self.model.analysis).filter_by(analysis_id=analysis_id)
         if not res.count():
-            print("No analysis found with id " + analysis_id)
-            sys.exit(1)
+            raise Exception("No analysis found with id " + analysis_id)
         uniq_name += res.one().name
 
         return uniq_name
@@ -559,24 +555,19 @@ class ExpressionClient(Client):
                     feature_list.append(line.pop(0))
                     float_line = [float(i) for i in line]
                     if not len(float_line) == expected_len:
-                        print("Error : Different number of expressions values and biomaterials for feature")
-                        print(feature_list[-1])
-                        print(biomaterial_list)
-                        sys.exit(1)
+                        raise Exception("Different number of expressions values and biomaterials for feature '%s'" % feature_list[-1])
                     data.append(float_line)
 
             if not len(biomaterial_list) == len(set(biomaterial_list)):
-                print("Duplicates found in Biomaterials")
-                sys.exit(1)
+                raise Exception("Duplicates found in Biomaterials")
 
             if not len(feature_list) == len(set(feature_list)):
-                print("Duplicates found in Features")
-                sys.exit(1)
+                raise Exception("Duplicates found in Features")
+
             return {'biomaterial_list': biomaterial_list, 'feature_list': feature_list, 'data': data}
 
         except IOError:
-            print("Could not read file at path " + file_path)
-            sys.exit(1)
+            raise Exception("Could not read file at path '%s'" % file_path)
 
     def _expression_create_biomaterial_structure(self, biomaterial, organism_id, analysis_id, arraydesign_id, contact_id, uniq_name):
 
@@ -652,8 +643,7 @@ class ExpressionClient(Client):
         if res.count():
             feature_id = res.one().feature_id
         else:
-            print("No feature found with the unique name " + feature_name + " . Make sure it exists beforehand")
-            sys.exit(1)
+            raise Exception("No feature found with the unique name '%s' . Make sure it exists beforehand" % feature_name)
         element_id = self._create_expression_element(feature_id, arraydesign_id)
         self._set_analysis_feature(feature_id, analysis_id)
         # Iterate over quantification (one per biomaterial), and expression value for the selected feature
