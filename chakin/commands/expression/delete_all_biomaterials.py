@@ -6,7 +6,7 @@ from chakin.decorators import custom_exception, None_output
 @click.command('delete_all_biomaterials')
 @click.option(
     "--confirm",
-    help="Confirm that you really do want to delete ALL of the organisms.",
+    help="Confirm that you really do want to delete ALL of the biomaterials.",
     is_flag=True
 )
 @pass_context

@@ -18,7 +18,7 @@ chakin expression delete_all_biomaterials
     <!-- arguments -->
 
     <!-- options -->
-	<param name="confirm" label="Confirm" argument="confirm" type="boolean" truevalue="--confirm" falsevalue="" help="Confirm that you really do want to delete ALL of the organisms." />
+	<param name="confirm" label="Confirm" argument="confirm" type="boolean" truevalue="--confirm" falsevalue="" help="Confirm that you really do want to delete ALL of the biomaterials." />
 
 	</inputs>
 	<outputs>

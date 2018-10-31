@@ -251,7 +251,7 @@ class ExpressionClient(Client):
         Delete all biomaterials
 
         :type confirm: bool
-        :param confirm: Confirm that you really do want to delete ALL of the organisms.
+        :param confirm: Confirm that you really do want to delete ALL of the biomaterials.
 
         :rtype: None
         :return: None
