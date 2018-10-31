@@ -137,7 +137,7 @@ class ExpressionClient(Client):
             self._add_to_biomaterial_dbxref(biomaterial_id, dbxref_id)
         if bioproject_accession:
             dbxref_id = self._register_accession('bioproject', 'NCBI BioProject', '', bioproject_accession)
-            self._add_to_biomaterial_dbxref(self, biomaterial_id, dbxref_id)
+            self._add_to_biomaterial_dbxref(biomaterial_id, dbxref_id)
         if biosample_accession:
             dbxref_id = self._register_accession('biosample', 'NCBI BioSample', '', biosample_accession)
             self._add_to_biomaterial_dbxref(biomaterial_id, dbxref_id)

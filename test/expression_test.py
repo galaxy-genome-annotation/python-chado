@@ -11,7 +11,7 @@ class ExpressionTest(ChadoTestCase):
         biomaterial_description = "This is a description"
         org = self._create_fake_org()
 
-        biomat = self.ci.expression.add_biomaterial(biomaterial_name, org["organism_id"], description=biomaterial_description, biomaterial_provider=biomaterial_provider)
+        biomat = self.ci.expression.add_biomaterial(biomaterial_name, org["organism_id"], description=biomaterial_description, biomaterial_provider=biomaterial_provider, bioproject_accession="something")
 
         assert biomat, "Issue : Biomaterial not created"
         assert biomat["name"] == biomaterial_name, "Biomaterial name issue : " + biomat["name"]
