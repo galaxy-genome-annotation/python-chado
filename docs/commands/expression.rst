@@ -130,8 +130,8 @@ Will delete biomaterials based on selector. Only one selector will be used.
 **Options**::
 
 
-      --names TEXT        JSON list of biomaterial names to delete.  [default: []]
-      --ids TEXT          JSON list of biomaterial ids to delete.  [default: []]
+      --names TEXT        JSON list of biomaterial names to delete.
+      --ids TEXT          JSON list of biomaterial ids to delete.
       --organism_id TEXT  Delete all biomaterial associated with this organism id.
       --analysis_id TEXT  Delete all biomaterial associated with this analysis id.
       -h, --help          Show this message and exit.
