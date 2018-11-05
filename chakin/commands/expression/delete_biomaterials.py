@@ -7,15 +7,11 @@ from chakin.decorators import custom_exception, str_output
 @click.option(
     "--names",
     help="JSON list of biomaterial names to delete.",
-    default="[]",
-    show_default=True,
     type=str
 )
 @click.option(
     "--ids",
     help="JSON list of biomaterial ids to delete.",
-    default="[]",
-    show_default=True,
     type=str
 )
 @click.option(
@@ -31,7 +27,7 @@ from chakin.decorators import custom_exception, str_output
 @pass_context
 @custom_exception
 @str_output
-def cli(ctx, names="[]", ids="[]", organism_id="", analysis_id=""):
+def cli(ctx, names="", ids="", organism_id="", analysis_id=""):
     """Will delete biomaterials based on selector. Only one selector will be used.
 
 Output:
