@@ -191,7 +191,7 @@ class ExpressionClient(Client):
         for index, feature in enumerate(results["feature_list"]):
             self._manage_feature_expression(feature, results["data"][index], quant_list, organism_id, analysis_id, arraydesign_id)
 
-    def delete_biomaterials(self, names="[]", ids="[]", organism_id="", analysis_id=""):
+    def delete_biomaterials(self, names=None, ids=None, organism_id="", analysis_id=""):
         """
         Will delete biomaterials based on selector. Only one selector will be used.
 
