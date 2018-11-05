@@ -87,6 +87,9 @@ $ chakin feature load_fasta \
 
 ## History
 
+- 2.2.2
+    - Bug fixes and improvements to the expression module
+
 - 2.2.1
     - Minor release to fix broken package at pypi, no code change
 
