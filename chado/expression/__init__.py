@@ -212,7 +212,6 @@ class ExpressionClient(Client):
 
         """
         if not (names or ids or organism_id or analysis_id):
-            return("Please select one selector")
 
         if not names == "[]":
             names = json.loads(names)
