@@ -119,7 +119,10 @@ class ExpressionClient(Client):
         analysis_id = None
 
         if attributes:
-            json_attributes = json.loads(attributes)
+            if isinstance(attributes, str):
+                json_attributes = json.loads(attributes)
+            else:
+                json_attributes = attributes
 
         # Add provider into table if not existing
         if biomaterial_provider:
