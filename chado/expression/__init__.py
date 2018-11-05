@@ -212,15 +212,22 @@ class ExpressionClient(Client):
 
         """
         if not (names or ids or organism_id or analysis_id):
+            return("Please select one filter")
 
-        if not names == "[]":
-            names = json.loads(names)
+        if names:
+            if isinstance(names, str):
+                names = json.loads(names)
+
+        if ids:
+            if isinstance(ids, str):
+                ids = json.loads(ids)
+
+        if names:
             res = self.session.query(self.model.biomaterial).filter(self.model.biomaterial.name.in_(names))
             if not res.count():
-                return("No biomaterials with these names were found")
+                return("No biomaterials with given names were found")
 
-        elif not ids == "[]":
-            ids = json.loads(ids)
+        elif ids:
             res = self.session.query(self.model.biomaterial).filter(self.model.biomaterial.biomaterial_id.in_(ids))
             if not res.count():
                 return ("No biomaterials with these ids were found")
