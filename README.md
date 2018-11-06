@@ -87,6 +87,9 @@ $ chakin feature load_fasta \
 
 ## History
 
+- 2.2.3
+    - Throw a warning instead of an exception when a GFF target feature does not exist
+
 - 2.2.2
     - Bug fixes and improvements to the expression module
 
