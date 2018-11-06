@@ -1139,7 +1139,8 @@ class FeatureClient(Client):
 
         target = target_str.split(' ')
         if len(target) != 3 and len(target) != 4:
-            raise Exception('Malformed Target value: {}'.format(target_str))
+            warn('Malformed Target value: {}, skipping'.format(target_str))
+            return
 
         strand = 1
         if len(target) == 4:
@@ -1148,7 +1149,8 @@ class FeatureClient(Client):
             elif target[3] == '-':
                 strand = -1
             else:
-                raise Exception('Malformed Target value (bad strand): {}'.format(target_str))
+                warn('Malformed Target value (bad strand): {}, skipping'.format(target_str))
+                return
 
         landmark_str = target[0]
         landmark = None
@@ -1164,7 +1166,8 @@ class FeatureClient(Client):
                 break
 
         if landmark is None:
-            raise Exception('Malformed Target value (unknown target): {}'.format(target_str))
+            warn('Malformed Target value (unknown target): {}, skipping'.format(target_str))
+            return
 
         self._do_add_featureloc(landmark, feat, rank, start, end, strand)
 
