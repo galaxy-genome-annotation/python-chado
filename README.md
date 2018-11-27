@@ -87,6 +87,9 @@ $ chakin feature load_fasta \
 
 ## History
 
+- 2.2.4
+    - Fix broken --skip_missing option for load_go
+
 - 2.2.3
     - Throw a warning instead of an exception when a GFF target feature does not exist
 

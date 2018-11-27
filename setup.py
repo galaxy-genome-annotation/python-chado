@@ -6,7 +6,7 @@ with open('requirements.txt') as f:
 
 setup(
     name="chado",
-    version='2.2.3',
+    version='2.2.4',
     description="Chado library",
     author="Anthony Bretaudeau",
     author_email="anthony.bretaudeau@inra.fr",
