@@ -1364,7 +1364,11 @@ class FeatureClient(Client):
                     else:
                         raise Exception('Could not find feature with name "%s"' % feat_id)
 
-                term_id = self.ci.get_cvterm_id(term_acc, term_db)
+                try:
+                    term_id = self.ci.get_cvterm_id(term_acc, term_db)
+                except chado.RecordNotFoundError:
+                    term_id = None
+
                 if not term_id:
                     if skip_missing:
                         print('Could not find term with name "%s", skipping it' % term_acc)
