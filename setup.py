@@ -1,14 +1,17 @@
 # http://bugs.python.org/issue15881#msg170215
 from setuptools import find_packages, setup
 
+with open('requirements.txt') as f:
+    requires = f.read().splitlines()
+
 setup(
     name="chado",
-    version='2.1.5',
+    version='2.2.4',
     description="Chado library",
     author="Anthony Bretaudeau",
     author_email="anthony.bretaudeau@inra.fr",
     url="https://github.com/galaxy-genome-annotation/python-chado",
-    install_requires=['sqlalchemy', 'psycopg2', 'biopython', 'bcbio-gff==0.6.4', 'wrapt', 'click', 'pyyaml', 'future'],
+    install_requires=requires,
     packages=find_packages(),
     license='MIT',
     platforms="Posix; MacOS X; Windows",

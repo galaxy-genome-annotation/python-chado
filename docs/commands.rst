@@ -12,6 +12,7 @@ describes these commands.
 
    commands/analysis.rst
    commands/export.rst
+   commands/expression.rst
    commands/feature.rst
    commands/organism.rst
    commands/phylogeny.rst

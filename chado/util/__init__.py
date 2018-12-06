@@ -70,7 +70,7 @@ class UtilClient(Client):
 
         cmd += [
             '-p', '5432:5432',
-            'erasche/chado:1.31-jenkins21-pg9.5'
+            'quay.io/galaxy-genome-annotation/chado:1.31-jenkins21-pg9.5'
         ]
 
         subprocess.call(cmd)

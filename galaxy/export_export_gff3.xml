@@ -20,7 +20,7 @@ chakin export export_gff3
 
 	</inputs>
 	<outputs>
-		<data format="gff3" name="results"/>
+		<data format="txt" name="results"/>
 	</outputs>
 	<help>
 Export organism features as GFF3
