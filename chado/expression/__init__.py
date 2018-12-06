@@ -603,10 +603,7 @@ class ExpressionClient(Client):
         # Create generic channel (required for assay_biomaterial table)
         channel_id = self._create_generic_channel()
         self._create_assay_biomaterial(assay_id, biomaterial_id, channel_id)
-
-
         # Try to add the unit to cvterm list
-
         if(unit):
             try:
                 cvterm_id = self.ci.get_cvterm_id('unit_of_measure', 'sep')
@@ -627,7 +624,6 @@ class ExpressionClient(Client):
                 self.session.add(quantificationprop)
                 self.session.flush()
                 self.session.refresh(quantificationprop)
-
 
         return quantification_id
 
