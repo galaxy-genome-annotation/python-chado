@@ -270,7 +270,7 @@ class ChadoInstance(object):
 
             return self.get_pub_id(name)
 
-    def create_cvterm(self, term, cv_name, db_name, term_definition="", cv_definition="", db_definition=""):
+    def create_cvterm(self, term, cv_name, db_name, term_definition="", cv_definition="", db_definition="", accession=""):
 
         try:
             cvterm = self.get_cvterm_id(term, cv_name, True)
@@ -302,12 +302,15 @@ class ChadoInstance(object):
                 self.session.add(cv)
 
             # Cvterm not found, create it
-            res = self.session.query(self.model.dbxref).filter_by(accession=term, db=db)
+            if not accession:
+                accession = term
+
+            res = self.session.query(self.model.dbxref).filter_by(accession=accession, db=db)
             if res.count() > 0:
                 dbxref = res.one()
             else:
                 dbxref = self.model.dbxref()
-                dbxref.accession = term
+                dbxref.accession = accession
                 dbxref.db = db
 
                 self.session.add(dbxref)

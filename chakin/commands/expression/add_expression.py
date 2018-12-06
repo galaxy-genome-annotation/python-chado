@@ -14,14 +14,19 @@ from chakin.decorators import custom_exception, str_output
     show_default=True,
     type=str
 )
+@click.option(
+    "--unit",
+    help="The units associated with the loaded values (ie, FPKM, RPKM, raw counts)",
+    type=str
+)
 @pass_context
 @custom_exception
 @str_output
-def cli(ctx, organism_id, analysis_id, file_path, separator="	"):
+def cli(ctx, organism_id, analysis_id, file_path, separator="	", unit=""):
     """Add an expression matrix file to the database
 
 Output:
 
     Number of expression data loaded
     """
-    return ctx.gi.expression.add_expression(organism_id, analysis_id, file_path, separator=separator)
+    return ctx.gi.expression.add_expression(organism_id, analysis_id, file_path, separator=separator, unit=unit)

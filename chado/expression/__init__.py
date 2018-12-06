@@ -153,7 +153,7 @@ class ExpressionClient(Client):
 
         return self.get_biomaterials(biomaterial_id=biomaterial_id)[0]
 
-    def add_expression(self, organism_id, analysis_id, file_path, separator="\t"):
+    def add_expression(self, organism_id, analysis_id, file_path, separator="\t", unit=None):
         """
         Add an expression matrix file to the database
 
@@ -169,6 +169,9 @@ class ExpressionClient(Client):
         :type separator: str
         :param separator: Separating character in the matrix file (ex : ','). Default character is tab.
 
+        :type unit: str
+        :param unit: The units associated with the loaded values (ie, FPKM, RPKM, raw counts)
+
         :rtype: str
         :return: Number of expression data loaded
 
@@ -182,7 +185,7 @@ class ExpressionClient(Client):
         # Create all biomaterials, get quantification ID
         quant_list = []
         for biomaterial in results["biomaterial_list"]:
-            quant_list.append(self._expression_create_biomaterial_structure(biomaterial, organism_id, analysis_id, arraydesign_id, contact_id, uniq_name))
+            quant_list.append(self._expression_create_biomaterial_structure(biomaterial, organism_id, analysis_id, arraydesign_id, contact_id, uniq_name, unit))
 
         # Manage features
         num = 0
@@ -413,9 +416,8 @@ class ExpressionClient(Client):
         for key, value in prop_dict.items():
             try:
                 propterm = self.ci.get_cvterm_id(key, 'biomaterial_property')
-            # 'Internal DB?'
             except chado.RecordNotFoundError:
-                propterm = self.ci.create_cvterm(key, 'biomaterial_property', 'internal')
+                propterm = self.ci.create_cvterm(key, 'biomaterial_property', 'tripal')
 
             # Cache management go here (one day)
             # We need unicity for (biomaterial_id, term_id, rank)
@@ -587,7 +589,7 @@ class ExpressionClient(Client):
         except IOError:
             raise Exception("Could not read file at path '%s'" % file_path)
 
-    def _expression_create_biomaterial_structure(self, biomaterial, organism_id, analysis_id, arraydesign_id, contact_id, uniq_name):
+    def _expression_create_biomaterial_structure(self, biomaterial, organism_id, analysis_id, arraydesign_id, contact_id, uniq_name, unit=None):
 
         # Will create the biomaterial with minimum info and set up DBs
         biomaterial_id = self._create_biomaterial(biomaterial, organism_id, analysis_id=analysis_id, biosourceprovider_id=contact_id)
@@ -601,6 +603,31 @@ class ExpressionClient(Client):
         # Create generic channel (required for assay_biomaterial table)
         channel_id = self._create_generic_channel()
         self._create_assay_biomaterial(assay_id, biomaterial_id, channel_id)
+
+
+        # Try to add the unit to cvterm list
+
+        if(unit):
+            try:
+                cvterm_id = self.ci.get_cvterm_id('unit_of_measure', 'sep')
+            except chado.RecordNotFoundError:
+                definition = """A unit of measure is a quantity which is a standard of measurement for some dimension.
+                                For example, the Meter is a Unit O fMeasure for the dimension of length, as is the Inch.
+                                There is no intrinsic property of a UnitOfMeasure that makes it primitive or fundamental;
+                                rather, a system of units (e.g. Systeme International Unit) defines a set of orthogonal dimensions and assigns units for each. [ SUMO:unit of measure ]"""
+                cvterm_id = self.ci.create_cvterm('unit_of_measure', 'sep', 'sep', term_definition=definition, accession='00056')
+
+            # Add unit
+            res = self.session.query(self.model.quantificationprop).filter_by(quantification_id=quantification_id, type_id=cvterm_id, value=unit)
+            if not res.count():
+                quantificationprop = self.model.quantificationprop()
+                quantificationprop.quantification_id = quantification_id
+                quantificationprop.type_id = cvterm_id
+                quantificationprop.value = unit
+                self.session.add(quantificationprop)
+                self.session.flush()
+                self.session.refresh(quantificationprop)
+
 
         return quantification_id
 
