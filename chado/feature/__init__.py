@@ -242,7 +242,7 @@ class FeatureClient(Client):
 
         return res
 
-    def load_fasta(self, fasta, organism_id, sequence_type='contig', analysis_id=None,
+    def load_fasta(self, fasta, organism_id, sequence_type="contig", analysis_id=None,
                    re_name=None, re_uniquename=None, match_on_name=False, update=False, db=None,
                    re_db_accession=None, rel_type=None, re_parent=None, parent_type=None):
         """
