@@ -22,6 +22,6 @@ def cli(ctx, organism_id, analysis_id, file_path, separator="	"):
 
 Output:
 
-    I have no idea
+    Number of expression data loaded
     """
     return ctx.gi.expression.add_expression(organism_id, analysis_id, file_path, separator=separator)
