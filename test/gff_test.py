@@ -1295,6 +1295,52 @@ class GFFTest(ChadoTestCase):
             self.ci.session.rollback()
             assert True
 
+    def test_load_gff_protein_id(self):
+        org = self._create_fake_org()
+        an = self._create_fake_an()
+        an_gff = self._create_fake_an('gff')
+
+        self.ci.feature.load_fasta(fasta="./test-data/genome.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], sequence_type='supercontig')
+        self.ci.feature.load_gff(gff="./test-data/ncbi.gff", analysis_id=an_gff['analysis_id'], organism_id=org['organism_id'], protein_id_attr="protein_id", no_seq_compute=True)
+
+        # CDS level protein_id
+        rna_f = self.ci.session.query(self.ci.model.feature) \
+            .filter_by(uniquename="rna1537") \
+            .one()
+
+        assert rna_f.name == 'XM_008184899.2'
+        assert rna_f.uniquename == 'rna1537'
+
+        derivesfromterm = self.ci.get_cvterm_id('derives_from', 'sequence')
+        peps = [x.subject_id for x in rna_f.object_in_relationships if x.type_id == derivesfromterm]
+        assert len(peps) == 1
+
+        pep_f = self.ci.session.query(self.ci.model.feature) \
+            .filter_by(feature_id=peps[0]) \
+            .one()
+
+        assert pep_f.name == "XM_008184899.2"
+        assert pep_f.uniquename == "XP_008183121.1"
+
+        # mRNA level protein_id
+        rna_f = self.ci.session.query(self.ci.model.feature) \
+            .filter_by(uniquename="rna1539") \
+            .one()
+
+        assert rna_f.name == 'XM_008184894.2'
+        assert rna_f.uniquename == 'rna1539'
+
+        derivesfromterm = self.ci.get_cvterm_id('derives_from', 'sequence')
+        peps = [x.subject_id for x in rna_f.object_in_relationships if x.type_id == derivesfromterm]
+        assert len(peps) == 1
+
+        pep_f = self.ci.session.query(self.ci.model.feature) \
+            .filter_by(feature_id=peps[0]) \
+            .one()
+
+        assert pep_f.name == "XM_008184894.2"
+        assert pep_f.uniquename == "some_prot_id"
+
     def setUp(self):
         self.ci = ci
         self.ci.organism.delete_organisms()

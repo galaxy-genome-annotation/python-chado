@@ -219,6 +219,9 @@ Load features from a gff file
                                  selected analysis and organism. It will speedup
                                  loading, and reduce memory usage, but might produce
                                  errors in case of already existing feature.
+      --protein_id_attr TEXT     Attribute containing the protein uniquename. It is
+                                 searched at the mRNA level, and if not found at CDS
+                                 level.
       -h, --help                 Show this message and exit.
     
 

@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<tool id="chakin_expression_add_biomaterial" name="expression" version="@WRAPPER_VERSION@.0">
+ <description>add_biomaterial</description>
+	<macros>
+		<import>macros.xml</import>
+	</macros>
+	<expand macro="requirements"/>
+	<command detect_errors="aggressive">
+chakin expression add_biomaterial
+'$biomaterial_name'
+'$organism_id'
+
+#if $description:
+  --description '$description'
+#end if
+#if $biomaterial_provider:
+  --biomaterial_provider '$biomaterial_provider'
+#end if
+#if $biosample_accession:
+  --biosample_accession '$biosample_accession'
+#end if
+#if $sra_accession:
+  --sra_accession '$sra_accession'
+#end if
+#if $bioproject_accession:
+  --bioproject_accession '$bioproject_accession'
+#end if
+#if $attributes:
+  --attributes '$attributes'
+#end if
+
+| jq -S . > $results
+</command>
+	<inputs>
+    <!-- arguments -->
+	<param name="biomaterial_name" label="Biomaterial Name" argument="biomaterial_name" type="text" help="Biomaterial name" />
+	<param name="organism_id" label="Organism Id" argument="organism_id" type="text" help="The id of the associated organism" />
+
+    <!-- options -->
+	<param name="description" label="Description" argument="description" type="text" help="Description of the biomaterial" />
+	<param name="biomaterial_provider" label="Biomaterial Provider" argument="biomaterial_provider" type="text" help="Biomaterial provider name" />
+	<param name="biosample_accession" label="Biosample Accession" argument="biosample_accession" type="text" help="Biosample accession number" />
+	<param name="sra_accession" label="Sra Accession" argument="sra_accession" type="text" help="SRA accession number" />
+	<param name="bioproject_accession" label="Bioproject Accession" argument="bioproject_accession" type="text" help="Bioproject accession number" />
+	<param name="attributes" label="Attributes" argument="attributes" type="text" help="Custom attributes (In JSON dict form)" />
+
+	</inputs>
+	<outputs>
+		<data format="json" name="results"/>
+	</outputs>
+	<help>
+Add a new biomaterial to the database
+
+@HELP@
+	</help>
+</tool>

@@ -87,10 +87,24 @@ $ chakin feature load_fasta \
 
 ## History
 
+- 2.2.4
+    - Fix broken --skip_missing option for load_go
+
+- 2.2.3
+    - Throw a warning instead of an exception when a GFF target feature does not exist
+
+- 2.2.2
+    - Bug fixes and improvements to the expression module
+
+- 2.2.1
+    - Minor release to fix broken package at pypi, no code change
+
 - 2.2.0
     - Added feature.load_go() to load GO annotation (blast2go results)
     - Added feature.get_feature_analyses() to fetch the analyses associated with a feature
     - Added feature.get_feature_cvterms() to fetch the cvterms associated with a feature
+    - Added support for biomaterial/expression data (as used by tripal_analysis_expression)
+    - New --protein_id_attr option for feature.load_gff()
 
 - 2.1.5
     - bugfix: fix features deletion when deleting an analysis
