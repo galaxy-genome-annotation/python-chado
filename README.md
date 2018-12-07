@@ -87,6 +87,9 @@ $ chakin feature load_fasta \
 
 ## History
 
+- 2.2.5
+    - Added support for units in expression loaders
+
 - 2.2.4
     - Fix broken --skip_missing option for load_go
 
