@@ -1341,6 +1341,280 @@ class GFFTest(ChadoTestCase):
         assert pep_f.name == "XM_008184894.2"
         assert pep_f.uniquename == "some_prot_id"
 
+    def test_load_gff_nosource(self):
+        org = self._create_fake_org()
+        an = self._create_fake_an()
+        an_gff = self._create_fake_an('gff')
+
+        self.ci.feature.load_fasta(fasta="./test-data/genome.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], sequence_type='supercontig')
+        self.ci.feature.load_gff(gff="./test-data/annot_nosource.gff", analysis_id=an_gff['analysis_id'], organism_id=org['organism_id'], no_seq_compute=True)
+
+        gene_f = self.ci.session.query(self.ci.model.feature) \
+            .filter_by(uniquename="orange1.1g015632m.g") \
+            .join(self.ci.model.featureloc, self.ci.model.featureloc.feature_id == self.ci.model.feature.feature_id) \
+            .join(self.ci.model.feature_synonym, self.ci.model.feature_synonym.feature_id == self.ci.model.feature.feature_id) \
+            .join(self.ci.model.synonym, self.ci.model.feature_synonym.synonym_id == self.ci.model.synonym.synonym_id) \
+            .one()
+
+        geneterm = self.ci.get_cvterm_id('gene', 'sequence')
+
+        # Check gene feature
+        assert gene_f.dbxref_id is None, "gff>gene loaded correctly"
+        assert gene_f.organism_id == org['organism_id'], "gff>gene loaded correctly"
+        assert gene_f.name == "orange1.1g015632m.g", "gff>gene loaded correctly"
+        assert gene_f.uniquename == "orange1.1g015632m.g", "gff>gene loaded correctly"
+        assert gene_f.residues is None, "gff>gene loaded correctly"
+        assert gene_f.seqlen is None, "gff>gene loaded correctly"
+        assert gene_f.md5checksum == "d41d8cd98f00b204e9800998ecf8427e", "gff>gene loaded correctly"
+        assert gene_f.type_id == geneterm, "gff>gene loaded correctly"
+        assert gene_f.is_analysis is False, "gff>gene loaded correctly"
+        assert gene_f.is_obsolete is False, "gff>gene loaded correctly"
+
+        # Check gene loc
+        assert len(gene_f.featureloc_collection) == 1, "gff>pep located correctly"
+        assert gene_f.featureloc_collection[0].fmin == 4058459, "gff>gene located correctly"
+        assert gene_f.featureloc_collection[0].fmax == 4062210, "gff>gene located correctly"
+        assert gene_f.featureloc_collection[0].is_fmin_partial is False, "gff>gene located correctly"
+        assert gene_f.featureloc_collection[0].is_fmax_partial is False, "gff>gene located correctly"
+        assert gene_f.featureloc_collection[0].strand == 1, "gff>gene located correctly"
+        assert gene_f.featureloc_collection[0].phase is None, "gff>gene located correctly"
+        assert gene_f.featureloc_collection[0].residue_info is None, "gff>gene located correctly"
+        assert gene_f.featureloc_collection[0].locgroup == 0, "gff>gene located correctly"
+        assert gene_f.featureloc_collection[0].rank == 0, "gff>gene located correctly"
+
+        src_f = self.ci.session.query(self.ci.model.feature) \
+            .filter_by(feature_id=gene_f.featureloc_collection[0].srcfeature_id) \
+            .one()
+
+        assert src_f.uniquename == "scaffold00001", "gff>gene loaded correctly"
+        scaff1_id = src_f.feature_id
+
+        # Check gene aliases
+        exactterm = self.ci.get_cvterm_id('exact', 'synonym_type')
+        syns = {synf.synonym.name: synf.synonym.type_id for synf in gene_f.feature_synonym_collection}
+
+        assert len(syns) == 2, "gff>gene aliases loaded correctly"
+        assert 'some-synonym' in syns, "gff>gene aliases loaded correctly"
+        assert 'another synonym' in syns, "gff>gene aliases loaded correctly"
+        assert syns['some-synonym'] == exactterm, "gff>gene aliases loaded correctly"
+        assert syns['another synonym'] == exactterm, "gff>gene aliases loaded correctly"
+
+        # Check gene dbxref
+        dbs = self.ci.session.query(self.ci.model.db.db_id, self.ci.model.db.name, self.ci.model.db.description) \
+            .filter((self.ci.model.db.name == 'GO') | (self.ci.model.db.name == 'FOOBAR') | (self.ci.model.db.name == 'FOOBARXX') | (self.ci.model.db.name == 'GFF_source'))
+        for db in dbs:
+            if db.name == "FOOBAR":
+                assert db.description == "Added automatically by the GFF loader", "gff>gene dbxrefs db loaded correctly"
+
+        dbs = {db.name: db.db_id for db in dbs}
+
+        assert len(dbs) == 4, "gff>gene dbxrefs db loaded correctly"
+
+        xrefs = {dbx.dbxref.accession: dbx.dbxref.db_id for dbx in gene_f.feature_dbxref_collection}
+
+        assert len(xrefs) == 2, "gff>gene dbxrefs loaded correctly"
+        assert '0061611' in xrefs, "gff>gene dbxrefs loaded correctly"
+        assert '6528B' in xrefs, "gff>gene dbxrefs loaded correctly"
+        assert xrefs['0061611'] == dbs['GO'], "gff>gene dbxrefs loaded correctly"
+        assert xrefs['6528B'] == dbs['FOOBAR'], "gff>gene dbxrefs loaded correctly"
+
+        # Check gene featureprop
+        expected = [
+            'Gap___BLABLA___0',
+            'Gap___BLOBLO___1',
+            'Note___that\'s fantastic___0',
+            'Note___really___1',
+            'Poutrelle___test___1',
+            'Poutrelle___lapinou___0',
+        ]
+
+        assert len(gene_f.featureprop_collection) == 6, "gff>gene loaded correctly"
+
+        for prop in gene_f.featureprop_collection:
+            assert prop.cvterm.name + '___' + prop.value + '___' + str(prop.rank) in expected, "gff>gene loaded correctly"
+            expected.remove(prop.cvterm.name + '___' + prop.value + '___' + str(prop.rank))
+
+        # Check mrna
+        rna_f = self.ci.session.query(self.ci.model.feature) \
+            .filter_by(uniquename="PAC:18136219") \
+            .join(self.ci.model.featureloc, self.ci.model.featureloc.feature_id == self.ci.model.feature.feature_id) \
+            .join(self.ci.model.feature_synonym, self.ci.model.feature_synonym.feature_id == self.ci.model.feature.feature_id) \
+            .join(self.ci.model.synonym, self.ci.model.feature_synonym.synonym_id == self.ci.model.synonym.synonym_id) \
+            .one()
+
+        rnaterm = self.ci.get_cvterm_id('mRNA', 'sequence')
+
+        # Check mRNA feature
+        assert rna_f.dbxref_id is None, "gff>mRNA loaded correctly"
+        assert rna_f.organism_id == org['organism_id'], "gff>mRNA loaded correctly"
+        assert rna_f.name == "orange1.1g015615m", "gff>mRNA loaded correctly"
+        assert rna_f.uniquename == "PAC:18136219", "gff>mRNA loaded correctly"
+        assert rna_f.residues is None, "gff>mRNA loaded correctly"
+        assert rna_f.seqlen is None, "gff>mRNA loaded correctly"
+        assert rna_f.md5checksum == "d41d8cd98f00b204e9800998ecf8427e", "gff>mRNA loaded correctly"
+        assert rna_f.type_id == rnaterm, "gff>mRNA loaded correctly"
+        assert rna_f.is_analysis is False, "gff>mRNA loaded correctly"
+        assert rna_f.is_obsolete is False, "gff>mRNA loaded correctly"
+
+        # Check mRNA loc
+        assert len(rna_f.featureloc_collection) == 1, "gff>pep located correctly"
+        assert rna_f.featureloc_collection[0].fmin == 4058759, "gff>mRNA located correctly"
+        assert rna_f.featureloc_collection[0].fmax == 4062210, "gff>mRNA located correctly"
+        assert rna_f.featureloc_collection[0].is_fmin_partial is False, "gff>mRNA located correctly"
+        assert rna_f.featureloc_collection[0].is_fmax_partial is False, "gff>mRNA located correctly"
+        assert rna_f.featureloc_collection[0].strand == 1, "gff>mRNA located correctly"
+        assert rna_f.featureloc_collection[0].phase is None, "gff>mRNA located correctly"
+        assert rna_f.featureloc_collection[0].residue_info is None, "gff>mRNA located correctly"
+        assert rna_f.featureloc_collection[0].locgroup == 0, "gff>mRNA located correctly"
+        assert rna_f.featureloc_collection[0].rank == 0, "gff>mRNA located correctly"
+
+        assert scaff1_id == rna_f.featureloc_collection[0].srcfeature_id, "gff>mRNA loaded correctly"
+
+        # Check mRNA aliases
+        exactterm = self.ci.get_cvterm_id('exact', 'synonym_type')
+        syns = {synf.synonym.name: synf.synonym.type_id for synf in rna_f.feature_synonym_collection}
+
+        assert len(syns) == 2, "gff>mRNA aliases loaded correctly"
+        assert 'some-synonym' in syns, "gff>mRNA aliases loaded correctly"
+        assert 'another synonym' in syns, "gff>mRNA aliases loaded correctly"
+        assert syns['some-synonym'] == exactterm, "gff>mRNA aliases loaded correctly"
+        assert syns['another synonym'] == exactterm, "gff>mRNA aliases loaded correctly"
+
+        # Check mRNA dbxref
+        xrefs = {dbx.dbxref.accession: dbx.dbxref.db_id for dbx in rna_f.feature_dbxref_collection}
+
+        assert len(xrefs) == 2, "gff>mRNA dbxrefs loaded correctly"
+        assert '0061621' in xrefs, "gff>mRNA dbxrefs loaded correctly"
+        assert '6528A' in xrefs, "gff>mRNA dbxrefs loaded correctly"
+        assert xrefs['0061621'] == dbs['GO'], "gff>mRNA dbxrefs loaded correctly"
+        assert xrefs['6528A'] == dbs['FOOBARXX'], "gff>mRNA dbxrefs loaded correctly"
+
+        # Check relationships
+        parents = {x.object_id: x.type_id for x in rna_f.subject_in_relationships}
+        assert len(parents) == 1, "mRNA relationships"
+        partofterm = self.ci.get_cvterm_id('part_of', 'sequence')
+        assert rna_f.subject_in_relationships[0].type_id == partofterm, "mRNA relationships"
+
+        derivesfromterm = self.ci.get_cvterm_id('derives_from', 'sequence')
+        peps = [x.subject_id for x in rna_f.object_in_relationships if x.type_id == derivesfromterm]
+        assert len(peps) == 1, "mRNA relationships, single peptide"
+
+        pep_f = self.ci.session.query(self.ci.model.feature) \
+            .filter_by(feature_id=peps[0]) \
+            .one()
+
+        # Check pep feature
+        pepterm = self.ci.get_cvterm_id('polypeptide', 'sequence')
+        assert pep_f.dbxref_id is None, "gff>pep loaded correctly"
+        assert pep_f.organism_id == org['organism_id'], "gff>pep loaded correctly"
+        assert pep_f.name == "orange1.1g015615m", "gff>pep loaded correctly"
+        assert pep_f.uniquename == "PAC:18136219-protein", "gff>pep loaded correctly"
+        assert pep_f.residues is None, "gff>pep loaded correctly"
+        assert pep_f.seqlen is None, "gff>pep loaded correctly"
+        assert pep_f.md5checksum == "d41d8cd98f00b204e9800998ecf8427e", "gff>pep loaded correctly"
+        assert pep_f.type_id == pepterm, "gff>pep loaded correctly"
+        assert pep_f.is_analysis is False, "gff>pep loaded correctly"
+        assert pep_f.is_obsolete is False, "gff>pep loaded correctly"
+
+        # Check pep loc
+        assert len(pep_f.featureloc_collection) == 1, "gff>pep located correctly"
+        assert pep_f.featureloc_collection[0].fmin == 4059234, "gff>pep located correctly"
+        assert pep_f.featureloc_collection[0].fmax == 4061905, "gff>pep located correctly"
+        assert pep_f.featureloc_collection[0].is_fmin_partial is False, "gff>pep located correctly"
+        assert pep_f.featureloc_collection[0].is_fmax_partial is False, "gff>pep located correctly"
+        assert pep_f.featureloc_collection[0].strand == 1, "gff>pep located correctly"
+        assert pep_f.featureloc_collection[0].phase is None, "gff>pep located correctly"
+        assert pep_f.featureloc_collection[0].residue_info is None, "gff>pep located correctly"
+        assert pep_f.featureloc_collection[0].locgroup == 0, "gff>pep located correctly"
+        assert pep_f.featureloc_collection[0].rank == 0, "gff>pep located correctly"
+
+        assert scaff1_id == pep_f.featureloc_collection[0].srcfeature_id, "gff>pep loaded correctly"
+
+        children = {x.subject_id: x for x in rna_f.object_in_relationships if x.type_id != derivesfromterm}
+        assert len(children) == 15, "mRNA relationships, single peptide"
+
+        cdsterm = self.ci.get_cvterm_id('CDS', 'sequence')
+        exonterm = self.ci.get_cvterm_id('exon', 'sequence')
+        utr3term = self.ci.get_cvterm_id('three_prime_UTR', 'sequence')
+        utr5term = self.ci.get_cvterm_id('five_prime_UTR', 'sequence')
+        for c in children:
+            assert children[c].type_id == partofterm, "subsubfeatures"
+
+            if children[c].subject.type_id == utr3term:
+                subsub_f = children[c].subject
+
+            assert children[c].subject.type_id in (cdsterm, exonterm, utr3term, utr5term), "subsubfeatures"
+
+        # Check a subsubfeature
+        assert subsub_f.dbxref_id is None, "gff>utr loaded correctly"
+        assert subsub_f.organism_id == org['organism_id'], "gff>utr loaded correctly"
+        assert subsub_f.name.endswith("-three_prime_UTR-scaffold00001:4061905..4062210"), "gff>utr loaded correctly"
+        assert subsub_f.uniquename.endswith("-three_prime_UTR-scaffold00001:4061905..4062210"), "gff>utr loaded correctly"
+        assert subsub_f.residues is None, "gff>utr loaded correctly"
+        assert subsub_f.seqlen is None, "gff>utr loaded correctly"
+        assert subsub_f.md5checksum == "d41d8cd98f00b204e9800998ecf8427e", "gff>utr loaded correctly"
+        assert subsub_f.type_id == utr3term, "gff>utr loaded correctly"
+        assert subsub_f.is_analysis is False, "gff>utr loaded correctly"
+        assert subsub_f.is_obsolete is False, "gff>utr loaded correctly"
+
+        assert len(subsub_f.featureloc_collection) == 1, "gff>utr located correctly"
+        assert subsub_f.featureloc_collection[0].fmin == 4061905, "gff>utr located correctly"
+        assert subsub_f.featureloc_collection[0].fmax == 4062210, "gff>utr located correctly"
+        assert subsub_f.featureloc_collection[0].is_fmin_partial is False, "gff>utr located correctly"
+        assert subsub_f.featureloc_collection[0].is_fmax_partial is False, "gff>utr located correctly"
+        assert subsub_f.featureloc_collection[0].strand == 1, "gff>utr located correctly"
+        assert subsub_f.featureloc_collection[0].phase is None, "gff>utr located correctly"
+        assert subsub_f.featureloc_collection[0].residue_info is None, "gff>utr located correctly"
+        assert subsub_f.featureloc_collection[0].locgroup == 0, "gff>utr located correctly"
+        assert subsub_f.featureloc_collection[0].rank == 0, "gff>utr located correctly"
+
+        # Check utr with 2 parents
+        confused_child_f = self.ci.session.query(self.ci.model.feature) \
+            .filter_by(uniquename='an_utr_with_two_parents') \
+            .all()
+
+        assert len(confused_child_f) == 1, "1 utr with 2 parents"
+
+        confused_rels = confused_child_f[0].subject_in_relationships
+
+        assert len(confused_rels) == 2, "1 utr with 2 parents"
+
+        for r in confused_rels:
+            assert (r.object.uniquename == 'PAC:18136239') or (r.object.uniquename == 'PAC:18136238'), "1 utr with 2 parents"
+
+        # Check Derives_from
+        derivesfrom = self.ci.session.query(self.ci.model.feature) \
+            .filter_by(uniquename='some_special_cds') \
+            .all()
+
+        assert len(derivesfrom) == 1, "derives_from"
+
+        derivesfrom_rels = derivesfrom[0].subject_in_relationships
+
+        assert len(derivesfrom_rels) == 2, "derives_from"
+
+        for r in derivesfrom_rels:
+            assert (r.object.uniquename == 'PAC:18136217') or (r.object.uniquename == 'PAC:18136225'), "derives_from"
+
+        terms = {cvt.cvterm.name: cvt.cvterm.dbxref.db_id for cvt in derivesfrom[0].feature_cvterm_collection}
+
+        assert len(terms) == 2, "gff>ontology_term loaded correctly"
+        assert '000001' in terms, "gff>ontology_term loaded correctly"
+        assert '00002' in terms, "gff>ontology_term loaded correctly"
+        assert terms['000001'] == dbs['GO'], "gff>ontology_term loaded correctly"
+        assert terms['00002'] == dbs['GO'], "gff>ontology_term loaded correctly"
+
+        # Target location
+        assert len(derivesfrom[0].featureloc_collection) == 2, "gff>target loc ok"
+        if derivesfrom[0].featureloc_collection[0].fmin == 120:
+            checkedloc = 0
+        else:
+            checkedloc = 1
+        assert derivesfrom[0].featureloc_collection[checkedloc].fmin == 120, "gff>target loc ok"
+        assert derivesfrom[0].featureloc_collection[checkedloc].fmax == 320, "gff>target loc ok"
+        assert derivesfrom[0].featureloc_collection[checkedloc].strand == -1, "gff>target loc ok"
+        assert derivesfrom[0].featureloc_collection[checkedloc].rank == 1, "gff>gene located correctly"
+
     def setUp(self):
         self.ci = ci
         self.ci.organism.delete_organisms()
