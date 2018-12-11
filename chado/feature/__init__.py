@@ -741,7 +741,9 @@ class FeatureClient(Client):
                 pep_uname = detected_protein_id
             else:
                 pep_uname = added_feat['uniquename'] + '-protein'
-            polypeptide = SeqFeature(FeatureLocation(min_cds, max_cds), type="polypeptide", strand=f.location.strand, qualifiers={"source": subrna.qualifiers['source'], 'ID': [pep_uname], 'Name': [added_feat['name']]})
+            polypeptide = SeqFeature(FeatureLocation(min_cds, max_cds), type="polypeptide", strand=f.location.strand, qualifiers={'ID': [pep_uname], 'Name': [added_feat['name']]})
+            if 'source' in subrna.qualifiers:
+                polypeptide.qualifiers['source'] = subrna.qualifiers['source']
 
             protein_seq = None
             if not no_seq_compute and len(rec.seq) > 0 and str(rec.seq)[0:10] != "??????????":
