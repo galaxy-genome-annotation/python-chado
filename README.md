@@ -87,6 +87,9 @@ $ chakin feature load_fasta \
 
 ## History
 
+- 2.2.6
+    - fix requirement name for psycopg2 (name change for version >=2.8)
+
 - 2.2.5
     - Added support for units in expression loaders
     - Fix error in load_gff when no source is specified
