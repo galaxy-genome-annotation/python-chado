@@ -678,7 +678,7 @@ class AnalysisClient(Client):
 
                     # Finished a Hit, saving value
                     number_hits += 1
-
+                    # This is the only reason we need to iterate on hits in the loader.. might be a way to improve. (First hit only?)
                     hit_dict = {
                         'accession': accession,
                         'hit_organism': hit_organism,
