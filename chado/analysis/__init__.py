@@ -96,10 +96,10 @@ class AnalysisClient(Client):
         }
 
     def load_blast(self, name, program, programversion, sourcename, blast_output,
-                    blast_ext=None, blastdb=None, blastdb_id=None,
-                    blast_parameters=None, query_re=None, query_type=None,
-                    query_uniquename=False, is_concat=False, search_keywords=False,
-                    no_parsed="all"algorithm=None, sourceversion=None, sourceuri=None, description=None, date_executed=None):
+                   blast_ext=None, blastdb=None, blastdb_id=None,
+                   blast_parameters=None, query_re=None, query_type=None,
+                   query_uniquename=False, is_concat=False, search_keywords=False,
+                   no_parsed="all", algorithm=None, sourceversion=None, sourceuri=None, description=None, date_executed=None):
         """
         Create an analysis
 
@@ -183,8 +183,8 @@ class AnalysisClient(Client):
             raise Exception("Either blastdb or blastdb_id is required")
 
         if description:
-                description += '<br/ >'
-                description += 'Blast parameters: {}'.format(blast_parameters)
+            description += '<br/ >'
+            description += 'Blast parameters: {}'.format(blast_parameters)
 
         analysis = self.add_analysis(name, program, programversion, sourcename, algorithm, sourceversion, sourceuri, description, date_executed)
 
@@ -195,7 +195,6 @@ class AnalysisClient(Client):
 
         if os.path.isfile(blast_output):
             self._parse_xml(an_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords)
-
 
     def get_analyses(self, analysis_id=None, name=None, program=None, programversion=None, algorithm=None, sourcename=None, sourceversion=None, sourceuri=None, description=None):
         """
@@ -331,392 +330,384 @@ class AnalysisClient(Client):
         self.session.commit()
         return num
 
+    def _parse_xml(self, an_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords):
 
-def _parse_xml(self, an_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords):
+        cv_term_id = self.ci.get_cvterm_id('analysis_blast_output_iteration_hits', 'tripal')
 
-    cv_term_id = self.ci.get_cvterm_id('analysis_blast_output_iteration_hits', 'tripal')
+        if(is_concat):
+            # File is concatenated, need to break it appart
+            try:
+                fd, path = tempfile.mkstemp()
+                with os.open(blast_output) as in_fh:
+                    for line in in_fh:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        fd.write(line + "\n")
+                        # If we have a full part, process it and delete/recreate temp file
+                        if(re.search('</BlastOutput>', line)):
+                            fd.close()
+                            self._parse_xml(an_id, blastdb, path, no_parsed, blast_ext, query_re, query_type, query_uniquename, False, search_keywords)
+                            os.remove(path)
+                            fd, path = tempfile.mkstemp()
+            finally:
+                fd.close()
+                os.remove(path)
+                return
 
-    if(is_concat):
-    # File is concatenated, need to break it appart
-        try:
-            fd, path = tempfile.mkstemp()
-            with os.open(blast_output) as in_fh:
-                for line in in_fh:
-                    line = line.strip()
-                    if(!line):
-                        continue
-                    fd.write(line + "\n")
-                    # If we have a full part, process it and delete/recreate temp file
-                    if(re.search('</BlastOutput>', line)):
-                        fd.close()
-                        self._parse_xml(an_id, blastdb, path, no_parsed, blast_ext, query_re, query_type, query_uniquename, false, search_keywords)
-                        os.remove(path)
-                        fd, path = tempfile.mkstemp()
-        finally:
-            fd.close()
-            os.remove(path)
-            return
+        tree = ET.ElementTree(file=blast_output)
+        for iteration in tree.iter(tag="Iteration"):
+            self.manage_iteration(iteration, an_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords, cv_term_id)
 
-   tree = ET.ElementTree(file=blast_output)
-   for iteration in tree.iter(tag="Iteration"):
-        self.manage_iteration(iteration, an_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords, cv_term_id)
+    def _manage_iteration(self, iteration, an_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords, cv_term_id):
+        feature_id = 0
+        analysis_feature_id = 0
+        iteration_tags_xml = ''
+        num_hits = 1
+        feature = None
 
+        for child in iteration:
+            if child.tag == 'Iteration_query-def':
+                iteration_tags_xml += "  <{}>{}</{}>\n".format(child.tag, child.text, child.tag)
+                if query_re and re.search(query_re, child.text):
+                    feature = re.search(query_re, child.text).group(1)
+                elif re.search(r'^(.*?)\s.*$', child.text):
+                    feature = re.search(r'^(.*?)\s.*$', child.text).group(1)
+                else:
+                    feature = child.text
+                if not feature and query_re:
+                    raise Exception("Cannot find feature in {} using the regular expression: {}".format(child.text, query_re))
 
-def _manage_iteration(iteration, an_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords, cv_term_id)
-    feature_id = 0
-    analysis_feature_id = 0
-    iteration_tag_xml = ''
-    num_hits = 1
-    feature = None
+                # Need to find the feature in chado
+                cv_term_id = self.ci.get_cvterm_id(query_type, 'sequence')
 
-    for child in iteration:
-        if child.tag == 'Iteration_query-def':
-            iteration_tags_xml += "  <{}>{}</{}>\n".format(child.tag, child.text, child.tag)
-            if query_re and re.search(query_re, child.text):
-                feature = re.search(query_re, child.text).group(1)
-            elif re.search('^(.*?)\s.*$', child.text):
-                feature = re.search('^(.*?)\s.*$', child.text).group(1)
-            else:
-                feature = child.text
-            if not feature and query_re
-                raise Exception("Cannot find feature in {} using the regular expression: {}".format(child.text, query_re))
+                if not cv_term_id:
+                    raise Exception("Cannot find cvterm id for query type {}".format(query_type))
 
-            # Need to find the feature in chado
-            cv_term_id = self.ci.get_cvterm_id(query_type, 'sequence')
+                res = self.session.query(self.model.feature).filter_by(type_id=cv_term_id)
 
-            if not cv_term_id:
-                raise Exception("Cannot find cvterm id for query type {}".format(query_type))
+                if query_uniquename:
+                    res = res.filter_by(uniquename=query_uniquename)
+                else:
+                    res = res.filter_by(name=feature)
 
-            res = self.session.query(self.model.feature).filter_by(type_id=cv_term_id)
+                if not res:
+                    raise Exception("Database query failed when searching for feature {}".format(feature))
+                if not res.count():
+                    raise Exception("Failed: {} cannot find a matching feature in the database".format(feature))
+                if res.count() > 1:
+                    # Ambiguous : Skip feature. Need to log the result.
+                    continue
+                feature_id = res.one().feature_id
 
-            if query_uniquename:
-                res = res.filter_by(uniquename=query_uniquename)
-            else:
-                res = res.filter_by(name=feature)
+            elif child.tag == 'Iteration_hits':
+                if not feature_id:
+                    # Skip line
+                    continue
+                xml_content = "<Iteration>\n{}    <{}>\n".format(iteration_tags_xml, child.tag)
+                for hit in child:
+                    if hit.tag == "Hit":
+                        if (no_parsed == "all" or num_hits <= no_parsed):
+                            xml_content += "        <Hit>"
+                            xml_content += hit.text + ''.join(ET.tostring(e) for e in hit)
+                            xml_content += "</Hit>\n"
+                    num_hits += 1
+                xml_content += "\n  </{}>\n</Iteration>".format(child.tag)
 
-            if not res
-                raise Exception("Database query failed when searching for feature {}".format(feature))
-            if not res.count():
-                 raise Exception("Failed: {} cannot find a matching feature in the database".format(feature))
-            if res.count() > 1:
-                # Ambiguous : Skip feature. Need to log the result.
-                continue
-            feature_id = res.one().feature_id
+                analysis_feature = self.session.query(self.model.analysisfeature).filter_by(feature_id=feature_id, analysis_id=an_id)
+                # Create if not existing
+                if not analysis_feature.count():
+                    analysis_feature = self.model.analysisfeature
+                    analysis_feature.feature_id = feature_id
+                    analysis_feature.analysis_id = an_id
+                    self.session.add(analysis_feature)
+                    self.session.flush()
+                    self.session.refresh(analysis_feature)
+                    analysis_feature_id = analysis_feature.analysisfeature_id
+                else:
+                    analysis_feature_id = analysis_feature.one().analysisfeature_id
 
-        elif child.tag == 'Iteration_hits':
-            if not feature_id
-                # Skip line
-                continue
-            xml_content = "<Iteration>\n{}    <{}>\n".format(iteration_tags_xml, child.tag)
-            for hit in child:
-                if hit.tag == "Hit"
-                    if (no_parsed == "all" or num_hits <= no_parsed):
-                        xml_content += "        <Hit>"
-                        xml_content += hit.text + ''.join(ET.tostring(e) for e in hit)
-                        xml_content += "</Hit>\n"
-                num_hits += 1
-            xml_content += "\n  </{}>\n</Iteration>".format(child.tag)
-
-            analysis_feature = self.session.query(self.model.analysisfeature).filter_by(feature_id=feature_id, analysis_id=an_id)
-            # Create if not existing
-            if not analysis_feature.count():
-                analysis_feature = self.model.analysisfeature
-                analysis_feature.feature_id = feature_id
-                analysis_feature.analysis_id=an_id
-                self.session.add(analysis_feature)
-                self.session.flush()
-                self.session.refresh(analysis_feature)
-                analysis_feature_id = analysis_feature.analysisfeature_id
-            else:
-                analysis_feature_id = analysis_feature.one().analysisfeature_id
-
-            analysis_feature_prop = self.session.query(self.model.analysisfeatureprop) \
+                analysis_feature_prop = self.session.query(self.model.analysisfeatureprop) \
                     .join(self.model.analysisfeature, self.model.analysisfeature.analysisfeature_id == self.model.analysisfeatureprop.analysisfeature_id) \
                     .filter_by(feature_id=feature_id, analysis_id=an_id, type_id=cv_term_id)
 
-            if analysis_feature_prop.count():
-                analysis_feature_prop.update({'value': xml_content})
-            else:
-                analysis_feature_prop = self.model.analysisfeatureprop
-                analysis_feature_prop.analysisfeature_id = analysis_feature_id
-                analysis_feature_prop.type_id = cv_term_id
-                analysis_feature_prop.value = xml_content
-                analysis_feature_prop.rank = 0
-                self.session.add(analysis_feature_prop)
-                self.session.flush()
-                self.session.refresh(analysis_feature_prop)
-
-            if search_keywords:
-                # remove any existing entries. we'll replace them
-                res = self.session.query(self.model.blast_hit_data).filter_by(analysisfeature_id=analysis_feature_id)
-                res.delete(synchronize_session=False)
-                self.session.commit()
-
-                db = self.session.query(self.model.db).filter_by(db_id=blastdb)
-                analysis = self.session.query(self.model.analysis).filter_by(analysis_id=an_id)
-
-                blast_obj = self._get_blast_obj(xml_content, db.one(), feature_id, analysis.one())
-
-                # iterate through the hits and add the records to the blast_hit_data table
-
-                fail = 0
-                index = 1
-
-                for hit in blast_obj[hits_array]:
-                    blast_org_name = hit["hit_organism"]
-                    blast_org_id = None
-
-                    if blast_org_name:
-                        res = self.session.query(self.model.blast_organisms).filter_by(blast_org_name=blast_org_name)
-                        if not res.count():
-                            blast_organism = self.model.blast_organisms
-                            blast_organism.blast_org_name = blast_org_name
-                            self.session.add(blast_organism)
-                            self.session.flush()
-                            self.session.refresh(blast_organism)
-                            blast_org_id = blast_organism.blast_org_id
-                        else:
-                            blast_org_id = res.one().blast_org_id
-
-                    blast_hit_data = self.model.blast_hit_data
-                    blast_hit_data.analysisfeature_id = analysisfeature_id
-                    blast_hit_data.analysis_id = analysis_id
-                    blast_hit_data.feature_id = feature_id
-                    blast_hit_data.db_id = blastdb
-                    blast_hit_data.hit_num = index
-                    blast_hit_data.hit_name = hit['hit_name']
-                    blast_hit_data.hit_url = hit['hit_url']
-                    blast_hit_data.hit_description = hit['description']
-                    blast_hit_data.hit_organism = blast_org_name
-                    blast_hit_data.blast_org_id = blast_org_id
-                    blast_hit_data.hit_accession = hit['accession']
-                    blast_hit_data.hit_best_eval = hit['best_evalue']
-                    blast_hit_data.hit_best_score = hit['best_score']
-                    blast_hit_data.hit_pid = hit['percent_identity']
-                    self.session.add(blast_hit_data)
+                if analysis_feature_prop.count():
+                    analysis_feature_prop.update({'value': xml_content})
+                else:
+                    analysis_feature_prop = self.model.analysisfeatureprop
+                    analysis_feature_prop.analysisfeature_id = analysis_feature_id
+                    analysis_feature_prop.type_id = cv_term_id
+                    analysis_feature_prop.value = xml_content
+                    analysis_feature_prop.rank = 0
+                    self.session.add(analysis_feature_prop)
                     self.session.flush()
-                    index += 1
+                    self.session.refresh(analysis_feature_prop)
 
+                if search_keywords:
+                    # remove any existing entries. we'll replace them
+                    res = self.session.query(self.model.blast_hit_data).filter_by(analysisfeature_id=analysis_feature_id)
+                    res.delete(synchronize_session=False)
+                    self.session.commit()
+
+                    db = self.session.query(self.model.db).filter_by(db_id=blastdb)
+                    analysis = self.session.query(self.model.analysis).filter_by(analysis_id=an_id)
+
+                    blast_obj = self._get_blast_obj(xml_content, db.one(), feature_id, analysis.one())
+
+                    # iterate through the hits and add the records to the blast_hit_data table
+
+                    # fail = 0
+                    index = 1
+
+                    for hit in blast_obj["hits_array"]:
+                        blast_org_name = hit["hit_organism"]
+                        blast_org_id = None
+
+                        if blast_org_name:
+                            res = self.session.query(self.model.blast_organisms).filter_by(blast_org_name=blast_org_name)
+                            if not res.count():
+                                blast_organism = self.model.blast_organisms
+                                blast_organism.blast_org_name = blast_org_name
+                                self.session.add(blast_organism)
+                                self.session.flush()
+                                self.session.refresh(blast_organism)
+                                blast_org_id = blast_organism.blast_org_id
+                            else:
+                                blast_org_id = res.one().blast_org_id
+
+                        blast_hit_data = self.model.blast_hit_data
+                        blast_hit_data.analysisfeature_id = analysis_feature_id
+                        blast_hit_data.analysis_id = an_id
+                        blast_hit_data.feature_id = feature_id
+                        blast_hit_data.db_id = blastdb
+                        blast_hit_data.hit_num = index
+                        blast_hit_data.hit_name = hit['hit_name']
+                        blast_hit_data.hit_url = hit['hit_url']
+                        blast_hit_data.hit_description = hit['description']
+                        blast_hit_data.hit_organism = blast_org_name
+                        blast_hit_data.blast_org_id = blast_org_id
+                        blast_hit_data.hit_accession = hit['accession']
+                        blast_hit_data.hit_best_eval = hit['best_evalue']
+                        blast_hit_data.hit_best_score = hit['best_score']
+                        blast_hit_data.hit_pid = hit['percent_identity']
+                        self.session.add(blast_hit_data)
+                        self.session.flush()
+                        index += 1
+            else:
+                iteration_tags_xml += "  <{}>{}</{}>\n".format(child.tag, child.text, child.tag)
+
+    def _get_blast_ob(self, xml_content, blast_db, feature_id, blast_analysis):
+        blast_object = {}
+
+        blast_object["xml"] = xml_content
+
+        db_name = ""
+        is_genbank = ""
+        regex_hit_id = ""
+        regex_hit_def = ""
+        regex_hit_organism = ""
+        regex_hit_accession = ""
+        db_organism = ""
+
+        parser_query = self.session.query(self.model.tripal_analysis_blast).filter_by(db_id=blast_db.db_id)
+        if parser_query.count():
+            parser = parser_query.one()
+            db_name = parser.displayname
+            is_genbank = parser.genbank_style
+            regex_hit_id = parser.regex_hit_id
+            regex_hit_def = parser.regex_hit_def
+            regex_hit_organism = parser.regex_hit_organism
+            regex_hit_accession = parser.regex_hit_accession
+            db_organism = parser.hit_organism
+
+        # Regex in Python do not take "/"
+        if not regex_hit_id:
+            regex_hit_id = r'^(.*?)\s.*$'
+
+        if not regex_hit_def:
+            regex_hit_def = r'^.*?\s(.*)$'
+
+        if not regex_hit_accession:
+            regex_hit_accession = r'^(.*?)\s.*$'
+
+        # get analysis information
+
+        blast_object["analysis"] = blast_analysis
+        blast_db.displayname = db_name
+        blast_object["db"] = blast_db
+
+        if not db_name:
+            blast_object["title"] = blast_analysis.name
         else:
-            iteration_tags_xml += "  <{}>{}</{}>\n".format(child.tag, child.text, child.tag)
+            blast_object["title"] = db_name
 
+        if hasattr(self.model, 'tripal_analysis'):
+            res = self.session.query(self.model.tripal_analysis).filter_by(analysis_id=blast_analysis.analysis_id)
+            if res.count():
+                blast_analysis.nid = res.one().nid
 
+        root = ET.fromstring(xml_content)
 
-def _get_blast_ob(self, xml_content, blast_db, feature_id, blast_analysis):
-    blast_object = {}
+        for sub_iteration in root:
+            if sub_iteration.tag == 'Iteration_query-def':
+                blast_object["xml_tag"] = sub_iteration.text
 
-    blast_object["xml"] = xml_content
-
-    db_name = ""
-    is_genbank = ""
-    regex_hit_id = ""
-    regex_hit_def = ""
-    regex_hit_organism = ""
-    regex_hit_accession = ""
-    db_organism = ""
-
-    parser_query = self.session.query(self.model.tripal_analysis_blast).filter_by(db_id=blast_db.db_id)
-    if parser_query.count():
-        parser = parser_query.one()
-        db_name = parser.displayname
-        is_genbank = parser.genbank_style
-        regex_hit_id = parser.regex_hit_id
-        regex_hit_def = parser.regex_hit_def
-        regex_hit_organism = parser.regex_hit_organism
-        regex_hit_accession = parser.regex_hit_accession
-        db_organism = parser.hit_organism
-
-
-    # Regex in Python do not take "/"
-    if not regex_hit_id:
-        regex_hit_id = '^(.*?)\s.*$'
-
-    if not regex_hit_def:
-        regex_hit_def = '^.*?\s(.*)$'
-
-    if not regex_hit_accession:
-        regex_hit_accession = '^(.*?)\s.*$'
-
-    # get analysis information
-
-    blast_object["analysis"] = blast_analysis
-    blast_db.displayname = db_name
-    blast_object["db"] = blast_db
-
-    if not db_name:
-        blast_object["title"] = blast_analysis.name
-    else:
-        blast_object["title"] = db_name
-
-    if hasattr(self.model, 'tripal_analysis'):
-        res = self.session.query(self.model.tripal_analysis).filter_by(analysis_id=blast_analysis.analysis_id)
-        if res.count()
-            blast_analysis.nid = res.one().nid
-
-    root = ET.fromstring(xml_content)
-    iteration = ""
-
-    for sub_iteration in root:
-        if sub_iteration.tag == 'Iteration_query-def'
-            blast_object["xml_tag"] = sub_iteration.text
-
-        if sub_iteration.tag == 'Iteration_hits'
-            blast_object["xml_tag"] = sub_iteration.text
-            blast_object["feature_id"] = feature_id
-            # Initialize hit variable
-            # Replaced php array with python list (no int key)
-            hits_array = []
-            hit_count = 0
-            number_hits = 0
-            accession = ''
-            hit_name = ''
-            description = ''
-            hit_organism = 'Unknown';
-            # Initialize hsp variable
-
-            for hit in sub_iteration:
-                hsp_array = []
-                best_evalue = 0
-                best_score = 0
-                best_identity = 0
-                best_len = 0
+            if sub_iteration.tag == 'Iteration_hits':
+                blast_object["xml_tag"] = sub_iteration.text
+                blast_object["feature_id"] = feature_id
+                # Initialize hit variable
+                # Replaced php array with python list (no int key)
+                hits_array = []
+                number_hits = 0
                 accession = ''
                 hit_name = ''
                 description = ''
                 hit_organism = 'Unknown'
+                # Initialize hsp variable
 
-                for hit_value in hit:
-                    # This part was commented out in php version. (https://github.com/tripal/tripal_analysis_blast/blob/7.x-3.x/includes/TripalImporter/BlastImporter.inc#L943)
-                    # if hit_value.tag == "Hit_id":
+                for hit in sub_iteration:
+                    hsp_array = []
+                    best_evalue = 0
+                    best_score = 0
+                    best_identity = 0
+                    best_len = 0
+                    accession = ''
+                    hit_name = ''
+                    description = ''
+                    hit_organism = 'Unknown'
+
+                    for hit_value in hit:
+                        # This part was commented out in php version. (https://github.com/tripal/tripal_analysis_blast/blob/7.x-3.x/includes/TripalImporter/BlastImporter.inc#L943)
+                        # if hit_value.tag == "Hit_id":
                         # if is_genbank:
-                    if hit_value.tag == "Hit_def":
-                        if is_genbank:
-                            description = hit_value.text
-                            regex = re.search('^.*\[(.*?)\].*$', description)
-                            if regex:
-                                hit_organism = regex.group(1)
-                        else:
-                            accession = re.search(regex_hit_accession, hit_value.text).group(1) if re.search(regex_hit_accession, hit_value.text)
-                            hit_name = re.search(regex_hit_id, hit_value.text).group(1) if re.search(regex_hit_id, hit_value.text)
-                            description = re.search(regex_hit_def, hit_value.text).group(1) if re.search(regex_hit_def, hit_value.text)
-                            if regex_hit_organism:
-                                hit_organism = re.search(regex_hit_organism, hit_value.text).group(1) if re.search(regex_hit_organism, hit_value.text)
-                            elif db_organism:
-                                hit_organism = db_organism
-                    elif hit_value.tag == "Hit_accession":
-                        if is_genbank:
-                            accession = hit_value.text
-                            hit_name = hit_value.text
-                    elif hit_value.tag == "Hit_hsps":
-                        # Should be only one child, but iterate anyway
-                        for hsp in hit_value:
-                            for hsp_type in hsp:
-                                # yay for switch statements
-                                if hsp_type.tag == "Hsp_num":
-                                    hsp_num = hsp_type.text
+                        if hit_value.tag == "Hit_def":
+                            if is_genbank:
+                                description = hit_value.text
+                                regex = re.search(r'^.*\[(.*?)\].*$', description)
+                                if regex:
+                                    hit_organism = regex.group(1)
+                            else:
+                                accession = re.search(regex_hit_accession, hit_value.text).group(1) if re.search(regex_hit_accession, hit_value.text) else ''
+                                hit_name = re.search(regex_hit_id, hit_value.text).group(1) if re.search(regex_hit_id, hit_value.text) else ''
+                                description = re.search(regex_hit_def, hit_value.text).group(1) if re.search(regex_hit_def, hit_value.text) else ''
+                                if regex_hit_organism:
+                                    hit_organism = re.search(regex_hit_organism, hit_value.text).group(1) if re.search(regex_hit_organism, hit_value.text) else 'Unknown'
+                                elif db_organism:
+                                    hit_organism = db_organism
+                        elif hit_value.tag == "Hit_accession":
+                            if is_genbank:
+                                accession = hit_value.text
+                                hit_name = hit_value.text
+                        elif hit_value.tag == "Hit_hsps":
+                            # Should be only one child, but iterate anyway
+                            for hsp in hit_value:
+                                for hsp_type in hsp:
+                                    # yay for switch statements
+                                    if hsp_type.tag == "Hsp_num":
+                                        hsp_num = hsp_type.text
 
-                                elif hsp_type.tag == "Hsp_bit-score":
-                                    hsp_bit_score = hsp_type.text
+                                    elif hsp_type.tag == "Hsp_bit-score":
+                                        hsp_bit_score = hsp_type.text
 
-                                elif hsp_type.tag == "Hsp_score":
-                                    hsp_score = hsp_type.text
-                                    if not best_score:
-                                        best_score = hsp_score
+                                    elif hsp_type.tag == "Hsp_score":
+                                        hsp_score = hsp_type.text
+                                        if not best_score:
+                                            best_score = hsp_score
 
-                                elif hsp_type.tag == "Hsp_evalue":
-                                    hsp_evalue = hsp_type.text
-                                    if not best_evalue:
-                                        best_evalue = hsp_evalue
+                                    elif hsp_type.tag == "Hsp_evalue":
+                                        hsp_evalue = hsp_type.text
+                                        if not best_evalue:
+                                            best_evalue = hsp_evalue
 
-                                elif hsp_type.tag == "Hsp_query-from":
-                                    hsp_query_from = hsp_type.text
+                                    elif hsp_type.tag == "Hsp_query-from":
+                                        hsp_query_from = hsp_type.text
 
-                                elif hsp_type.tag == "Hsp_query-to":
-                                    hsp_query_to = hsp_type.text
+                                    elif hsp_type.tag == "Hsp_query-to":
+                                        hsp_query_to = hsp_type.text
 
-                                elif hsp_type.tag == "Hsp_hit-from":
-                                    hsp_hit_from = hsp_type.text
+                                    elif hsp_type.tag == "Hsp_hit-from":
+                                        hsp_hit_from = hsp_type.text
 
-                                elif hsp_type.tag == "Hsp_hit-to":
-                                    hsp_hit_to = hsp_type.text
+                                    elif hsp_type.tag == "Hsp_hit-to":
+                                        hsp_hit_to = hsp_type.text
 
-                                elif hsp_type.tag == "Hsp_query-frame":
-                                    hsp_query_frame = hsp_type.text
+                                    elif hsp_type.tag == "Hsp_query-frame":
+                                        hsp_query_frame = hsp_type.text
 
-                                elif hsp_type.tag == "Hsp_identity":
-                                    hsp_identity = hsp_type.text
-                                    if not best_identity:
-                                        best_identity = hsp_identity
+                                    elif hsp_type.tag == "Hsp_identity":
+                                        hsp_identity = hsp_type.text
+                                        if not best_identity:
+                                            best_identity = hsp_identity
 
-                                elif hsp_type.tag == "Hsp_positive":
-                                    hsp_positive = hsp_type.text
+                                    elif hsp_type.tag == "Hsp_positive":
+                                        hsp_positive = hsp_type.text
 
-                                elif hsp_type.tag == "Hsp_align-len":
-                                    hsp_align_len = hsp_type.text
-                                    if not best_len:
-                                        best_len = hsp_align_len
+                                    elif hsp_type.tag == "Hsp_align-len":
+                                        hsp_align_len = hsp_type.text
+                                        if not best_len:
+                                            best_len = hsp_align_len
 
-                                elif hsp_type.tag == "Hsp_qseq":
-                                    hsp_qseq = hsp_type.text
+                                    elif hsp_type.tag == "Hsp_qseq":
+                                        hsp_qseq = hsp_type.text
 
-                                elif hsp_type.tag == "Hsp_hseq":
-                                    hsp_hseq = hsp_type.text
+                                    elif hsp_type.tag == "Hsp_hseq":
+                                        hsp_hseq = hsp_type.text
 
-                                elif hsp_type.tag == "Hsp_midline":
-                                    hsp_midline = hsp_type.text
+                                    elif hsp_type.tag == "Hsp_midline":
+                                        hsp_midline = hsp_type.text
 
-                            hsp_content = {
-                                "hsp_num" : hsp_num,
-                                "bit_score" : hsp_bit_score,
-                                "score" : hsp_score,
-                                "evalue" : hsp_evalue,
-                                "query_frame" : hsp_query_frame,
-                                "qseq" : hsp_qseq,
-                                "midline" : hsp_midline,
-                                "hseq" : hsp_hseq,
-                                "hit_from" : hsp_hit_from,
-                                "hit_to" : hsp_hit_to,
-                                "identity" : hsp_identity,
-                                "align_len" : hsp_align_len,
-                                "positive" : hsp_positive,
-                                "query_from" : hsp_query_from,
-                                "query_to" : hsp_query_to,
-                            }
+                                hsp_content = {
+                                    "hsp_num": hsp_num,
+                                    "bit_score": hsp_bit_score,
+                                    "score": hsp_score,
+                                    "evalue": hsp_evalue,
+                                    "query_frame": hsp_query_frame,
+                                    "qseq": hsp_qseq,
+                                    "midline": hsp_midline,
+                                    "hseq": hsp_hseq,
+                                    "hit_from": hsp_hit_from,
+                                    "hit_to": hsp_hit_to,
+                                    "identity": hsp_identity,
+                                    "align_len": hsp_align_len,
+                                    "positive": hsp_positive,
+                                    "query_from": hsp_query_from,
+                                    "query_to": hsp_query_to,
+                                }
 
-                            hsp_array.append(hsp_content)
+                                hsp_array.append(hsp_content)
 
-                # Finished a Hit, saving value
-                number_hits += 1
+                    # Finished a Hit, saving value
+                    number_hits += 1
 
-                hit_dict = {
-                    'accession' : accession,
-                    'hit_organism' : hit_organism,
-                    'hit_name': hit_name,
-                    'best_evalue' = best_evalue,
-                    'best_score' = best_score,
-                    'description' = description
-                }
+                    hit_dict = {
+                        'accession': accession,
+                        'hit_organism': hit_organism,
+                        'hit_name': hit_name,
+                        'best_evalue': best_evalue,
+                        'best_score': best_score,
+                        'description': description
+                    }
 
-                if (accession and blast_db.urlprefix):
-                    hit_dict['hit_url'] = blast_db.urlprefix + accession
-                else:
-                    query = self.session.query(self.model.feature).filter_by(uniquename=hit_name)
-                    if query:
-                        hit_dict['hit_url'] = "ID"+ query.one().feature_id
+                    if (accession and blast_db.urlprefix):
+                        hit_dict['hit_url'] = blast_db.urlprefix + accession
                     else:
-                        hit_dict['hit_url'] = None
+                        query = self.session.query(self.model.feature).filter_by(uniquename=hit_name)
+                        if query:
+                            hit_dict['hit_url'] = "ID" + query.one().feature_id
+                        else:
+                            hit_dict['hit_url'] = None
 
-                if best_len:
-                    percent_identity = "{0:.2f}".format((best_identity/best_len)*100)
-                    hit_dict['percent_identity'] = percent_identity
+                    if best_len:
+                        percent_identity = "{0:.2f}".format((best_identity / best_len) * 100)
+                        hit_dict['percent_identity'] = percent_identity
 
-                if 'query_frame' in hsp_array[0]:
-                    hit_dict['hsp'] = hsp_array
-                else:
-                    hit_dict['hsp'] = {}
+                    if 'query_frame' in hsp_array[0]:
+                        hit_dict['hsp'] = hsp_array
+                    else:
+                        hit_dict['hsp'] = {}
 
-                hits_array.append(hit_dict)
+                    hits_array.append(hit_dict)
 
-    blast_object['number_hits'] = number_hits
-    blast_object['hits_array'] = hits_array
-    return blast_object
+        blast_object['number_hits'] = number_hits
+        blast_object['hits_array'] = hits_array
+        return blast_object
