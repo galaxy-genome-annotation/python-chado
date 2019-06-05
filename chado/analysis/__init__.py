@@ -177,7 +177,7 @@ class AnalysisClient(Client):
             if not found_db:
                 raise Exception("Invalid db name")
 
-            blastdb_id = found_db[0]['db_id']
+            blastdb_id = found_db.one().db_id
 
         if not blastdb_id:
             raise Exception("Either blastdb or blastdb_id is required")
@@ -417,7 +417,7 @@ class AnalysisClient(Client):
                 analysis_feature = self.session.query(self.model.analysisfeature).filter_by(feature_id=feature_id, analysis_id=an_id)
                 # Create if not existing
                 if not analysis_feature.count():
-                    analysis_feature = self.model.analysisfeature
+                    analysis_feature = self.model.analysisfeature()
                     analysis_feature.feature_id = feature_id
                     analysis_feature.analysis_id = an_id
                     self.session.add(analysis_feature)
@@ -429,12 +429,12 @@ class AnalysisClient(Client):
 
                 analysis_feature_prop = self.session.query(self.model.analysisfeatureprop) \
                     .join(self.model.analysisfeature, self.model.analysisfeature.analysisfeature_id == self.model.analysisfeatureprop.analysisfeature_id) \
-                    .filter_by(feature_id=feature_id, analysis_id=an_id, type_id=cv_term_id)
+                    .filter(self.model.analysisfeature.feature_id == feature_id, self.model.analysisfeature.analysis_id == an_id, self.model.analysisfeatureprop.type_id == cv_term_id)
 
                 if analysis_feature_prop.count():
                     analysis_feature_prop.update({'value': xml_content})
                 else:
-                    analysis_feature_prop = self.model.analysisfeatureprop
+                    analysis_feature_prop = self.model.analysisfeatureprop()
                     analysis_feature_prop.analysisfeature_id = analysis_feature_id
                     analysis_feature_prop.type_id = cv_term_id
                     analysis_feature_prop.value = xml_content
@@ -466,7 +466,7 @@ class AnalysisClient(Client):
                         if blast_org_name:
                             res = self.session.query(self.model.blast_organisms).filter_by(blast_org_name=blast_org_name)
                             if not res.count():
-                                blast_organism = self.model.blast_organisms
+                                blast_organism = self.model.blast_organisms()
                                 blast_organism.blast_org_name = blast_org_name
                                 self.session.add(blast_organism)
                                 self.session.flush()
@@ -475,7 +475,7 @@ class AnalysisClient(Client):
                             else:
                                 blast_org_id = res.one().blast_org_id
 
-                        blast_hit_data = self.model.blast_hit_data
+                        blast_hit_data = self.model.blast_hit_data()
                         blast_hit_data.analysisfeature_id = analysis_feature_id
                         blast_hit_data.analysis_id = an_id
                         blast_hit_data.feature_id = feature_id
