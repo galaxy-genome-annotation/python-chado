@@ -15,7 +15,7 @@ from chado.util import UtilClient
 
 from future import standard_library
 
-from sqlalchemy import BigInteger, Column, ForeignKey, MetaData, Numeric, String, TIMESTAMP, Text, create_engine
+from sqlalchemy import BigInteger, Column, Float, ForeignKey, Integer, MetaData, Numeric, String, TIMESTAMP, Text, create_engine
 from sqlalchemy import event, exc as sa_exc
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.ext.declarative import declarative_base
@@ -83,7 +83,29 @@ class ChadoInstance(object):
     def _reflect_tables(self):
         Base = automap_base()
 
+        class Blast_hit_data(Base):
+            __tablename__ = 'blast_hit_data'
+            __table_args__ = {'extend_existing': True}  # Does not seems to work
+
+            analysisfeature_id = Column(Integer(), primary_key=True, nullable=False)
+            analysis_id = Column(Integer(), primary_key=True, nullable=False)
+            feature_id = Column(Integer(), primary_key=True, nullable=False)
+            db_id = Column(Integer(), primary_key=True, nullable=False)
+            hit_num = Column(Integer(), primary_key=True, nullable=False)
+            hit_description = Column(Text())
+            hit_name = Column(Text())
+            hit_url = Column(Text())
+            hit_description = Column(Text())
+            hit_organism = Column(Text())
+            blast_org_id = Column(Integer())
+            hit_accession = Column(Text())
+            hit_best_eval = Column(Float())
+            hit_best_score = Column(Float())
+            hit_pid = Column(Float())
+
         Base.prepare(self._engine, reflect=True, schema=self.dbschema)
+        # this should not be always done..
+        Base.prepare(self._engine, reflect=True, schema='public')
         self.model = Base.classes
 
         # ambiguous relationships to same table
@@ -144,10 +166,29 @@ class ChadoInstance(object):
             significance = Column(Numeric())
             identity = Column(Numeric())
 
+        class Db(Base):
+            __tablename__ = "db"
+            db_id = Column(BigInteger(), primary_key=True, nullable=False)
+            name = Column(Text(), nullable=False)
+            description = Column(Text())
+            url_prefix = Column(Text())
+            url = Column(Text())
+
+        class Analysisfeatureprop(Base):
+            __tablename__ = "analysisfeatureprop"
+            analysisfeatureprop_id = Column(BigInteger(), primary_key=True, nullable=False)
+            analysisfeature_id = Column(BigInteger(), ForeignKey('analysisfeature.analysisfeature_id'), nullable=False)
+            type_id = Column(BigInteger(), nullable=False)
+            value = Column(Text())
+            rank = Column(Integer(), nullable=False)
+
+        class Blast_hit_data(Base):
+            analysisfeature_id = Column(BigInteger(), primary_key=True, nullable=False)
         self.model.analysis = Analysis
         self.model.analysisfeature = AnalysisFeature
         self.model.organism = Organism
         self.model.feature = Feature
+        self.model.db = Db
 
         # Inspired from https://bitbucket.org/zzzeek/sqlalchemy/wiki/UsageRecipes/ManyToManyOrphan
         # In chado, a feature can be part of multiple analysis, using the analysisfeature table
