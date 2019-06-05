@@ -357,7 +357,7 @@ class AnalysisClient(Client):
 
         tree = ET.ElementTree(file=blast_output)
         for iteration in tree.iter(tag="Iteration"):
-            self.manage_iteration(iteration, an_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords, cv_term_id)
+            self._manage_iteration(iteration, an_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords, cv_term_id)
 
     def _manage_iteration(self, iteration, an_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords, cv_term_id):
         feature_id = 0
@@ -496,7 +496,7 @@ class AnalysisClient(Client):
             else:
                 iteration_tags_xml += "  <{}>{}</{}>\n".format(child.tag, child.text, child.tag)
 
-    def _get_blast_ob(self, xml_content, blast_db, feature_id, blast_analysis):
+    def _get_blast_obj(self, xml_content, blast_db, feature_id, blast_analysis):
         blast_object = {}
 
         blast_object["xml"] = xml_content
