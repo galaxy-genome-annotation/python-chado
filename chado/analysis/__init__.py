@@ -186,12 +186,14 @@ class AnalysisClient(Client):
             description += '<br/ >'
             description += 'Blast parameters: {}'.format(blast_parameters)
 
-        analysis = self.add_analysis(name, program, programversion, sourcename, algorithm, sourceversion, sourceuri, description, date_executed)
-
-        if not analysis or 'analysis_id' not in analysis:
-            raise Exception("Failed to create analysis: %s" % name)
-
-        an_id = analysis['analysis_id']
+        res = self.session.query(self.model.analysis).filter_by(program=program, programversion=programversion, sourcename=sourcename)
+        if res.count():
+            an_id = res.one().analysis_id
+        else:
+            analysis = self.add_analysis(name, program, programversion, sourcename, algorithm, sourceversion, sourceuri, description, date_executed)
+            if not analysis or 'analysis_id' not in analysis:
+                raise Exception("Failed to create analysis: %s" % name)
+            an_id = analysis['analysis_id']
 
         if os.path.isfile(blast_output):
             self._parse_xml(an_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords)
@@ -379,12 +381,12 @@ class AnalysisClient(Client):
                     raise Exception("Cannot find feature in {} using the regular expression: {}".format(child.text, query_re))
 
                 # Need to find the feature in chado
-                cv_term_id = self.ci.get_cvterm_id(query_type, 'sequence')
+                entity_cv_term_id = self.ci.get_cvterm_id(query_type, 'sequence')
 
-                if not cv_term_id:
+                if not entity_cv_term_id:
                     raise Exception("Cannot find cvterm id for query type {}".format(query_type))
 
-                res = self.session.query(self.model.feature).filter_by(type_id=cv_term_id)
+                res = self.session.query(self.model.feature).filter_by(type_id=entity_cv_term_id)
 
                 if query_uniquename:
                     res = res.filter_by(uniquename=query_uniquename)
@@ -432,7 +434,8 @@ class AnalysisClient(Client):
                     .filter(self.model.analysisfeature.feature_id == feature_id, self.model.analysisfeature.analysis_id == an_id, self.model.analysisfeatureprop.type_id == cv_term_id)
 
                 if analysis_feature_prop.count():
-                    analysis_feature_prop.update({'value': xml_content})
+                    an_feature_prop_id = analysis_feature_prop.first().analysisfeatureprop_id
+                    self.session.query(self.model.analysisfeatureprop).filter_by(analysisfeatureprop_id=an_feature_prop_id).update({'value': xml_content})
                 else:
                     analysis_feature_prop = self.model.analysisfeatureprop()
                     analysis_feature_prop.analysisfeature_id = analysis_feature_id
@@ -698,7 +701,7 @@ class AnalysisClient(Client):
                             hit_dict['hit_url'] = None
 
                     if best_len:
-                        percent_identity = "{0:.2f}".format((best_identity / best_len) * 100)
+                        percent_identity = "{0:.2f}".format((float(best_identity) / float(best_len)) * 100)
                         hit_dict['percent_identity'] = percent_identity
 
                     if 'query_frame' in hsp_array[0]:
