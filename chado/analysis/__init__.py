@@ -409,7 +409,7 @@ class AnalysisClient(Client):
                     if hit.tag == "Hit":
                         if (no_parsed == "all" or num_hits <= no_parsed):
                             xml_content += "        <Hit>"
-                            xml_content += hit.text + ''.join(ET.tostring(e) for e in hit)
+                            xml_content += hit.text + ''.join(ET.tostring(e, encoding="unicode") for e in hit)
                             xml_content += "</Hit>\n"
                     num_hits += 1
                 xml_content += "\n  </{}>\n</Iteration>".format(child.tag)
