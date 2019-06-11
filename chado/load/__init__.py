@@ -90,7 +90,7 @@ class LoadClient(Client):
             raise Exception("Analysis with the id {} was not found".format(analysis_id))
 
         if os.path.isfile(blast_output):
-            count_ins = self._parse_xml(analysis_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords)
+            count_ins = self._parse_xml(analysis_id, blastdb_id, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords)
             return {'inserted': count_ins}
 
     def go(self, input, organism_id, analysis_id, query_type='polypeptide', match_on_name=False,
@@ -229,7 +229,7 @@ class LoadClient(Client):
 
         return {'inserted': count_ins}
 
-    def _parse_xml(self, an_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords):
+    def _parse_xml(self, an_id, blastdb_id, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords):
 
         cv_term_id = self.ci.get_cvterm_id('analysis_blast_output_iteration_hits', 'tripal')
         num_iter = 0
@@ -246,7 +246,7 @@ class LoadClient(Client):
                         # If we have a full part, process it and delete/recreate temp file
                         if(re.search('</BlastOutput>', line)):
                             fd.close()
-                            num_iter += self._parse_xml(an_id, blastdb, path, no_parsed, blast_ext, query_re, query_type, query_uniquename, False, search_keywords)
+                            num_iter += self._parse_xml(an_id, blastdb_id, path, no_parsed, blast_ext, query_re, query_type, query_uniquename, False, search_keywords)
                             os.remove(path)
                             fd, path = tempfile.mkstemp()
             finally:
@@ -257,11 +257,11 @@ class LoadClient(Client):
         tree = ET.ElementTree(file=blast_output)
 
         for iteration in tree.iter(tag="Iteration"):
-            self._manage_iteration(iteration, an_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords, cv_term_id)
+            self._manage_iteration(iteration, an_id, blastdb_id, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords, cv_term_id)
             num_iter += 1
         return num_iter
 
-    def _manage_iteration(self, iteration, an_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords, cv_term_id):
+    def _manage_iteration(self, iteration, an_id, blastdb_id, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords, cv_term_id):
         feature_id = 0
         analysis_feature_id = 0
         iteration_tags_xml = ''
@@ -353,7 +353,7 @@ class LoadClient(Client):
                     res.delete(synchronize_session=False)
                     self.session.commit()
 
-                    db = self.session.query(self.model.db).filter_by(db_id=blastdb)
+                    db = self.session.query(self.model.db).filter_by(db_id=blastdb_id)
                     analysis = self.session.query(self.model.analysis).filter_by(analysis_id=an_id)
 
                     blast_obj = self._get_blast_obj(xml_content, db.one(), feature_id, analysis.one())
@@ -381,7 +381,7 @@ class LoadClient(Client):
                         blast_hit_data.analysisfeature_id = analysis_feature_id
                         blast_hit_data.analysis_id = an_id
                         blast_hit_data.feature_id = feature_id
-                        blast_hit_data.db_id = blastdb
+                        blast_hit_data.db_id = blastdb_id
                         blast_hit_data.hit_num = index
                         blast_hit_data.hit_name = hit['hit_name']
                         blast_hit_data.hit_url = hit['hit_url']
