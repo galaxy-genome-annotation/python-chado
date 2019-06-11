@@ -9,6 +9,7 @@ from chado.analysis import AnalysisClient
 from chado.export import ExportClient
 from chado.expression import ExpressionClient
 from chado.feature import FeatureClient
+from chado.load import LoadClient
 from chado.organism import OrganismClient
 from chado.phylogeny import PhylogenyClient
 from chado.util import UtilClient
@@ -74,6 +75,7 @@ class ChadoInstance(object):
         self.util = UtilClient(*args)
         self.analysis = AnalysisClient(*args)
         self.feature = FeatureClient(*args)
+        self.load = LoadClient(*args)
         self.phylogeny = PhylogenyClient(*args)
         self.expression = ExpressionClient(*args)
 
