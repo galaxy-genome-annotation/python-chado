@@ -10,7 +10,7 @@ module:
         dbuser: "postgres"
         dbpass: "postgres"
         dbname: "postgres"
-        dbschema: "public"
+        dbschema: "chado"
         dbport: 5432
 
     ignore:
