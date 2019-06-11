@@ -24,6 +24,26 @@ standard_library.install_aliases()
 
 class LoadClient(Client):
 
+    def __init__(self, engine, metadata, session, ci):
+
+        self._reset_cache()
+
+        Client.__init__(self, engine, metadata, session, ci)
+
+    def _reset_cache(self):
+
+        self._synonym_cache = None
+        self._db_cache = None
+        self._xref_cache = None
+        self._feature_cache = None
+        self._featureloc_cache = None
+        self._featrel_cache = None
+        self._featured_dirty_rels = None
+        self._featxref_cache = None
+        self._featcvterm_cache = None
+        self._featsyn_cache = None
+        self._featureprop_cache = None
+
     def blast(self, analysis_id, blast_output, blast_ext=None, blastdb=None, blastdb_id=None,
               blast_parameters=None, query_re=None, query_type=None,
               query_uniquename=False, is_concat=False, search_keywords=False,
@@ -547,3 +567,34 @@ class LoadClient(Client):
         blast_object['number_hits'] = number_hits
         blast_object['hits_array'] = hits_array
         return blast_object
+
+    def _populate_featcvterm_cache(self):
+        if self._featcvterm_cache is None:
+            self._featcvterm_cache = {}
+            if self.cache_everything:
+                res = self.session.query(self.model.feature_cvterm.feature_id, self.model.feature_cvterm.cvterm_id)
+                for x in res:
+                    if x.feature_id not in self._featcvterm_cache:
+                        self._featcvterm_cache[x.feature_id] = []
+                        self._featcvterm_cache[x.feature_id].append(x.cvterm_id)
+
+    def _add_feat_cvterm(self, feat, term):
+        xref = term.split(':')
+        if len(xref) != 2:
+            return
+        xref_db = xref[0]
+        xref_acc = xref[1]
+        try:
+            term = self.ci.get_cvterm_id(xref_acc, xref_db)
+        except chado.RecordNotFoundError:
+            term = self.ci.create_cvterm(xref_acc, xref_db, xref_db)
+        pub_id = self.ci.get_pub_id('null')
+        if feat not in self._featcvterm_cache or term not in self._featcvterm_cache[feat]:
+            cvt2feat = self.model.feature_cvterm()
+            cvt2feat.cvterm_id = term
+            cvt2feat.feature_id = feat
+            cvt2feat.pub_id = pub_id
+            self.session.add(cvt2feat)
+            if feat not in self._featcvterm_cache:
+                self._featcvterm_cache[feat] = []
+            self._featcvterm_cache[feat].append(term)
