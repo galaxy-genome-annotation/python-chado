@@ -24,11 +24,10 @@ standard_library.install_aliases()
 
 class LoadClient(Client):
 
-    def load_blast(self, analysis_id, blast_output,
-                   blast_ext=None, blastdb=None, blastdb_id=None,
-                   blast_parameters=None, query_re=None, query_type=None,
-                   query_uniquename=False, is_concat=False, search_keywords=False,
-                   no_parsed="all"):
+    def blast(self, analysis_id, blast_output, blast_ext=None, blastdb=None, blastdb_id=None,
+              blast_parameters=None, query_re=None, query_type=None,
+              query_uniquename=False, is_concat=False, search_keywords=False,
+              no_parsed="all"):
         """
         Load a blast analysis
 
@@ -94,8 +93,8 @@ class LoadClient(Client):
             count_ins = self._parse_xml(analysis_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords)
             return {'inserted': count_ins}
 
-    def load_go(self, input, organism_id, analysis_id, query_type='polypeptide', match_on_name=False,
-                name_column=2, go_column=5, re_name=None, skip_missing=False):
+    def go(self, input, organism_id, analysis_id, query_type='polypeptide', match_on_name=False,
+            name_column=2, go_column=5, re_name=None, skip_missing=False):
         """
         Load GO annotation from a tabular file
 

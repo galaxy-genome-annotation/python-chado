@@ -1304,6 +1304,8 @@ class FeatureClient(Client):
         :return: Number of inserted GO terms
         """
 
+        warn("This function is soon to be deprecated. Please use chado/chakin load load_go from now on")
+
         if analysis_id and len(self.ci.analysis.get_analyses(analysis_id=analysis_id)) != 1:
             raise Exception("Could not find analysis with id '{}'".format(analysis_id))
 
