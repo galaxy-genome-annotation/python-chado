@@ -6,11 +6,13 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import csv
 import os
 import re
 import tempfile
 import xml.etree.ElementTree as ET
 
+import chado
 from chado.client import Client
 
 from chakin.io import warn
@@ -91,6 +93,142 @@ class LoadClient(Client):
         if os.path.isfile(blast_output):
             count_ins = self._parse_xml(analysis_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords)
             return {'inserted': count_ins}
+
+    def load_go(self, input, organism_id, analysis_id, query_type='polypeptide', match_on_name=False,
+                name_column=2, go_column=5, re_name=None, skip_missing=False):
+        """
+        Load GO annotation from a tabular file
+
+        :type input: str
+        :param input: Path to the input tabular file to load
+
+        :type organism_id: int
+        :param organism_id: Organism ID
+
+        :type analysis_id: int
+        :param analysis_id: Analysis ID
+
+        :type query_type: str
+        :param query_type: The feature type (e.g. \'gene\', \'mRNA\', 'polypeptide', \'contig\') of the query. It must be a valid Sequence Ontology term.
+
+        :type match_on_name: bool
+        :param match_on_name: Match features using their name instead of their uniquename
+
+        :type name_column: int
+        :param name_column: Column containing the feature identifiers (2, 3, 10 or 11; default=2).
+
+        :type go_column: int
+        :param go_column: Column containing the GO id (default=5).
+
+        :type re_name: str
+        :param re_name: Regular expression to extract the feature name from the input file (first capturing group will be used).
+
+        :type skip_missing: bool
+        :param skip_missing: Skip lines with unknown features or GO id instead of aborting everything.
+
+        :rtype: dict
+        :return: Number of inserted GO terms
+        """
+
+        if analysis_id and len(self.ci.analysis.get_analyses(analysis_id=analysis_id)) != 1:
+            raise Exception("Could not find analysis with id '{}'".format(analysis_id))
+
+        if len(self.ci.organism.get_organisms(organism_id=organism_id)) != 1:
+            raise Exception("Could not find organism with id '{}'".format(organism_id))
+
+        self.cache_everything = True
+        seqterm = self.ci.get_cvterm_id(query_type, 'sequence')
+
+        # Cache all possibly existing features
+        existing = self.session.query(self.model.feature.feature_id, self.model.feature.name, self.model.feature.uniquename) \
+            .filter_by(organism_id=organism_id, type_id=seqterm) \
+            .all()
+        if match_on_name:
+            existing = {ex.name: ex.feature_id for ex in existing}
+        else:
+            existing = {ex.uniquename: ex.feature_id for ex in existing}
+
+        # Cache all existing cvterms from GO cv
+        db = 'GO'
+        self.ci._preload_dbxref2cvterms(db)
+
+        count_ins = 0
+
+        # Cache anaysisfeature content for given analysis_id
+        _analysisfeature_cache = []
+        res = self.session.query(self.model.analysisfeature.feature_id) \
+                          .filter(self.model.analysisfeature.analysis_id == analysis_id)
+        for x in res:
+            if x.feature_id not in _analysisfeature_cache:
+                _analysisfeature_cache.append(x.feature_id)
+
+        # Parse the tab file
+        with open(input) as in_gaf:
+            rd = csv.reader(in_gaf, delimiter=str("\t"))
+            for row in rd:
+                if row[0] and row[0][0] in ('!', '#'):
+                    # skip header
+                    continue
+
+                term = row[go_column - 1]
+                term_sp = term.split(':')
+                if len(term_sp) != 2:
+                    return
+                term_db = term_sp[0]
+                term_acc = term_sp[1]
+
+                feat_id = row[name_column - 1]
+                if re_name:
+                    re_res = re.search(re_name, feat_id)
+                    if re_res:
+                        feat_id = re_res.group(1)
+
+                if feat_id not in existing:
+                    if skip_missing:
+                        print('Could not find feature with name "%s", skipping it' % feat_id)
+                        continue
+                    else:
+                        raise Exception('Could not find feature with name "%s"' % feat_id)
+
+                try:
+                    term_id = self.ci.get_cvterm_id(term_acc, term_db)
+                except chado.RecordNotFoundError:
+                    term_id = None
+
+                if not term_id:
+                    if skip_missing:
+                        print('Could not find term with name "%s", skipping it' % term_acc)
+                        continue
+                    else:
+                        raise Exception('Could not find term with name "%s"' % term_acc)
+
+                # Add feature<->cvterm association
+                self._populate_featcvterm_cache()
+                self._add_feat_cvterm(existing[feat_id], term)
+
+                # Associate the feature to the analysis
+                if existing[feat_id] not in _analysisfeature_cache:
+                    afeat = self.model.analysisfeature()
+                    afeat.feature_id = existing[feat_id]
+                    afeat.analysis_id = analysis_id
+                    self.session.add(afeat)
+                    _analysisfeature_cache.append(existing[feat_id])
+
+                    # Add to analysisfeatureprop too (we're sure it doesn't already exist as we just created the analysisfeature)
+                    afeatp = self.model.analysisfeatureprop()
+                    afeatp.analysisfeature = afeat
+                    afeatp.type_id = term_id
+                    afeatp.value = term
+                    afeatp.rank = 0
+                    self.session.add(afeatp)
+
+                count_ins += 1
+
+        self.session.commit()
+
+        self._reset_cache()
+
+        return {'inserted': count_ins}
 
     def _parse_xml(self, an_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords):
 
