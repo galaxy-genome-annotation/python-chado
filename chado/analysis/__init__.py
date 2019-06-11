@@ -569,7 +569,6 @@ class AnalysisClient(Client):
                 # Initialize hsp variable
 
                 for hit in sub_iteration:
-                    hsp_array = []
                     best_evalue = 0
                     best_score = 0
                     best_identity = 0
@@ -605,83 +604,23 @@ class AnalysisClient(Client):
                             # Should be only one child, but iterate anyway
                             for hsp in hit_value:
                                 for hsp_type in hsp:
-                                    # yay for switch statements
-                                    if hsp_type.tag == "Hsp_num":
-                                        hsp_num = hsp_type.text
-
-                                    elif hsp_type.tag == "Hsp_bit-score":
-                                        hsp_bit_score = hsp_type.text
-
-                                    elif hsp_type.tag == "Hsp_score":
-                                        hsp_score = hsp_type.text
+                                    if (best_evalue and best_score and best_len and best_identity):
+                                        # No need to go past that, we don't use it
+                                        break
+                                    if hsp_type.tag == "Hsp_score":
                                         if not best_score:
-                                            best_score = hsp_score
-
+                                            best_score = hsp_type.text
                                     elif hsp_type.tag == "Hsp_evalue":
-                                        hsp_evalue = hsp_type.text
                                         if not best_evalue:
-                                            best_evalue = hsp_evalue
-
-                                    elif hsp_type.tag == "Hsp_query-from":
-                                        hsp_query_from = hsp_type.text
-
-                                    elif hsp_type.tag == "Hsp_query-to":
-                                        hsp_query_to = hsp_type.text
-
-                                    elif hsp_type.tag == "Hsp_hit-from":
-                                        hsp_hit_from = hsp_type.text
-
-                                    elif hsp_type.tag == "Hsp_hit-to":
-                                        hsp_hit_to = hsp_type.text
-
-                                    elif hsp_type.tag == "Hsp_query-frame":
-                                        hsp_query_frame = hsp_type.text
-
+                                            best_evalue = hsp_type.text
                                     elif hsp_type.tag == "Hsp_identity":
-                                        hsp_identity = hsp_type.text
                                         if not best_identity:
-                                            best_identity = hsp_identity
-
-                                    elif hsp_type.tag == "Hsp_positive":
-                                        hsp_positive = hsp_type.text
-
+                                            best_identity = hsp_type.text
                                     elif hsp_type.tag == "Hsp_align-len":
-                                        hsp_align_len = hsp_type.text
                                         if not best_len:
-                                            best_len = hsp_align_len
-
-                                    elif hsp_type.tag == "Hsp_qseq":
-                                        hsp_qseq = hsp_type.text
-
-                                    elif hsp_type.tag == "Hsp_hseq":
-                                        hsp_hseq = hsp_type.text
-
-                                    elif hsp_type.tag == "Hsp_midline":
-                                        hsp_midline = hsp_type.text
-
-                                hsp_content = {
-                                    "hsp_num": hsp_num,
-                                    "bit_score": hsp_bit_score,
-                                    "score": hsp_score,
-                                    "evalue": hsp_evalue,
-                                    "query_frame": hsp_query_frame,
-                                    "qseq": hsp_qseq,
-                                    "midline": hsp_midline,
-                                    "hseq": hsp_hseq,
-                                    "hit_from": hsp_hit_from,
-                                    "hit_to": hsp_hit_to,
-                                    "identity": hsp_identity,
-                                    "align_len": hsp_align_len,
-                                    "positive": hsp_positive,
-                                    "query_from": hsp_query_from,
-                                    "query_to": hsp_query_to,
-                                }
-
-                                hsp_array.append(hsp_content)
-
+                                            best_len = hsp_type.text
                     # Finished a Hit, saving value
                     number_hits += 1
-                    # This is the only reason we need to iterate on hits in the loader.. might be a way to improve. (First hit only?)
                     hit_dict = {
                         'accession': accession,
                         'hit_organism': hit_organism,
@@ -703,11 +642,6 @@ class AnalysisClient(Client):
                     if best_len:
                         percent_identity = "{0:.2f}".format((float(best_identity) / float(best_len)) * 100)
                         hit_dict['percent_identity'] = percent_identity
-
-                    if 'query_frame' in hsp_array[0]:
-                        hit_dict['hsp'] = hsp_array
-                    else:
-                        hit_dict['hsp'] = {}
 
                     hits_array.append(hit_dict)
 
