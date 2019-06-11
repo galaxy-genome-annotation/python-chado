@@ -30,7 +30,7 @@ class LoadClient(Client):
         """
         Load a blast analysis
 
-        :type analysis_ide: int
+        :type analysis_id: int
         :param analysis_id: Analysis ID
 
         :type blast_output: str
