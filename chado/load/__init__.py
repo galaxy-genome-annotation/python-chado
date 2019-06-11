@@ -11,7 +11,6 @@ import re
 import tempfile
 import xml.etree.ElementTree as ET
 
-from chado.analysis import AnalysisClient
 from chado.client import Client
 
 from chakin.io import warn
@@ -23,25 +22,16 @@ standard_library.install_aliases()
 
 class LoadClient(Client):
 
-    def load_blast(self, name, program, programversion, sourcename, blast_output,
+    def load_blast(self, analysis_id, blast_output,
                    blast_ext=None, blastdb=None, blastdb_id=None,
                    blast_parameters=None, query_re=None, query_type=None,
                    query_uniquename=False, is_concat=False, search_keywords=False,
-                   no_parsed="all", algorithm=None, sourceversion=None, sourceuri=None, description=None, date_executed=None):
+                   no_parsed="all"):
         """
         Load a blast analysis
 
-        :type name: str
-        :param name: analysis name
-
-        :type program: str
-        :param program: analysis program
-
-        :type programversion: str
-        :param programversion: analysis programversion
-
-        :type algorithm: str
-        :param algorithm: analysis algorithm
+        :type analysis_ide: int
+        :param analysis_id: Analysis ID
 
         :type blast_output: str
         :param blast_output: Path to the Blast file to load (single XML file, or directory containing multiple XML files)
@@ -76,23 +66,8 @@ class LoadClient(Client):
         :type no_parsed: str
         :param no_parsed: Maximum number of hits to parse per feature. Default=all
 
-        :type sourcename: str
-        :param sourcename: analysis sourcename
-
-        :type sourceversion: str
-        :param sourceversion: analysis sourceversion
-
-        :type sourceuri: str
-        :param sourceuri: analysis sourceuri
-
-        :type description: str
-        :param description: analysis description
-
-        :type date_executed: str
-        :param date_executed: analysis date_executed (yyyy-mm-dd)
-
         :rtype: dict
-        :return: Analysis information
+        :return: Number of processed hits
 
         """
 
@@ -104,27 +79,17 @@ class LoadClient(Client):
             found_db = self.session.query(self.model.db).filter_by(name=blastdb)
             if not found_db:
                 raise Exception("Invalid db name")
-
             blastdb_id = found_db.one().db_id
 
         if not blastdb_id:
             raise Exception("Either blastdb or blastdb_id is required")
 
-        if description:
-            description += '<br/ >'
-            description += 'Blast parameters: {}'.format(blast_parameters)
-
-        res = self.session.query(self.model.analysis).filter_by(program=program, programversion=programversion, sourcename=sourcename)
-        if res.count():
-            an_id = res.one().analysis_id
-        else:
-            analysis = AnalysisClient.add_analysis(name, program, programversion, sourcename, algorithm, sourceversion, sourceuri, description, date_executed)
-            if not analysis or 'analysis_id' not in analysis:
-                raise Exception("Failed to create analysis: %s" % name)
-            an_id = analysis['analysis_id']
+        res = self.session.query(self.model.analysis).filter_by(analysis_id=analysis_id)
+        if not res.count():
+            raise Exception("Analysis with the id {} was not found".format(analysis_id))
 
         if os.path.isfile(blast_output):
-            count_ins = self._parse_xml(an_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords)
+            count_ins = self._parse_xml(analysis_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords)
             return {'inserted': count_ins}
 
     def _parse_xml(self, an_id, blastdb, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords):
