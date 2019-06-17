@@ -110,7 +110,7 @@ class LoadClient(Client):
             raise Exception("Analysis with the id {} was not found".format(analysis_id))
 
         if os.path.isfile(blast_output):
-            count_ins = self._parse_xml(analysis_id, blastdb_id, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords)
+            count_ins = self._parse_blast_xml(analysis_id, blastdb_id, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords)
             return {'inserted': count_ins}
 
     def go(self, input, organism_id, analysis_id, query_type='polypeptide', match_on_name=False,
@@ -249,7 +249,426 @@ class LoadClient(Client):
 
         return {'inserted': count_ins}
 
-    def _parse_xml(self, an_id, blastdb_id, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords):
+    def interpro(self, analysis_id, interpro_output, parse_go=False, query_re=None, query_type=None, query_uniquename=False):
+        """
+        Load a blast analysis
+
+        :type analysis_id: int
+        :param analysis_id: Analysis ID
+
+        :type interpro_output: str
+        :param interpro_output: Path to the InterProScan file to load (single XML file, or directory containing multiple XML files)
+
+        :type parse_go: bool
+        :param parse_go: Load GO annotation to the database
+
+        :type query_re: str
+        :param query_re: The regular expression that can uniquely identify the query name. This parameter is required if the feature name is not the first word in the blast query name.
+
+        :type query_type: str
+        :param query_type: The feature type (e.g. \'gene\', \'mRNA\', \'contig\') of the query. It must be a valid Sequence Ontology term.
+
+        :type query_uniquename: bool
+        :param query_uniquename: Use this if the --query-re regular expression matches unique names instead of names in the database.
+
+        :rtype: dict
+        :return: Number of processed hits
+
+        """
+
+        res = self.session.query(self.model.analysis).filter_by(analysis_id=analysis_id)
+        if not res.count():
+            raise Exception("Analysis with the id {} was not found".format(analysis_id))
+
+        if os.path.exists(interpro_output):
+            res = self.session.query(self.model.analysisfeature).filter_by(analysis_id=analysis_id)
+            if res.count():
+                res.delete(synchronize_session=False)
+                # Commit later?
+                self.session.commit()
+        # If this is an unique file, parse it
+        if os.path.isfile(interpro_output):
+            self._parse_interpro_xml(analysis_id, interpro_output, parse_go, query_re, query_type, query_uniquename)
+        # Else if it's a dir, parse each file in it
+        elif os.path.isdir(interpro_output):
+            for filename in os.listdir(interpro_output):
+                if filename.endswith(".xml"):
+                    self._parse_interpro_xml(analysis_id, filename, parse_go, query_re, query_type, query_uniquename)
+        else:
+            raise Exception("{} is neither a file nor a directory".format(interpro_output))
+
+    def _parse_interpro_xml(self, analysis_id, interpro_output, parse_go, query_re, query_type, query_uniquename):
+        tree = ET.ElementTree(file=interpro_output)
+        root = tree.getroot()
+        # If it starts with 'protein-matches' or 'nucleotide-sequence-matches' then this is InterPro v5 XML
+        if re.search("^protein-matches", root.tag) or re.search("^nucleotide-sequence-matches", root.tag):
+            self._parse_interpro_xml5(analysis_id, root, parse_go, query_re, query_type, query_uniquename)
+        elif re.search("^EBIInterProScanResults", root.tag) or re.search("^interpro_matches", root.tag):
+            self._parse_interpro_xml4(analysis_id, root, interpro_output, parse_go, query_re, query_type, query_uniquename)
+        else:
+            raise Exception("Xml format was not recognised")
+
+    def _parse_interpro_xml5(self, analysis_id, xml, parse_go, query_re, query_type, query_uniquename):
+        for nucleotide in xml:
+            for child in nucleotide:
+                child_name = child.tag
+                if child_name == "xref":
+                    child_attrib = child.attrib
+                    seq_id = child_attrib["id"]
+                    seq_name = child_attrib["name"]
+                    feature_id = self._match_feature(self, seq_id, query_re, query_uniquename, query_type, seq_name)
+                    if not feature_id:
+                        continue
+                    analysisfeature_id = self._add_analysis_feature(feature_id, analysis_id, nucleotide)
+                    if not analysisfeature_id:
+                        continue
+                    ipr_array = self._parse_feature_xml(nucleotide, feature_id)
+                    ipr_terms = ipr_array["iprterms"]
+                    self._load_ipr_terms(ipr_terms, feature_id, analysisfeature_id)
+
+                    if parse_go:
+                        res = self.session.query(self.model.db).filter_by(name="GO")
+                        if res.count():
+                            self._load_go_terms(ipr_array["goterms"], feature_id, analysisfeature_id, res.one().db_id)
+                        else:
+                            warn("Goterm were requested but the GO schema is not installed in chado")
+
+    def _parse_interpro_xml4(self, analysis_id, xml, interpro_file, parse_go, query_re, query_type, query_uniquename):
+        # If there is an EBI header then we need to skip that
+        # and set our proteins array to be the second element of the array. This
+        # occurs if results were generated with the online InterProScan tool.
+        # if the XML starts in with the results then this happens when InterProScan
+        # is used command-line and we can just use the object as is
+        if re.search("^EBIInterProScanResults", xml.tag):
+            proteins = xml[1]
+        elif re.search("^interpro_matches", xml.tag):
+            proteins = xml
+
+        for protein in proteins:
+            # match the protein id with the feature name
+            feature_id = 0
+            attr = protein.attrib
+            seqid = attr['id']
+            # if the sequence name a generic name (i.e. 'Sequence_1') then the
+            # results do not contain the original sequence names.  The only
+            # option we have is to use the filename.  This will work in the case of
+            # Blast2GO which stores the XML for each sequence in a file with the
+            # the filename the name of the sequence
+            if re.search(r'Sequence_\d+', seqid):
+                # Original regex does not work if there are no slashes (well it doesn't work at all actually..)
+                last = interpro_file.split('/')[-1]
+                filename = re.search(r'^(.*).xml$', last).group(1)
+                warn("Sequence name for results is not specific, using filename: %s as the sequence name", filename)
+                seqid = filename
+            # Remove _ORF from the sequence name
+            seqid = re.search(r'^(.+)_\d+_ORF\d+.*', seqid).group(1)
+            # match the name of the feature in the XML file to a feature in Chado
+            feature_id = self._match_feature(seqid, query_re, query_type, query_uniquename)
+            if not feature_id:
+                continue
+            # Create an entry in the analysisfeature table and add the XML for this feature
+            # to the analysisfeatureprop table
+            analysisfeature_id = self._add_analysis_feature(feature_id, analysis_id, protein)
+            if not analysisfeature_id:
+                continue
+
+            # parse the xml
+            ipr_array = self._parse_feature_xml(protein, feature_id)
+            ipr_terms = ipr_array['iprterms']
+            # Add IPR terms
+            self._load_ipr_terms(ipr_terms, feature_id, analysisfeature_id)
+
+            if parse_go:
+                res = self.session.query(self.model.db).filter_by(name="GO")
+                if res.count():
+                    self._load_go_terms(ipr_array["goterms"], feature_id, analysisfeature_id, res.one().db_id)
+                else:
+                    warn("Goterm were requested but the GO schema is not installed in chado")
+
+    def _add_analysis_feature(self, feature_id, analysis_id, xml):
+
+        type_id = self.ci.get_cvterm_id('analysis_interpro_xmloutput_hit', 'tripal')
+        res = self.session.query(self.model.analysisfeature).filter_by(feature_id=feature_id, analysis_id=analysis_id)
+        if not res.count():
+            analysis_feature = self.model.analysisfeature()
+            analysis_feature.feature_id = feature_id
+            analysis_feature.analysis_id = analysis_id
+            self.session.add(analysis_feature)
+            self.session.flush()
+            self.session.refresh(analysis_feature)
+            analysis_feature_id = analysis_feature.analysisfeature_id
+        else:
+            analysis_feature_id = res.one().analysisfeature_id
+        # Need to insert the raw xml
+        rank = 0
+        res = self.session.query(self.model.analysisfeatureprop).filter_by(analysisfeature_id=analysis_feature_id, type_id=type_id) \
+            .order_by(self.model.analysisfeatureprop.rank.desc())
+        if res.count():
+            rank = int(res.first().rank) + 1
+
+        analysis_feature_prop = self.model.analysisfeatureprop()
+        analysis_feature_prop.analysisfeature_id = analysis_feature_id
+        analysis_feature_prop.type_id = type_id
+        # Only works for a specific indent.. might be a way to do it better maybe
+        analysis_feature_prop.value = "   " + ET.tostring(xml)
+        analysis_feature_prop.rank = rank
+        self.session.add(analysis_feature_prop)
+        self.session.flush()
+
+        return analysis_feature_id
+
+    def _parse_feature_xml(self, xml, feature_id):
+        name = xml.tag
+        attrib = xml.attrib
+
+        if name == 'nucleotide-sequence':
+            return self._parse_feature_xml5_nucleotide(xml, feature_id)
+        if name == 'protein':
+            # XML 5 protein key has no attributes XML4 does
+            if len(attrib) == 0:
+                return self._parse_feature_xml5_protein(xml, feature_id)
+            else:
+                return self._parse_feature_xml4(xml, feature_id)
+
+    def _parse_feature_xml5_nucleotide(self, xml, feature_id):
+        results = {
+            "format": "XML5",
+            "iprterms": [],
+            "goterms": []
+        }
+        for child in xml:
+            if child.tag == "orf":
+                for sub_element in child:
+                    if sub_element.tag == "protein":
+                        terms = self._parse_feature_xml5_protein(sub_element, feature_id)
+                        for ipr_id, iprterm in terms['iprterms']:
+                            results['iprterm'][ipr_id]['ipr_desc'] = iprterm['ipr_desc']
+                            results['iprterm'][ipr_id]['ipr_name'] = iprterm['ipr_name']
+                            results['iprterm'][ipr_id]['ipr_type'] = iprterm['ipr_type']
+
+                            if 'matches' not in results['iprterms'][ipr_id]:
+                                results['iprterms'][ipr_id]['matches'] = {}
+                            results['iprterms'][ipr_id]['matches'].update(iprterm['matches'])
+                            if 'goterms' not in results['iprterms'][ipr_id]:
+                                results['iprterms'][ipr_id]['gotermes'] = {}
+                            results['iprterms'][ipr_id]['gotermes'].update(iprterm['goterms'])
+
+                            for go_id, goterm in iprterm['goterms']:
+                                results['goterms'][go_id]['name'] = goterm['name']
+                                results['goterms'][go_id]['category'] = goterm['category']
+        return results
+
+    def _parse_feature_xml5_protein(self, xml, feature_id):
+        terms = {
+            'format': 'XML5',
+            "iprterms": [],
+            "goterms": []
+        }
+        # iterate through each element of the 'protein' children
+        for child in xml:
+            if child.tag == 'matches':
+                for match_element in child:
+                    match = {}
+                    # sometimes an alignment is made but there is no corresponding IPR term
+                    # so we default the match IPR term to 'noIPR'
+                    match_ipr_id = 'noIPR'
+                    match_ipr_type = ''
+                    match_ipr_desc = ''
+                    match_ipr_name = ''
+                    for match_detail in match_element:
+                        # the <signature> tag contains information about the match in the
+                        # member database (e.g. GENE3D, PFAM, etc).
+                        if match_detail.tag == 'signature':
+                            attr = match_detail.attrib
+                            # the name of the match
+                            match['match_name'] = attr['name']
+                            # the match description
+                            match['match_desc'] = attr['desc']
+                            # the library accession number
+                            match['match_id'] = attr['ac']
+                            # find the IPR term and GO Terms associated with this match
+                            for sig_element in match_detail:
+                                # Yeah, more loops !
+                                # the <entry> tag contains the IPR term entry that corresponds to this match
+                                if sig_element.tag == 'entry':
+                                    attr = sig_element.attrib
+                                    match_ipr_id = attr['ac']
+                                    match_ipr_type = attr['type']
+                                    match_ipr_desc = attr['desc']
+                                    match_ipr_name = attr['name']
+
+                                    # initialize the term sub array and matches if they haven't already been added.
+                                    if match_ipr_id not in terms['iprterms']:
+                                        terms['iprterms'][match_ipr_id] = {
+                                            'matches': [],
+                                            'goterms': []
+                                        }
+                                    # get the GO terms which are children of the <entry> element
+                                    for entry_element in sig_element:
+                                        if entry_element.tag == 'go-xref':
+                                            attr = entry_element.attrib
+                                            go_id = attr['id']
+                                            goterm = {
+                                                'category': attr['category'],
+                                                'name': attr['name']
+                                            }
+                                            # GO terms are stored twice. Once with the IPR term to which they were found
+                                            # and second as first-level element of the $terms array where all terms are present
+                                            terms['iprterm'][match_ipr_id]['goterms'][go_id] = goterm
+                                            terms['goterms'][go_id] = goterm
+
+                                elif sig_element.tag == 'signature-library-release':
+                                    attr = sig_element.attrib
+                                    match['match_dbname'] = attr['library']
+                                    match['match_version'] = attr['version']
+
+                        # the <locations> tag lists the alignment locations for this match
+                        elif match_detail.tag == 'locations':
+                            # TODO : check if php array format is required (instead of a simple list)
+                            k = 0
+                            for loc_element in match_detail:
+                                attr = loc_element.attrib
+                                match['locations'][k] = {
+                                    'match_start': attr['start'],
+                                    'match_end': attr['end'],
+                                    'match_score': attr['score'],
+                                    'match_evalue': attr['evalue'],
+                                    'match_level': attr['level']
+                                }
+                                k += 1
+                    attr = match_element.attrib
+                    match['evalue'] = attr['evalue']
+                    match['score'] = attr['score']
+                    # add this match to the IPR term key to which it is associated
+                    terms['iprterms'][match_ipr_id]['matches'].append(match)
+                    terms['iprterms'][match_ipr_id]['ipr_type'] = match_ipr_type
+                    terms['iprterms'][match_ipr_id]['ipr_name'] = match_ipr_name
+                    terms['iprterms'][match_ipr_id]['ipr_desc'] = match_ipr_desc
+
+                    # make sure we have a goterms array in the event that none were found
+                    if 'goterms' not in terms['iprterms'][match_ipr_id]:
+                        terms['iprterms'][match_ipr_id]['goterms'] = []
+        return terms
+
+    def _parse_feature_xml4(self, xml, feature_id):
+        terms = {
+            'format': 'XML4',
+            'iprterms': [],
+            'goterms': []
+        }
+        attr = xml.attrib
+        # iterate through each interpro results for this protein
+        for interpro in xml:
+            # get the interpro term for this match
+            attr = interpro.attrib
+            ipr_id = attr["id"]
+            terms['iprterms'][ipr_id] = {
+                'ipr_name': attr['name'],
+                # Really..?
+                'ipr_desc': attr['name'],
+                'ipr_type': attr['type'],
+                'matches': [],
+                'goterms': []
+            }
+            # iterate through the elements of the interpro result
+            for level1 in interpro:
+                if level1.tag == 'match':
+                    attr = level1.attrib
+                    match = {
+                        "match_id": attr["id"],
+                        "match_name": attr["name"],
+                        "match_dbname": attr["dbname"]
+                    }
+                    # Need to make sure a php-style array is required (keys as numbers)
+                    k = 0
+                    # get the location information for this match
+                    for level2 in level1:
+                        if level2.tag == "location":
+                            attr = level2.attrib
+                            match['locations'][k] = {
+                                'match_start': attr['start'],
+                                'match_end': attr['end'],
+                                'match_score': attr['score'],
+                                'match_status': attr['status'],
+                                'match_evidence': attr['evidence']
+                            }
+                            k += 1
+                    terms['iprterms'][ipr_id]['matches'].append(match)
+                elif level1.tag == 'classification':
+                    attr = level1.attrib
+                    if attr['class_type'] == "GO":
+                        go_id = attr["id"]
+                        goterm = {
+                            "category": level1.find('category').text,
+                            "name": level1.find('description').text
+                        }
+                        # GO terms are stored twice. Once with the IPR term to which they were found
+                        # and second as first-level element of the $terms array where all terms are pres
+                        terms['iprterms'][ipr_id]['goterm'][go_id] = goterm
+                        terms['goterms'][go_id] = goterm
+        return terms
+
+    def _match_feature(self, sequence_id, query_re, query_uniquename, query_type, sequence_name=""):
+        feature = ""
+        # Cleanup the feature_name/id
+        if query_re:
+            if re.search(query_re, sequence_id):
+                feature = re.search(query_re, sequence_id).group(1)
+            elif (sequence_name and re.search(query_re, sequence_name)):
+                feature = re.search(query_re, sequence_name).group(1)
+            else:
+                warn("Failed: Cannot find feature for %s using the regular expression: %s", sequence_id, query_re)
+                return False
+        elif re.search(r"^(.*?)\s.*$", sequence_id):
+            feature = re.search(r"^(.*?)\s.*$", sequence_id).group(1)
+        else:
+            feature = sequence_id
+        # Get the feature from Chado
+        res = self.session.query(self.model.feature)
+        if query_uniquename:
+            res.filter_by(uniquename=feature)
+        else:
+            res.filter_by(name=feature)
+        if(query_type):
+            entity_cv_term_id = self.ci.get_cvterm_id(query_type, 'sequence')
+            res.filter_by(type_id=entity_cv_term_id)
+        if not res.count():
+            warn("Failed: cannot find a matching feature for %s in the database", feature)
+            return None
+        elif res.count() > 1:
+            warn("Ambiguous: %s matches more than one feature and is being skipped.", feature)
+            return None
+        else:
+            return res.one().feature_id
+
+    def _load_ipr_terms(self, ipr_terms, feature_id, analysisfeature_id):
+        for ipr_id, ipr_term in ipr_terms:
+            if (ipr_term["ipr_name"] and not ipr_term["ipr_name"] == 'noIPR'):
+                # currently there is no InterPro Ontology OBO file so we can't
+                # load the IPR terms that way, we need to just add them
+                # as we encounter them. If the term already exists
+                # we do not want to update it.
+                cvterm_id = self.create_cvterm(ipr_term['ipr_name'], 'INTERPRO', 'INTERPRO', term_definition=ipr_term['ipr_desc'], accession=ipr_id)
+                if not cvterm_id:
+                    warn("Failed: Cannot find cvterm: %s %s", ipr_id, ipr_term['ipr_name'])
+                    continue
+                # Insert IPR terms into the feature_cvterm table
+                # the default pub_id of 1 (NULL) is used. if the cvterm already exists then just skip adding it
+                res = self.session.query(self.model.feature_cvterm).filter_by(feature_id=feature_id, cvterm_id=cvterm_id, pub_id=1)
+                if not res.count():
+                    feature_cvterm = self.model.feature_cvterm()
+                    feature_cvterm.feature_id = feature_id
+                    feature_cvterm.cvterm_id = cvterm_id
+                    feature_cvterm.pub_id = 1
+                    self.session.add(feature_cvterm)
+                    self.session.flush()
+                
+
+
+    def _load_go_terms(self, go_terms, feature_id, analysisfeature_id, go_db_id):
+        print("test")
+
+    def _parse_blast_xml(self, an_id, blastdb_id, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords):
 
         cv_term_id = self.ci.get_cvterm_id('analysis_blast_output_iteration_hits', 'tripal')
         num_iter = 0
@@ -266,7 +685,7 @@ class LoadClient(Client):
                         # If we have a full part, process it and delete/recreate temp file
                         if(re.search('</BlastOutput>', line)):
                             fd.close()
-                            num_iter += self._parse_xml(an_id, blastdb_id, path, no_parsed, blast_ext, query_re, query_type, query_uniquename, False, search_keywords)
+                            num_iter += self._parse_blast_xml(an_id, blastdb_id, path, no_parsed, blast_ext, query_re, query_type, query_uniquename, False, search_keywords)
                             os.remove(path)
                             fd, path = tempfile.mkstemp()
             finally:
