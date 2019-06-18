@@ -231,13 +231,18 @@ class ChadoInstance(object):
         """
         cvhash = cv + '____' + name
         if allow_synonyms:
+            cvhash_ini = cvhash
             cvhash += '____' + 'syn'
 
         if cvhash in self._cv_name_cache:
             if self._cv_name_cache[cvhash] is not None:
                 return self._cv_name_cache[cvhash]
             else:
+                # If we allows synonyms, check the cache for the normal cvhash before throwing.
+                if allow_synonyms and cvhash_ini in self._cv_name_cache and self._cv_name_cache[cvhash_ini] is not None:
+                    return self._cv_name_cache[cvhash_ini]
                 raise RecordNotFoundError("Could not find a cvterm with name '%s' from cv '%s' in the database %s" % (name, cv, self._engine.url))
+
         else:
             res = self.session.query(self.model.cvterm.cvterm_id) \
                 .join(self.model.cv, self.model.cv.cv_id == self.model.cvterm.cv_id)
@@ -298,7 +303,8 @@ class ChadoInstance(object):
     def create_cvterm(self, term, cv_name, db_name, term_definition="", cv_definition="", db_definition="", accession=""):
 
         try:
-            cvterm = self.get_cvterm_id(term, cv_name, True)
+            cvterm_id = self.get_cvterm_id(term, cv_name, True)
+            return cvterm_id
         except RecordNotFoundError:
 
             # Not found, we need to create it
