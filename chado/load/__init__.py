@@ -284,17 +284,18 @@ class LoadClient(Client):
             res = self.session.query(self.model.analysisfeature).filter_by(analysis_id=analysis_id)
             if res.count():
                 res.delete(synchronize_session=False)
-                # Commit later?
-                self.session.commit()
         # If this is an unique file, parse it
         if os.path.isfile(interpro_output):
             self._parse_interpro_xml(analysis_id, interpro_output, parse_go, query_re, query_type, query_uniquename)
+            self.session.commit()
         # Else if it's a dir, parse each file in it
         elif os.path.isdir(interpro_output):
             for filename in os.listdir(interpro_output):
                 if filename.endswith(".xml"):
                     self._parse_interpro_xml(analysis_id, filename, parse_go, query_re, query_type, query_uniquename)
+            self.session.commit()
         else:
+            self.session.rollback()
             raise Exception("{} is neither a file nor a directory".format(interpro_output))
 
     def _parse_interpro_xml(self, analysis_id, interpro_output, parse_go, query_re, query_type, query_uniquename):
