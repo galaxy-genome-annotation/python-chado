@@ -662,11 +662,54 @@ class LoadClient(Client):
                     feature_cvterm.pub_id = 1
                     self.session.add(feature_cvterm)
                     self.session.flush()
-                
 
+                # Insert IPR terms into the analysisfeatureprop table but only if it
+                # doesn't already exist
+                # Tripal implementation uses prepared statement.. no idea if it's needed
+                res = self.session.query(self.model.analysisfeatureprop).filter_by(analysisfeature_id=analysisfeature_id, type_id=cvterm_id, rank=0, value=ipr_id)
+                if not res.count():
+                    analysisfeatureprop = self.model.analysisfeatureprop()
+                    analysisfeatureprop.analysisfeature_id = analysisfeature_id
+                    analysisfeatureprop.type_id = cvterm_id
+                    analysisfeatureprop.rank = 0
+                    analysisfeatureprop.value = ipr_id
+                    self.session.add(analysisfeatureprop)
+                    self.session.flush()
 
     def _load_go_terms(self, go_terms, feature_id, analysisfeature_id, go_db_id):
-        print("test")
+        for go_id, go_term in go_terms:
+            # Separate the 'GO:' from the term
+            regex = re.search(r'^.*?GO:(\d+).*$', go_id)
+            if regex:
+                # Find cvterm_id for the matched GO term using accession and db_id
+                res = self.session.query(self.model.cvterm.cvterm_id) \
+                    .join(self.model.dbxref, self.model.dbxref.dbxref_id == self.model.cvterm.dbxref_id) \
+                    .filter(self.model.dbxref.accession == regex.group(1), self.model.dbxref.db_id == go_db_id)
+                if not res.count():
+                    warn("Cannot find GO cvterm: 'GO:%s'. skipping.", regex.group(1))
+                    continue
+                goterm_id = res.first().cvterm_id
+                # Insert GO terms into feature_cvterm table. Default pub_id = 1 (NULL) was used. But
+                # only insert if not already there
+                res = self.session.query(self.model.feature_cvterm).filter_by(feature_id=feature_id, cvterm_id=goterm_id, pub_id=1)
+                if not res.count():
+                    feature_cvterm = self.model.feature_cvterm()
+                    feature_cvterm.feature_id = feature_id
+                    feature_cvterm.cvterm_id = goterm_id
+                    feature_cvterm.pub_id = 1
+                    self.session.add(feature_cvterm)
+                    self.session.flush()
+                # Insert Go terms into the analysisfeatureprop table but only if it
+                # doesn't already exist
+                res = self.session.query(self.model.analysisfeatureprop).filter_by(analysisfeature_id=analysisfeature_id, type_id=goterm_id, rank=0)
+                if not res.count():
+                    analysisfeatureprop = self.model.analysisfeatureprop()
+                    analysisfeatureprop.analysisfeature_id = analysisfeature_id
+                    analysisfeatureprop.type_id = goterm_id
+                    analysisfeatureprop.rank = 0
+                    analysisfeatureprop.value = regex.group(1)
+                    self.session.add(analysisfeatureprop)
+                    self.session.flush()
 
     def _parse_blast_xml(self, an_id, blastdb_id, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords):
 
