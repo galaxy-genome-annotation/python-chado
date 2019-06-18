@@ -502,7 +502,7 @@ class LoadClient(Client):
                                     if match_ipr_id not in terms['iprterms']:
                                         terms['iprterms'][match_ipr_id] = {
                                             'matches': [],
-                                            'goterms': []
+                                            'goterms': {}
                                         }
                                     # get the GO terms which are children of the <entry> element
                                     for entry_element in sig_element:
