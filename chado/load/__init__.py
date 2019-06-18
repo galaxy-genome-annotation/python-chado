@@ -285,15 +285,19 @@ class LoadClient(Client):
             if res.count():
                 res.delete(synchronize_session=False)
         # If this is an unique file, parse it
+        count_ins = 0
         if os.path.isfile(interpro_output):
-            self._parse_interpro_xml(analysis_id, interpro_output, parse_go, query_re, query_type, query_uniquename)
+            counts_ins += self._parse_interpro_xml(analysis_id, interpro_output, parse_go, query_re, query_type, query_uniquename)
             self.session.commit()
         # Else if it's a dir, parse each file in it
         elif os.path.isdir(interpro_output):
             for filename in os.listdir(interpro_output):
                 if filename.endswith(".xml"):
-                    self._parse_interpro_xml(analysis_id, filename, parse_go, query_re, query_type, query_uniquename)
+                    counts_ins += self._parse_interpro_xml(analysis_id, filename, parse_go, query_re, query_type, query_uniquename)
             self.session.commit()
+            self._reset_cache()
+
+            return {'inserted': count_ins}
         else:
             self.session.rollback()
             raise Exception("{} is neither a file nor a directory".format(interpro_output))
@@ -303,14 +307,17 @@ class LoadClient(Client):
         root = tree.getroot()
         # If it starts with 'protein-matches' or 'nucleotide-sequence-matches' then this is InterPro v5 XML
         if re.search("^protein-matches", root.tag) or re.search("^nucleotide-sequence-matches", root.tag):
-            self._parse_interpro_xml5(analysis_id, root, parse_go, query_re, query_type, query_uniquename)
+            counts = self._parse_interpro_xml5(analysis_id, root, parse_go, query_re, query_type, query_uniquename)
         elif re.search("^EBIInterProScanResults", root.tag) or re.search("^interpro_matches", root.tag):
-            self._parse_interpro_xml4(analysis_id, root, interpro_output, parse_go, query_re, query_type, query_uniquename)
+            counts = self._parse_interpro_xml4(analysis_id, root, interpro_output, parse_go, query_re, query_type, query_uniquename)
         else:
             raise Exception("Xml format was not recognised")
+        return counts
 
     def _parse_interpro_xml5(self, analysis_id, xml, parse_go, query_re, query_type, query_uniquename):
+        total_count = 0
         for nucleotide in xml:
+            total_count += 1
             for child in nucleotide:
                 child_name = child.tag
                 if child_name == "xref":
@@ -332,7 +339,9 @@ class LoadClient(Client):
                         if res.count():
                             self._load_go_terms(ipr_array["goterms"], feature_id, analysisfeature_id, res.one().db_id)
                         else:
-                            warn("Goterm were requested but the GO schema is not installed in chado")
+                            warn("Goterm were requested but the GO schema is not installed in chado; Skipping")
+                            parse_go = False
+            return total_count
 
     def _parse_interpro_xml4(self, analysis_id, xml, interpro_file, parse_go, query_re, query_type, query_uniquename):
         # If there is an EBI header then we need to skip that
@@ -340,12 +349,14 @@ class LoadClient(Client):
         # occurs if results were generated with the online InterProScan tool.
         # if the XML starts in with the results then this happens when InterProScan
         # is used command-line and we can just use the object as is
+        total_count = 0
         if re.search("^EBIInterProScanResults", xml.tag):
             proteins = xml[1]
         elif re.search("^interpro_matches", xml.tag):
             proteins = xml
 
         for protein in proteins:
+            total_count += 1
             # match the protein id with the feature name
             feature_id = 0
             attr = protein.attrib
@@ -385,6 +396,8 @@ class LoadClient(Client):
                     self._load_go_terms(ipr_array["goterms"], feature_id, analysisfeature_id, res.one().db_id)
                 else:
                     warn("Goterm were requested but the GO schema is not installed in chado")
+                    parse_go = False
+        return total_count
 
     def _add_analysis_feature(self, feature_id, analysis_id, xml):
 
