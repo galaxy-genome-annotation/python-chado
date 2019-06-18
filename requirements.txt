@@ -1,5 +1,5 @@
 sqlalchemy
-psycopg2
+psycopg2-binary
 biopython
 bcbio-gff==0.6.4
 wrapt
