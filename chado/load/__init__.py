@@ -609,7 +609,7 @@ class LoadClient(Client):
                         terms['goterms'][go_id] = goterm
         return terms
 
-    def _match_feature(self, sequence_id, query_re, query_uniquename, query_type, sequence_name=""):
+    def _match_feature(self, sequence_id, query_re, query_type, query_uniquename, sequence_name=""):
         feature = ""
         # Cleanup the feature_name/id
         if query_re:
