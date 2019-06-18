@@ -411,7 +411,7 @@ class LoadClient(Client):
         analysis_feature_prop.analysisfeature_id = analysis_feature_id
         analysis_feature_prop.type_id = type_id
         # Only works for a specific indent.. might be a way to do it better maybe
-        analysis_feature_prop.value = "   " + ET.tostring(xml)
+        analysis_feature_prop.value = "   " + ET.tostring(xml, encoding="unicode")
         analysis_feature_prop.rank = rank
         self.session.add(analysis_feature_prop)
         self.session.flush()
@@ -434,8 +434,8 @@ class LoadClient(Client):
     def _parse_feature_xml5_nucleotide(self, xml, feature_id):
         results = {
             "format": "XML5",
-            "iprterms": [],
-            "goterms": []
+            "iprterms": {},
+            "goterms": {}
         }
         for child in xml:
             if child.tag == "orf":
@@ -462,8 +462,8 @@ class LoadClient(Client):
     def _parse_feature_xml5_protein(self, xml, feature_id):
         terms = {
             'format': 'XML5',
-            "iprterms": [],
-            "goterms": []
+            "iprterms": {},
+            "goterms": {}
         }
         # iterate through each element of the 'protein' children
         for child in xml:
@@ -554,8 +554,8 @@ class LoadClient(Client):
     def _parse_feature_xml4(self, xml, feature_id):
         terms = {
             'format': 'XML4',
-            'iprterms': [],
-            'goterms': []
+            'iprterms': {},
+            'goterms': {}
         }
         attr = xml.attrib
         # iterate through each interpro results for this protein
@@ -569,7 +569,7 @@ class LoadClient(Client):
                 'ipr_desc': attr['name'],
                 'ipr_type': attr['type'],
                 'matches': [],
-                'goterms': []
+                'goterms': {}
             }
             # iterate through the elements of the interpro result
             for level1 in interpro:
@@ -578,7 +578,8 @@ class LoadClient(Client):
                     match = {
                         "match_id": attr["id"],
                         "match_name": attr["name"],
-                        "match_dbname": attr["dbname"]
+                        "match_dbname": attr["dbname"],
+                        "locations": {}
                     }
                     # Need to make sure a php-style array is required (keys as numbers)
                     k = 0
@@ -605,7 +606,7 @@ class LoadClient(Client):
                         }
                         # GO terms are stored twice. Once with the IPR term to which they were found
                         # and second as first-level element of the $terms array where all terms are pres
-                        terms['iprterms'][ipr_id]['goterm'][go_id] = goterm
+                        terms['iprterms'][ipr_id]['goterms'][go_id] = goterm
                         terms['goterms'][go_id] = goterm
         return terms
 
@@ -627,12 +628,12 @@ class LoadClient(Client):
         # Get the feature from Chado
         res = self.session.query(self.model.feature)
         if query_uniquename:
-            res.filter_by(uniquename=feature)
+            res = res.filter_by(uniquename=feature)
         else:
-            res.filter_by(name=feature)
+            res = res.filter_by(name=feature)
         if(query_type):
             entity_cv_term_id = self.ci.get_cvterm_id(query_type, 'sequence')
-            res.filter_by(type_id=entity_cv_term_id)
+            res = res.filter_by(type_id=entity_cv_term_id)
         if not res.count():
             warn("Failed: cannot find a matching feature for %s in the database", feature)
             return None
@@ -643,13 +644,13 @@ class LoadClient(Client):
             return res.one().feature_id
 
     def _load_ipr_terms(self, ipr_terms, feature_id, analysisfeature_id):
-        for ipr_id, ipr_term in ipr_terms:
+        for ipr_id, ipr_term in ipr_terms.items():
             if (ipr_term["ipr_name"] and not ipr_term["ipr_name"] == 'noIPR'):
                 # currently there is no InterPro Ontology OBO file so we can't
                 # load the IPR terms that way, we need to just add them
                 # as we encounter them. If the term already exists
                 # we do not want to update it.
-                cvterm_id = self.create_cvterm(ipr_term['ipr_name'], 'INTERPRO', 'INTERPRO', term_definition=ipr_term['ipr_desc'], accession=ipr_id)
+                cvterm_id = self.ci.create_cvterm(ipr_term['ipr_name'], 'INTERPRO', 'INTERPRO', term_definition=ipr_term['ipr_desc'], accession=ipr_id)
                 if not cvterm_id:
                     warn("Failed: Cannot find cvterm: %s %s", ipr_id, ipr_term['ipr_name'])
                     continue
@@ -678,7 +679,7 @@ class LoadClient(Client):
                     self.session.flush()
 
     def _load_go_terms(self, go_terms, feature_id, analysisfeature_id, go_db_id):
-        for go_id, go_term in go_terms:
+        for go_id, go_term in go_terms.items():
             # Separate the 'GO:' from the term
             regex = re.search(r'^.*?GO:(\d+).*$', go_id)
             if regex:
