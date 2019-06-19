@@ -306,9 +306,13 @@ class LoadClient(Client):
         tree = ET.ElementTree(file=interpro_output)
         root = tree.getroot()
         # If it starts with 'protein-matches' or 'nucleotide-sequence-matches' then this is InterPro v5 XML
-        if re.search("^protein-matches", root.tag) or re.search("^nucleotide-sequence-matches", root.tag):
+        tag = root.tag
+        if "}" in tag:
+            # Strip namespaces
+            tag = tag.split('}', 1)[1]
+        if re.search("^protein-matches", tag) or re.search("^nucleotide-sequence-matches", tag):
             counts = self._parse_interpro_xml5(analysis_id, root, parse_go, query_re, query_type, query_uniquename)
-        elif re.search("^EBIInterProScanResults", root.tag) or re.search("^interpro_matches", root.tag):
+        elif re.search("^EBIInterProScanResults", tag) or re.search("^interpro_matches", tag):
             counts = self._parse_interpro_xml4(analysis_id, root, interpro_output, parse_go, query_re, query_type, query_uniquename)
         else:
             raise Exception("Xml format was not recognised")
