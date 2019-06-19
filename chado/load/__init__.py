@@ -289,6 +289,7 @@ class LoadClient(Client):
         if os.path.isfile(interpro_output):
             count_ins += self._parse_interpro_xml(analysis_id, interpro_output, parse_go, query_re, query_type, query_uniquename)
             self.session.commit()
+            return {'inserted': count_ins}
         # Else if it's a dir, parse each file in it
         elif os.path.isdir(interpro_output):
             for filename in os.listdir(interpro_output):
