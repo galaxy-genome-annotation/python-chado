@@ -287,13 +287,13 @@ class LoadClient(Client):
         # If this is an unique file, parse it
         count_ins = 0
         if os.path.isfile(interpro_output):
-            counts_ins += self._parse_interpro_xml(analysis_id, interpro_output, parse_go, query_re, query_type, query_uniquename)
+            count_ins += self._parse_interpro_xml(analysis_id, interpro_output, parse_go, query_re, query_type, query_uniquename)
             self.session.commit()
         # Else if it's a dir, parse each file in it
         elif os.path.isdir(interpro_output):
             for filename in os.listdir(interpro_output):
                 if filename.endswith(".xml"):
-                    counts_ins += self._parse_interpro_xml(analysis_id, filename, parse_go, query_re, query_type, query_uniquename)
+                    count_ins += self._parse_interpro_xml(analysis_id, filename, parse_go, query_re, query_type, query_uniquename)
             self.session.commit()
             self._reset_cache()
 
