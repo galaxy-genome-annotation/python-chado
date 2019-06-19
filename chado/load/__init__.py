@@ -460,19 +460,27 @@ class LoadClient(Client):
                 for sub_element in child:
                     if sub_element.tag == "protein":
                         terms = self._parse_feature_xml5_protein(sub_element, feature_id)
-                        for ipr_id, iprterm in terms['iprterms']:
-                            results['iprterm'][ipr_id]['ipr_desc'] = iprterm['ipr_desc']
-                            results['iprterm'][ipr_id]['ipr_name'] = iprterm['ipr_name']
-                            results['iprterm'][ipr_id]['ipr_type'] = iprterm['ipr_type']
+                        print(terms)
+                        for ipr_id, iprterm in terms['iprterms'].items():
+                            if not ipr_id in results['iprterms']:
+                                results['iprterms'][ipr_id] = {}
+                            results['iprterms'][ipr_id]['ipr_desc'] = iprterm['ipr_desc']
+                            results['iprterms'][ipr_id]['ipr_name'] = iprterm['ipr_name']
+                            results['iprterms'][ipr_id]['ipr_type'] = iprterm['ipr_type']
 
                             if 'matches' not in results['iprterms'][ipr_id]:
-                                results['iprterms'][ipr_id]['matches'] = {}
-                            results['iprterms'][ipr_id]['matches'].update(iprterm['matches'])
-                            if 'goterms' not in results['iprterms'][ipr_id]:
-                                results['iprterms'][ipr_id]['gotermes'] = {}
-                            results['iprterms'][ipr_id]['gotermes'].update(iprterm['goterms'])
+                                results['iprterms'][ipr_id]['matches'] = []
+                            results['iprterms'][ipr_id]['matches'].append(iprterm['matches'])
 
-                            for go_id, goterm in iprterm['goterms']:
+                            if 'goterms' not in results['iprterms'][ipr_id]:
+                                results['iprterms'][ipr_id]['goterms'] = {}
+
+                            results['iprterms'][ipr_id]['goterms'].update(iprterm['goterms'])
+
+                            for go_id, goterm in iprterm['goterms'].items():
+                                if not go_id in results['goterms']:
+                                    results['goterms'][go_id] = {}
+
                                 results['goterms'][go_id]['name'] = goterm['name']
                                 results['goterms'][go_id]['category'] = goterm['category']
         return results
@@ -488,6 +496,7 @@ class LoadClient(Client):
             if child.tag == 'matches':
                 for match_element in child:
                     match = {}
+                    match["locations"] = {}
                     # sometimes an alignment is made but there is no corresponding IPR term
                     # so we default the match IPR term to 'noIPR'
                     match_ipr_id = 'noIPR'
@@ -533,7 +542,7 @@ class LoadClient(Client):
                                             }
                                             # GO terms are stored twice. Once with the IPR term to which they were found
                                             # and second as first-level element of the $terms array where all terms are present
-                                            terms['iprterm'][match_ipr_id]['goterms'][go_id] = goterm
+                                            terms['iprterms'][match_ipr_id]['goterms'][go_id] = goterm
                                             terms['goterms'][go_id] = goterm
 
                                 elif sig_element.tag == 'signature-library-release':
@@ -559,14 +568,18 @@ class LoadClient(Client):
                     match['evalue'] = attr['evalue'] if 'evalue' in attr else ""
                     match['score'] = attr['score'] if 'score' in attr else ""
                     # add this match to the IPR term key to which it is associated
+                    if not match_ipr_id in terms['iprterms']:
+                        terms['iprterms'][match_ipr_id] = {}
+                    if not 'matches' in terms['iprterms'][match_ipr_id]:
+                        terms['iprterms'][match_ipr_id]['matches'] = []
+
                     terms['iprterms'][match_ipr_id]['matches'].append(match)
                     terms['iprterms'][match_ipr_id]['ipr_type'] = match_ipr_type
                     terms['iprterms'][match_ipr_id]['ipr_name'] = match_ipr_name
                     terms['iprterms'][match_ipr_id]['ipr_desc'] = match_ipr_desc
-
                     # make sure we have a goterms array in the event that none were found
                     if 'goterms' not in terms['iprterms'][match_ipr_id]:
-                        terms['iprterms'][match_ipr_id]['goterms'] = []
+                        terms['iprterms'][match_ipr_id]['goterms'] = {}
         return terms
 
     def _parse_feature_xml4(self, xml, feature_id):
