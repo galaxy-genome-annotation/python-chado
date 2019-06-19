@@ -462,7 +462,7 @@ class LoadClient(Client):
                         terms = self._parse_feature_xml5_protein(sub_element, feature_id)
                         print(terms)
                         for ipr_id, iprterm in terms['iprterms'].items():
-                            if not ipr_id in results['iprterms']:
+                            if ipr_id not in results['iprterms']:
                                 results['iprterms'][ipr_id] = {}
                             results['iprterms'][ipr_id]['ipr_desc'] = iprterm['ipr_desc']
                             results['iprterms'][ipr_id]['ipr_name'] = iprterm['ipr_name']
@@ -478,7 +478,7 @@ class LoadClient(Client):
                             results['iprterms'][ipr_id]['goterms'].update(iprterm['goterms'])
 
                             for go_id, goterm in iprterm['goterms'].items():
-                                if not go_id in results['goterms']:
+                                if go_id not in results['goterms']:
                                     results['goterms'][go_id] = {}
 
                                 results['goterms'][go_id]['name'] = goterm['name']
@@ -568,9 +568,9 @@ class LoadClient(Client):
                     match['evalue'] = attr['evalue'] if 'evalue' in attr else ""
                     match['score'] = attr['score'] if 'score' in attr else ""
                     # add this match to the IPR term key to which it is associated
-                    if not match_ipr_id in terms['iprterms']:
+                    if match_ipr_id not in terms['iprterms']:
                         terms['iprterms'][match_ipr_id] = {}
-                    if not 'matches' in terms['iprterms'][match_ipr_id]:
+                    if 'matches' not in terms['iprterms'][match_ipr_id]:
                         terms['iprterms'][match_ipr_id]['matches'] = []
 
                     terms['iprterms'][match_ipr_id]['matches'].append(match)
