@@ -326,9 +326,8 @@ class LoadClient(Client):
             for child in entity:
                 child_name = child.tag
                 if child_name == "xref":
-                    child_attrib = child.attrib
-                    seq_id = child_attrib["id"] if 'id' in child_attrib else ""
-                    seq_name = child_attrib["name"] if 'name' in child_attrib else ""
+                    seq_id = child.get('id')
+                    seq_name = child.get('name')
                     feature_id = self._match_feature(seq_id, query_re, query_type, query_uniquename, seq_name)
                     if not feature_id:
                         continue
@@ -364,8 +363,7 @@ class LoadClient(Client):
             total_count += 1
             # match the protein id with the feature name
             feature_id = 0
-            attr = protein.attrib
-            seqid = attr['id'] if 'id' in attr else ""
+            seqid = protein.get('name')
             # if the sequence name a generic name (i.e. 'Sequence_1') then the
             # results do not contain the original sequence names.  The only
             # option we have is to use the filename.  This will work in the case of
@@ -507,23 +505,21 @@ class LoadClient(Client):
                         # the <signature> tag contains information about the match in the
                         # member database (e.g. GENE3D, PFAM, etc).
                         if match_detail.tag == 'signature':
-                            attr = match_detail.attrib
                             # the name of the match
-                            match['match_name'] = attr['name'] if 'name' in attr else ""
+                            match['match_name'] = match_detail.get('name')
                             # the match description
-                            match['match_desc'] = attr['desc'] if 'desc' in attr else ""
+                            match['match_desc'] = match_detail.get('desc')
                             # the library accession number
-                            match['match_id'] = attr['ac'] if 'ac' in attr else ""
+                            match['match_id'] = match_detail.get('ac')
                             # find the IPR term and GO Terms associated with this match
                             for sig_element in match_detail:
                                 # Yeah, more loops !
                                 # the <entry> tag contains the IPR term entry that corresponds to this match
                                 if sig_element.tag == 'entry':
-                                    attr = sig_element.attrib
-                                    match_ipr_id = attr['ac']
-                                    match_ipr_type = attr['type'] if 'type' in attr else ""
-                                    match_ipr_desc = attr['desc'] if 'desc' in attr else ""
-                                    match_ipr_name = attr['name'] if 'name' in attr else ""
+                                    match_ipr_id = sig_element.get('ac')
+                                    match_ipr_type = sig_element.get('type')
+                                    match_ipr_desc = sig_element.get('desc')
+                                    match_ipr_name = sig_element.get('name'
 
                                     # initialize the term sub array and matches if they haven't already been added.
                                     if match_ipr_id not in terms['iprterms']:
@@ -534,11 +530,10 @@ class LoadClient(Client):
                                     # get the GO terms which are children of the <entry> element
                                     for entry_element in sig_element:
                                         if entry_element.tag == 'go-xref':
-                                            attr = entry_element.attrib
-                                            go_id = attr['id'] if 'id' in attr else ""
+                                            go_id = entry_element.get('id')
                                             goterm = {
-                                                'category': attr['category'] if 'category' in attr else "",
-                                                'name': attr['name'] if 'name' in attr else ""
+                                                'category': entry_element.get('category'),
+                                                'name': entry_element.get('name')
                                             }
                                             # GO terms are stored twice. Once with the IPR term to which they were found
                                             # and second as first-level element of the $terms array where all terms are present
@@ -546,27 +541,24 @@ class LoadClient(Client):
                                             terms['goterms'][go_id] = goterm
 
                                 elif sig_element.tag == 'signature-library-release':
-                                    attr = sig_element.attrib
-                                    match['match_dbname'] = attr['library'] if 'library' in attr else ""
-                                    match['match_version'] = attr['version'] if 'version' in attr else ""
+                                    match['match_dbname'] = sig_element.get('library')
+                                    match['match_version'] = sig_element.get('version')
 
                         # the <locations> tag lists the alignment locations for this match
                         elif match_detail.tag == 'locations':
                             # TODO : check if php array format is required (instead of a simple list)
                             k = 0
                             for loc_element in match_detail:
-                                attr = loc_element.attrib
                                 match['locations'][k] = {
-                                    'match_start': attr['start'] if 'start' in attr else "",
-                                    'match_end': attr['end'] if 'end' in attr else "",
-                                    'match_score': attr['score'] if 'score' in attr else "",
-                                    'match_evalue': attr['evalue']if 'evalue' in attr else "",
-                                    'match_level': attr['level'] if 'level' in attr else ""
+                                    'match_start': loc_element.get('start'),
+                                    'match_end': loc_element.get('end'),
+                                    'match_score': loc_element.get('score'),
+                                    'match_evalue': loc_element.get('evalue'),
+                                    'match_level': loc_element.get('level')
                                 }
                                 k += 1
-                    attr = match_element.attrib
-                    match['evalue'] = attr['evalue'] if 'evalue' in attr else ""
-                    match['score'] = attr['score'] if 'score' in attr else ""
+                    match['evalue'] = match_element.get('evalue')
+                    match['score'] = match_element.get('score')
                     # add this match to the IPR term key to which it is associated
                     if match_ipr_id not in terms['iprterms']:
                         terms['iprterms'][match_ipr_id] = {}
@@ -588,28 +580,25 @@ class LoadClient(Client):
             'iprterms': {},
             'goterms': {}
         }
-        attr = xml.attrib
         # iterate through each interpro results for this protein
         for interpro in xml:
             # get the interpro term for this match
-            attr = interpro.attrib
-            ipr_id = attr["id"] if 'id' in attr else ""
+            ipr_id = interpro.get('id')
             terms['iprterms'][ipr_id] = {
-                'ipr_name': attr['name'] if 'name' in attr else "",
-                # Really..?
-                'ipr_desc': attr['name'] if 'name' in attr else "",
-                'ipr_type': attr['type'] if 'type' in attr else "",
+                'ipr_name': interpro.get('name'),
+                # MB : Name Really..?
+                'ipr_desc': interpro.get('name'),
+                'ipr_type': interpro.get('type'),
                 'matches': [],
                 'goterms': {}
             }
             # iterate through the elements of the interpro result
             for level1 in interpro:
                 if level1.tag == 'match':
-                    attr = level1.attrib
                     match = {
-                        "match_id": attr["id"] if 'id' in attr else "",
-                        "match_name": attr["name"] if 'name' in attr else "",
-                        "match_dbname": attr["dbname"] if 'dbname' in attr else "",
+                        "match_id": level1.get('id'),
+                        "match_name": level1.get('name'),
+                        "match_dbname": level1.get('dbname'),
                         "locations": {}
                     }
                     # Need to make sure a php-style array is required (keys as numbers)
@@ -617,20 +606,18 @@ class LoadClient(Client):
                     # get the location information for this match
                     for level2 in level1:
                         if level2.tag == "location":
-                            attr = level2.attrib
                             match['locations'][k] = {
-                                'match_start': attr['start'] if 'start' in attr else "",
-                                'match_end': attr['end'] if 'end' in attr else "",
-                                'match_score': attr['score'] if 'score' in attr else "",
-                                'match_status': attr['status'] if 'status' in attr else "",
-                                'match_evidence': attr['evidence'] if 'evidence' in attr else ""
+                                'match_start': level2.get('start'),
+                                'match_end': level2.get('end'),
+                                'match_score': level2.get('score'),
+                                'match_status': level2.get('status'),
+                                'match_evidence': level2.get('evidence')
                             }
                             k += 1
                     terms['iprterms'][ipr_id]['matches'].append(match)
                 elif level1.tag == 'classification':
-                    attr = level1.attrib
-                    if attr['class_type'] == "GO":
-                        go_id = attr["id"] if 'id' in attr else ""
+                    if level1.get('class_type') == "GO":
+                        go_id = level1.get('id')
                         goterm = {
                             "category": level1.find('category').text,
                             "name": level1.find('description').text
