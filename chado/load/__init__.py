@@ -451,43 +451,29 @@ class LoadClient(Client):
         results = {
             "format": "XML5",
             "iprterms": {},
-            "goterms": {}
+            "goterms": []
         }
         for child in xml:
             if child.tag == "orf":
                 for sub_element in child:
                     if sub_element.tag == "protein":
                         terms = self._parse_feature_xml5_protein(sub_element, feature_id)
-                        print(terms)
                         for ipr_id, iprterm in terms['iprterms'].items():
                             if ipr_id not in results['iprterms']:
                                 results['iprterms'][ipr_id] = {}
                             results['iprterms'][ipr_id]['ipr_desc'] = iprterm['ipr_desc']
                             results['iprterms'][ipr_id]['ipr_name'] = iprterm['ipr_name']
-                            results['iprterms'][ipr_id]['ipr_type'] = iprterm['ipr_type']
+                        for goterm_id in terms['goterms']:
+                            if goterm_id not in results['goterms']:
+                                results['goterms'].append(goterm_id)
 
-                            if 'matches' not in results['iprterms'][ipr_id]:
-                                results['iprterms'][ipr_id]['matches'] = []
-                            results['iprterms'][ipr_id]['matches'].append(iprterm['matches'])
-
-                            if 'goterms' not in results['iprterms'][ipr_id]:
-                                results['iprterms'][ipr_id]['goterms'] = {}
-
-                            results['iprterms'][ipr_id]['goterms'].update(iprterm['goterms'])
-
-                            for go_id, goterm in iprterm['goterms'].items():
-                                if go_id not in results['goterms']:
-                                    results['goterms'][go_id] = {}
-
-                                results['goterms'][go_id]['name'] = goterm['name']
-                                results['goterms'][go_id]['category'] = goterm['category']
         return results
 
     def _parse_feature_xml5_protein(self, xml, feature_id):
         terms = {
             'format': 'XML5',
             "iprterms": {},
-            "goterms": {}
+            "goterms": []
         }
         # iterate through each element of the 'protein' children
         for child in xml:
@@ -498,87 +484,38 @@ class LoadClient(Client):
                     # sometimes an alignment is made but there is no corresponding IPR term
                     # so we default the match IPR term to 'noIPR'
                     match_ipr_id = 'noIPR'
-                    match_ipr_type = ''
                     match_ipr_desc = ''
                     match_ipr_name = ''
                     for match_detail in match_element:
                         # the <signature> tag contains information about the match in the
                         # member database (e.g. GENE3D, PFAM, etc).
                         if match_detail.tag == 'signature':
-                            # the name of the match
-                            match['match_name'] = match_detail.get('name')
-                            # the match description
-                            match['match_desc'] = match_detail.get('desc')
-                            # the library accession number
-                            match['match_id'] = match_detail.get('ac')
                             # find the IPR term and GO Terms associated with this match
                             for sig_element in match_detail:
                                 # Yeah, more loops !
                                 # the <entry> tag contains the IPR term entry that corresponds to this match
                                 if sig_element.tag == 'entry':
                                     match_ipr_id = sig_element.get('ac')
-                                    match_ipr_type = sig_element.get('type')
                                     match_ipr_desc = sig_element.get('desc')
                                     match_ipr_name = sig_element.get('name')
-
-                                    # initialize the term sub array and matches if they haven't already been added.
-                                    if match_ipr_id not in terms['iprterms']:
-                                        terms['iprterms'][match_ipr_id] = {
-                                            'matches': [],
-                                            'goterms': {}
-                                        }
                                     # get the GO terms which are children of the <entry> element
                                     for entry_element in sig_element:
                                         if entry_element.tag == 'go-xref':
                                             go_id = entry_element.get('id')
-                                            goterm = {
-                                                'category': entry_element.get('category'),
-                                                'name': entry_element.get('name')
-                                            }
-                                            # GO terms are stored twice. Once with the IPR term to which they were found
-                                            # and second as first-level element of the $terms array where all terms are present
-                                            terms['iprterms'][match_ipr_id]['goterms'][go_id] = goterm
-                                            terms['goterms'][go_id] = goterm
-
-                                elif sig_element.tag == 'signature-library-release':
-                                    match['match_dbname'] = sig_element.get('library')
-                                    match['match_version'] = sig_element.get('version')
-
-                        # the <locations> tag lists the alignment locations for this match
-                        elif match_detail.tag == 'locations':
-                            # TODO : check if php array format is required (instead of a simple list)
-                            k = 0
-                            for loc_element in match_detail:
-                                match['locations'][k] = {
-                                    'match_start': loc_element.get('start'),
-                                    'match_end': loc_element.get('end'),
-                                    'match_score': loc_element.get('score'),
-                                    'match_evalue': loc_element.get('evalue'),
-                                    'match_level': loc_element.get('level')
-                                }
-                                k += 1
-                    match['evalue'] = match_element.get('evalue')
-                    match['score'] = match_element.get('score')
+                                            terms['goterms'].append(go_id)
                     # add this match to the IPR term key to which it is associated
                     if match_ipr_id not in terms['iprterms']:
                         terms['iprterms'][match_ipr_id] = {}
-                    if 'matches' not in terms['iprterms'][match_ipr_id]:
-                        terms['iprterms'][match_ipr_id]['matches'] = []
 
-                    terms['iprterms'][match_ipr_id]['matches'].append(match)
-                    terms['iprterms'][match_ipr_id]['ipr_type'] = match_ipr_type
                     terms['iprterms'][match_ipr_id]['ipr_name'] = match_ipr_name
                     terms['iprterms'][match_ipr_id]['ipr_desc'] = match_ipr_desc
-                    # make sure we have a goterms array in the event that none were found
-                    if 'goterms' not in terms['iprterms'][match_ipr_id]:
-                        terms['iprterms'][match_ipr_id]['goterms'] = {}
         return terms
 
     def _parse_feature_xml4(self, xml, feature_id):
         terms = {
             'format': 'XML4',
             'iprterms': {},
-            'goterms': {}
+            'goterms': []
         }
         # iterate through each interpro results for this protein
         for interpro in xml:
@@ -586,46 +523,14 @@ class LoadClient(Client):
             ipr_id = interpro.get('id')
             terms['iprterms'][ipr_id] = {
                 'ipr_name': interpro.get('name'),
-                # MB : Name Really..?
                 'ipr_desc': interpro.get('name'),
-                'ipr_type': interpro.get('type'),
-                'matches': [],
-                'goterms': {}
             }
             # iterate through the elements of the interpro result
             for level1 in interpro:
-                if level1.tag == 'match':
-                    match = {
-                        "match_id": level1.get('id'),
-                        "match_name": level1.get('name'),
-                        "match_dbname": level1.get('dbname'),
-                        "locations": {}
-                    }
-                    # Need to make sure a php-style array is required (keys as numbers)
-                    k = 0
-                    # get the location information for this match
-                    for level2 in level1:
-                        if level2.tag == "location":
-                            match['locations'][k] = {
-                                'match_start': level2.get('start'),
-                                'match_end': level2.get('end'),
-                                'match_score': level2.get('score'),
-                                'match_status': level2.get('status'),
-                                'match_evidence': level2.get('evidence')
-                            }
-                            k += 1
-                    terms['iprterms'][ipr_id]['matches'].append(match)
-                elif level1.tag == 'classification':
+                if level1.tag == 'classification':
                     if level1.get('class_type') == "GO":
                         go_id = level1.get('id')
-                        goterm = {
-                            "category": level1.find('category').text,
-                            "name": level1.find('description').text
-                        }
-                        # GO terms are stored twice. Once with the IPR term to which they were found
-                        # and second as first-level element of the $terms array where all terms are pres
-                        terms['iprterms'][ipr_id]['goterms'][go_id] = goterm
-                        terms['goterms'][go_id] = goterm
+                        terms['goterms'].append(go_id)
         return terms
 
     def _match_feature(self, sequence_id, query_re, query_type, query_uniquename, sequence_name=""):
@@ -697,7 +602,7 @@ class LoadClient(Client):
                     self.session.flush()
 
     def _load_go_terms(self, go_terms, feature_id, analysisfeature_id, go_db_id):
-        for go_id, go_term in go_terms.items():
+        for go_id in go_terms:
             # Separate the 'GO:' from the term
             regex = re.search(r'^.*?GO:(\d+).*$', go_id)
             if regex:
