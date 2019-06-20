@@ -204,7 +204,7 @@ class LoadClient(Client):
 
                 if feat_id not in existing:
                     if skip_missing:
-                        print('Could not find feature with name "%s", skipping it' % feat_id)
+                        warn('Could not find feature with name "%s", skipping it', feat_id)
                         continue
                     else:
                         raise Exception('Could not find feature with name "%s"' % feat_id)
@@ -216,7 +216,7 @@ class LoadClient(Client):
 
                 if not term_id:
                     if skip_missing:
-                        print('Could not find term with name "%s", skipping it' % term_acc)
+                        warn('Could not find term with name "%s", skipping it', term_acc)
                         continue
                     else:
                         raise Exception('Could not find term with name "%s"' % term_acc)
@@ -363,7 +363,7 @@ class LoadClient(Client):
             total_count += 1
             # match the protein id with the feature name
             feature_id = 0
-            seqid = protein.get('name')
+            seqid = protein.get('id')
             # if the sequence name a generic name (i.e. 'Sequence_1') then the
             # results do not contain the original sequence names.  The only
             # option we have is to use the filename.  This will work in the case of
