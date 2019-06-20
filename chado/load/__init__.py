@@ -327,7 +327,7 @@ class LoadClient(Client):
                 child_name = child.tag
                 if child_name == "xref":
                     seq_id = child.get('id')
-                    seq_name = child.get('name')
+                    seq_name = child.get('name', "")
                     feature_id = self._match_feature(seq_id, query_re, query_type, query_uniquename, seq_name)
                     if not feature_id:
                         continue
@@ -519,7 +519,7 @@ class LoadClient(Client):
                                     match_ipr_id = sig_element.get('ac')
                                     match_ipr_type = sig_element.get('type')
                                     match_ipr_desc = sig_element.get('desc')
-                                    match_ipr_name = sig_element.get('name'
+                                    match_ipr_name = sig_element.get('name')
 
                                     # initialize the term sub array and matches if they haven't already been added.
                                     if match_ipr_id not in terms['iprterms']:
