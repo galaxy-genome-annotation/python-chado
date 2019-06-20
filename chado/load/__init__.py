@@ -321,9 +321,9 @@ class LoadClient(Client):
 
     def _parse_interpro_xml5(self, analysis_id, xml, parse_go, query_re, query_type, query_uniquename):
         total_count = 0
-        for nucleotide in xml:
+        for entity in xml:
             total_count += 1
-            for child in nucleotide:
+            for child in entity:
                 child_name = child.tag
                 if child_name == "xref":
                     child_attrib = child.attrib
@@ -332,10 +332,10 @@ class LoadClient(Client):
                     feature_id = self._match_feature(seq_id, query_re, query_type, query_uniquename, seq_name)
                     if not feature_id:
                         continue
-                    analysisfeature_id = self._add_analysis_feature(feature_id, analysis_id, nucleotide)
+                    analysisfeature_id = self._add_analysis_feature(feature_id, analysis_id, entity)
                     if not analysisfeature_id:
                         continue
-                    ipr_array = self._parse_feature_xml(nucleotide, feature_id)
+                    ipr_array = self._parse_feature_xml(entity, feature_id)
                     ipr_terms = ipr_array["iprterms"]
                     self._load_ipr_terms(ipr_terms, feature_id, analysisfeature_id)
 
