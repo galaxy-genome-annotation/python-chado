@@ -19,14 +19,14 @@ class LoadTest(ChadoTestCase):
         assert len(feats) != 0, "Feature PAC:18136217 was not created"
         feat_id = feats[0]['feature_id']
 
-        res = self.session.query(self.model.analysisfeatureprop) \
-            .join(self.model.featureprop, self.model.featureprop.analysisfeature_id == self.model.analysisfeatureprop.analysisfeature_id) \
-            .filter(self.model.featureprop.feature_id == feat_id, self.model.featureprop.analysis_id == an_blast_id)
+        res = self.ci.session.query(self.ci.model.analysisfeatureprop) \
+            .join(self.ci.model.featureprop, self.ci.model.featureprop.analysisfeature_id == self.ci.model.analysisfeatureprop.analysisfeature_id) \
+            .filter(self.ci.model.featureprop.feature_id == feat_id, self.ci.model.featureprop.analysis_id == an_blast_id)
         assert res.count(), "No result in analysisfeatureprop table for this feature and analysis"
         assert res.count() == 1, "More than one result in analysisfeatureprop table for this feature and analysis"
 
-        cvterm_id = self.get_cvterm_id("analysis_blast_output_iteration_hits", "tripal")
-        res = res.filter(self.model.analysisfeatureprop.type_id == cvterm_id)
+        cvterm_id = self.ci.get_cvterm_id("analysis_blast_output_iteration_hits", "tripal")
+        res = res.filter(self.ci.model.analysisfeatureprop.type_id == cvterm_id)
         assert res.count(), "Cvterm is not matching analysis_blast_output_iteration_hits"
 
     def test_add_interpro(self):
@@ -43,12 +43,12 @@ class LoadTest(ChadoTestCase):
         assert len(feats) != 0, "Feature PAC:18136217 was not created"
         feat_id = feats[0]['feature_id']
 
-        cv_terms = self.feature.get_feature_cvterm(feat_id)
+        cv_terms = self.ci.feature.get_feature_cvterm(feat_id)
         assert cv_terms == [], "CV term list is not empty before adding terms!"
 
         self.ci.load.interpro(an_interpro_id, interpro_file_path, parse_go=True, query_type='mRNA')
 
-        cv_terms = self.feature.get_feature_cvterm(feat_id)
+        cv_terms = self.ci.feature.get_feature_cvterm(feat_id)
         assert len(cv_terms) == 8, "Number of loaded CV term is not 8!"
         interpro_terms = [d for d in cv_terms if d['db_name'] == "INTERPRO"]
         assert len(interpro_terms) == 5, "Number of INTERPRO cvterms is not 5!"
@@ -62,14 +62,14 @@ class LoadTest(ChadoTestCase):
         assert test_term['db_name'] == "INTERPRO", "Wrong DB name"
         assert test_term['cvterm_definition'] == "Protein kinase-like domain superfamily", "Wrong cvterm definition"
 
-        res = self.session.query(self.model.analysisfeatureprop) \
-            .join(self.model.featureprop, self.model.featureprop.analysisfeature_id == self.model.analysisfeatureprop.analysisfeature_id) \
-            .filter(self.model.featureprop.feature_id == feat_id, self.model.featureprop.analysis_id == an_interpro_id)
+        res = self.ci.ession.query(self.ci.model.analysisfeatureprop) \
+            .join(self.ci.model.featureprop, self.ci.model.featureprop.analysisfeature_id == self.ci.model.analysisfeatureprop.analysisfeature_id) \
+            .filter(self.ci.model.featureprop.feature_id == feat_id, self.ci.model.featureprop.analysis_id == an_interpro_id)
         assert res.count(), "No result in analysisfeatureprop table for this feature and analysis"
         assert res.count() == 9, "Number of results not matching in analysisfeatureprop table for this feature and analysis : " + res.count()
 
-        cvterm_id = self.get_cvterm_id("analysis_interpro_xmloutput_hit", "tripal")
-        res = res.filter(self.model.analysisfeatureprop.type_id == cvterm_id)
+        cvterm_id = self.ci.get_cvterm_id("analysis_interpro_xmloutput_hit", "tripal")
+        res = res.filter(self.ci.model.analysisfeatureprop.type_id == cvterm_id)
         assert res.count(), "Cvterm analysis_interpro_xmloutput_hit not found in table"
 
     def setUp(self):
