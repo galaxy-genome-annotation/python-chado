@@ -1,0 +1,686 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<nucleotide-sequence-matches xmlns="http://www.ebi.ac.uk/interpro/resources/schemas/interproscan5" interproscan-version="5.35-74.0">
+    <nucleotide-sequence>
+        <sequence md5="6c75d1779e249a7f102e75c3218b39ad">gcaagtagggagacggagtggagactggagaggcgactcgaaaatgatgaaaggggaggaggtgggggcccaggggaggtttgaacggtcaaaaagaagaaacaaaatgaaggacataaacaaataaaatagaatggtgttgggctccgtgtgtctgccgttgttgactcactcaccgcctgtgtcaccaccaccaccaccaatagcattgccattttccacttgccaccattcgctcaatcagtcaaaagaacagaccaaaccaaacaaaaaactcctctcccttctctctctctctctctctctctttatcacttcacagcatttcccctatcacagtatacagatccatttatctgaaagccgaacaatttacctttttaattttttctttttagttattgcgcttatggatctacccaattttttcacccgatcggtgcacattttttccagtgcggtgtgaacttccatccagattttgagagtaacctggtgagttattaattagtgaaggtgaatttggaagggggtggaaggttttgttatttctttagaatggcttctgttagtgtagtacctgcttctggaaatacagtcggtgttgataggttacccgaggagatgaatgacatgaaaattagggatgacaaggaaatggaagcaactgtggttgatggtaatgggacggaagcgggtcatataattgtcaccactattgggggtaaaaatgggcagcccaaacagacaataagctacatggctgaacgtgttgttggccatggatcttttggagtagttttccaggctaagtgcttagagactggtgaagctgttgcaataaagaaggttcttcaggacaagaggtacaagaaccgggagctgcaaaccatgcgtcttctggaccacccaaatgttgtgtccctgaagcactgtttcttttcaacaactgaaaaggatgagctatatcttaaccttgttcttgagtatgttccggagaccgttcaccgggtgatcaaacatcactataaaatgagccaaaggatgccattgatttacgtcaaactttacttttaccagatatgtagagcacttgcttacatccataacactattggagtttgccacagggacataaagcctcaaaatttactggtcaatccacatacccaccagctgaaattgtgtgactttggaagtgcaaaagttctggtaaagggggaaccaaatatctcttacatatgttcaagatactatcgagcacctgaacttatatttggtgcaactgagtacaccgcagcaattgatatctggtctgccggctgcgttttggctgaactgctactgggacagcctcttttccctggcgagagcggtgtagaccagcttgtggaaatcatcaaggttttaggtactccaactagggaagaaataaagtgcatgaatccaaactacactgagtttaaatttccccaaatcaaagctcacccgtggcacaagatattccagaagcgtatgcccccagaagctgtagatcttgtctctagactactgcagtactctcccaatcttcggagcacagcattggaagctttgattcatcctttctttgatgaactacgtgatcctaatacccgactcccaaatggacgctttcttccaccattgtttaactttaagcctcatgaactgaagggtgtgcccgtggatatgttggtgaagctgatccctgagcatgcaagaaaacagtgtgccttccttggtttgtgatttggttctccaaaagttgaagcctgctccttgcaggttgcagctttgcataaatatttgatctgctgtagagatgtagctagtggcctgtatcaagtgaaaatatggaaaagctgtgctatttgtttcgtaacccttagttcatttgttccgtttattgatttttttagcatttatattcttatctttctttgtttgtagaaagcagatggagaagagtctgcttaatattcacacgataattcaatggatatgctgaccagattgtaatgtcaattggaaaccatatgttgttttcctcccac</sequence>
+        <xref id="orange1.1g015632m" name="orange1.1g015632m PAC:18136217 (mRNA) Citrus sinensis"/>
+        <orf end="816" start="616" strand="ANTISENSE">
+            <protein>
+                <sequence md5="159c0a55ba221ac8be341248d1fc5c51">ALSLENYSKRSMANNTFSHVAYCLFGLPIFTPNSGDNYMTRFRPITINHSCFHFLVIPNFHVIHLLG</sequence>
+                <xref id="orange1.1g015645m_45" name="orange1.1g015645m_45 [832 - 632] (REVERSE SENSE) PAC:18136218 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g022520m_33" name="orange1.1g022520m_33 [760 - 560] (REVERSE SENSE) PAC:18136223 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015662m_47" name="orange1.1g015662m_47 [1033 - 833] (REVERSE SENSE) PAC:18136220 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015632m_45" name="orange1.1g015632m_45 [816 - 616] (REVERSE SENSE) PAC:18136217 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g018514m_45" name="orange1.1g018514m_45 [760 - 560] (REVERSE SENSE) PAC:18136222 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015615m_44" name="orange1.1g015615m_44 [760 - 560] (REVERSE SENSE) PAC:18136219 (mRNA) Citrus sinensis"/>
+                <matches/>
+            </protein>
+        </orf>
+        <orf end="463" start="128" strand="SENSE">
+            <protein>
+                <sequence md5="e62f511ebeb4a57fd4a7299268d20ff1">NRMVLGSVCLPLLTHSPPVSPPPPPIALPFSTCHHSLNQSKEQTKPNKKLLSLLSLSLSLFITSQHFPYHSIQIHLSESRTIYLFNFFFLVIALMDLPNFFTRSVHIFSSAV</sequence>
+                <xref id="orange1.1g015632m_5" name="orange1.1g015632m_5 [128 - 463] PAC:18136217 (mRNA) Citrus sinensis"/>
+                <matches>
+                    <phobius-match>
+                        <signature ac="CYTOPLASMIC_DOMAIN" desc="Region of a membrane-bound protein predicted to be outside the membrane, in the cytoplasm." name="Cytoplasmic domain">
+                            <signature-library-release library="PHOBIUS" version="1.01"/>
+                        </signature>
+                        <model-ac>CYTOPLASMIC_DOMAIN</model-ac>
+                        <locations>
+                            <phobius-location start="70" end="80">
+<location-fragments>
+    <phobius-location-fragment start="70" end="80" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </phobius-location>
+                        </locations>
+                    </phobius-match>
+                    <phobius-match>
+                        <signature ac="SIGNAL_PEPTIDE_H_REGION" desc="Hydrophobic region of a signal peptide." name="Signal peptide H-region">
+                            <signature-library-release library="PHOBIUS" version="1.01"/>
+                        </signature>
+                        <model-ac>SIGNAL_PEPTIDE_H_REGION</model-ac>
+                        <locations>
+                            <phobius-location start="4" end="15">
+<location-fragments>
+    <phobius-location-fragment start="4" end="15" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </phobius-location>
+                        </locations>
+                    </phobius-match>
+                    <phobius-match>
+                        <signature ac="NON_CYTOPLASMIC_DOMAIN" desc="Region of a membrane-bound protein predicted to be outside the membrane, in the extracellular region." name="Non cytoplasmic domain">
+                            <signature-library-release library="PHOBIUS" version="1.01"/>
+                        </signature>
+                        <model-ac>NON_CYTOPLASMIC_DOMAIN</model-ac>
+                        <locations>
+                            <phobius-location start="28" end="50">
+<location-fragments>
+    <phobius-location-fragment start="28" end="50" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </phobius-location>
+                        </locations>
+                    </phobius-match>
+                    <phobius-match>
+                        <signature ac="TRANSMEMBRANE" desc="Region of a membrane-bound protein predicted to be embedded in the membrane." name="Transmembrane region">
+                            <signature-library-release library="PHOBIUS" version="1.01"/>
+                        </signature>
+                        <model-ac>TRANSMEMBRANE</model-ac>
+                        <locations>
+                            <phobius-location start="51" end="69">
+<location-fragments>
+    <phobius-location-fragment start="51" end="69" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </phobius-location>
+                        </locations>
+                    </phobius-match>
+                    <phobius-match>
+                        <signature ac="SIGNAL_PEPTIDE_N_REGION" desc="N-terminal region of a signal peptide." name="Signal peptide N-region">
+                            <signature-library-release library="PHOBIUS" version="1.01"/>
+                        </signature>
+                        <model-ac>SIGNAL_PEPTIDE_N_REGION</model-ac>
+                        <locations>
+                            <phobius-location start="1" end="3">
+<location-fragments>
+    <phobius-location-fragment start="1" end="3" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </phobius-location>
+                        </locations>
+                    </phobius-match>
+                    <phobius-match>
+                        <signature ac="TRANSMEMBRANE" desc="Region of a membrane-bound protein predicted to be embedded in the membrane." name="Transmembrane region">
+                            <signature-library-release library="PHOBIUS" version="1.01"/>
+                        </signature>
+                        <model-ac>TRANSMEMBRANE</model-ac>
+                        <locations>
+                            <phobius-location start="81" end="101">
+<location-fragments>
+    <phobius-location-fragment start="81" end="101" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </phobius-location>
+                        </locations>
+                    </phobius-match>
+                    <phobius-match>
+                        <signature ac="SIGNAL_PEPTIDE" desc="Signal peptide region" name="Signal Peptide">
+                            <signature-library-release library="PHOBIUS" version="1.01"/>
+                        </signature>
+                        <model-ac>SIGNAL_PEPTIDE</model-ac>
+                        <locations>
+                            <phobius-location start="1" end="27">
+<location-fragments>
+    <phobius-location-fragment start="1" end="27" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </phobius-location>
+                        </locations>
+                    </phobius-match>
+                    <phobius-match>
+                        <signature ac="SIGNAL_PEPTIDE_C_REGION" desc="C-terminal region of a signal peptide." name="Signal peptide C-region">
+                            <signature-library-release library="PHOBIUS" version="1.01"/>
+                        </signature>
+                        <model-ac>SIGNAL_PEPTIDE_C_REGION</model-ac>
+                        <locations>
+                            <phobius-location start="16" end="27">
+<location-fragments>
+    <phobius-location-fragment start="16" end="27" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </phobius-location>
+                        </locations>
+                    </phobius-match>
+                    <phobius-match>
+                        <signature ac="NON_CYTOPLASMIC_DOMAIN" desc="Region of a membrane-bound protein predicted to be outside the membrane, in the extracellular region." name="Non cytoplasmic domain">
+                            <signature-library-release library="PHOBIUS" version="1.01"/>
+                        </signature>
+                        <model-ac>NON_CYTOPLASMIC_DOMAIN</model-ac>
+                        <locations>
+                            <phobius-location start="102" end="112">
+<location-fragments>
+    <phobius-location-fragment start="102" end="112" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </phobius-location>
+                        </locations>
+                    </phobius-match>
+                    <signalp-match>
+                        <signature ac="SignalP-TM" name="SignalP-TM">
+                            <signature-library-release library="SIGNALP_GRAM_POSITIVE" version="4.1"/>
+                        </signature>
+                        <model-ac>SignalP-TM</model-ac>
+                        <locations>
+                            <signalp-location score="0.511" start="1" end="27">
+<location-fragments>
+    <signalp-location-fragment start="1" end="27" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </signalp-location>
+                        </locations>
+                    </signalp-match>
+                    <tmhmm-match>
+                        <signature ac="TMhelix" desc="Region of a membrane-bound protein predicted to be embedded in the membrane.">
+                            <signature-library-release library="TMHMM" version="2.0c"/>
+                        </signature>
+                        <model-ac>TMhelix</model-ac>
+                        <locations>
+                            <tmhmm-location start="82" end="101">
+<location-fragments>
+    <tmhmm-location-fragment start="82" end="101" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </tmhmm-location>
+                        </locations>
+                    </tmhmm-match>
+                    <tmhmm-match>
+                        <signature ac="TMhelix" desc="Region of a membrane-bound protein predicted to be embedded in the membrane.">
+                            <signature-library-release library="TMHMM" version="2.0c"/>
+                        </signature>
+                        <model-ac>TMhelix</model-ac>
+                        <locations>
+                            <tmhmm-location start="50" end="67">
+<location-fragments>
+    <tmhmm-location-fragment start="50" end="67" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </tmhmm-location>
+                        </locations>
+                    </tmhmm-match>
+                </matches>
+            </protein>
+        </orf>
+        <orf end="1451" start="1257" strand="ANTISENSE">
+            <protein>
+                <sequence md5="f0d43004adb8cb89cc5873df9242e8b1">FGFMHFISSLVGVPKTLMISTSWSTPLSPGKRGCPSSSSAKTQPADQISIAAVYSVAPNISSGAR</sequence>
+                <xref id="orange1.1g015615m_33" name="orange1.1g015615m_33 [1395 - 1201] (REVERSE SENSE) PAC:18136219 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015645m_34" name="orange1.1g015645m_34 [1467 - 1273] (REVERSE SENSE) PAC:18136218 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g022797m_38" name="orange1.1g022797m_38 [1610 - 1416] (REVERSE SENSE) PAC:18136225 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g022799m_40" name="orange1.1g022799m_40 [1701 - 1507] (REVERSE SENSE) PAC:18136224 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g017341m_39" name="orange1.1g017341m_39 [1759 - 1565] (REVERSE SENSE) PAC:18136221 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015632m_34" name="orange1.1g015632m_34 [1451 - 1257] (REVERSE SENSE) PAC:18136217 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015662m_36" name="orange1.1g015662m_36 [1668 - 1474] (REVERSE SENSE) PAC:18136220 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g018514m_34" name="orange1.1g018514m_34 [1395 - 1201] (REVERSE SENSE) PAC:18136222 (mRNA) Citrus sinensis"/>
+                <matches>
+                    <mobidblite-match>
+                        <signature ac="mobidb-lite" desc="consensus disorder prediction" name="disorder_prediction">
+                            <signature-library-release library="MOBIDB_LITE" version="2.0"/>
+                        </signature>
+                        <model-ac>mobidb-lite</model-ac>
+                        <locations>
+                            <mobidblite-location sequence-feature="" start="24" end="45">
+<location-fragments>
+    <mobidblite-location-fragment start="24" end="45" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </mobidblite-location>
+                        </locations>
+                    </mobidblite-match>
+                    <signalp-match>
+                        <signature ac="SignalP-TM" name="SignalP-TM">
+                            <signature-library-release library="SIGNALP_GRAM_POSITIVE" version="4.1"/>
+                        </signature>
+                        <model-ac>SignalP-TM</model-ac>
+                        <locations>
+                            <signalp-location score="0.471" start="1" end="19">
+<location-fragments>
+    <signalp-location-fragment start="1" end="19" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </signalp-location>
+                        </locations>
+                    </signalp-match>
+                </matches>
+            </protein>
+        </orf>
+        <orf end="1849" start="1679" strand="ANTISENSE">
+            <protein>
+                <sequence md5="d8d971f12c0fbc19848de511bf2365b8">LHLYSRSNIYAKLQPARSRLQLLENQITNQGRHTVFLHAQGSASPTYPRAHPSVHEA</sequence>
+                <xref id="orange1.1g015645m_27" name="orange1.1g015645m_27 [1865 - 1695] (REVERSE SENSE) PAC:18136218 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015615m_26" name="orange1.1g015615m_26 [1793 - 1623] (REVERSE SENSE) PAC:18136219 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015632m_27" name="orange1.1g015632m_27 [1849 - 1679] (REVERSE SENSE) PAC:18136217 (mRNA) Citrus sinensis"/>
+                <matches/>
+            </protein>
+        </orf>
+        <orf end="1968" start="1771" strand="SENSE">
+            <protein>
+                <sequence md5="18d9f108be0656c0a3a21cd81d4f6e7c">FGSPKVEACSLQVAALHKYLICCRDVASGLYQVKIWKSCAICFVTLSSFVPFIDFFSIYILIFLCL</sequence>
+                <xref id="orange1.1g022799m_27" name="orange1.1g022799m_27 [2021 - 2218] PAC:18136224 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015645m_21" name="orange1.1g015645m_21 [1787 - 1984] PAC:18136218 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015615m_20" name="orange1.1g015615m_20 [1715 - 1912] PAC:18136219 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015662m_23" name="orange1.1g015662m_23 [1988 - 2185] PAC:18136220 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g017341m_25" name="orange1.1g017341m_25 [2079 - 2276] PAC:18136221 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g018514m_21" name="orange1.1g018514m_21 [1725 - 1922] PAC:18136222 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g022797m_25" name="orange1.1g022797m_25 [1930 - 2127] PAC:18136225 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015632m_21" name="orange1.1g015632m_21 [1771 - 1968] PAC:18136217 (mRNA) Citrus sinensis"/>
+                <matches>
+                    <phobius-match>
+                        <signature ac="CYTOPLASMIC_DOMAIN" desc="Region of a membrane-bound protein predicted to be outside the membrane, in the cytoplasm." name="Cytoplasmic domain">
+                            <signature-library-release library="PHOBIUS" version="1.01"/>
+                        </signature>
+                        <model-ac>CYTOPLASMIC_DOMAIN</model-ac>
+                        <locations>
+                            <phobius-location start="1" end="39">
+<location-fragments>
+    <phobius-location-fragment start="1" end="39" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </phobius-location>
+                        </locations>
+                    </phobius-match>
+                    <phobius-match>
+                        <signature ac="TRANSMEMBRANE" desc="Region of a membrane-bound protein predicted to be embedded in the membrane." name="Transmembrane region">
+                            <signature-library-release library="PHOBIUS" version="1.01"/>
+                        </signature>
+                        <model-ac>TRANSMEMBRANE</model-ac>
+                        <locations>
+                            <phobius-location start="40" end="64">
+<location-fragments>
+    <phobius-location-fragment start="40" end="64" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </phobius-location>
+                        </locations>
+                    </phobius-match>
+                    <phobius-match>
+                        <signature ac="NON_CYTOPLASMIC_DOMAIN" desc="Region of a membrane-bound protein predicted to be outside the membrane, in the extracellular region." name="Non cytoplasmic domain">
+                            <signature-library-release library="PHOBIUS" version="1.01"/>
+                        </signature>
+                        <model-ac>NON_CYTOPLASMIC_DOMAIN</model-ac>
+                        <locations>
+                            <phobius-location start="65" end="66">
+<location-fragments>
+    <phobius-location-fragment start="65" end="66" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </phobius-location>
+                        </locations>
+                    </phobius-match>
+                    <tmhmm-match>
+                        <signature ac="TMhelix" desc="Region of a membrane-bound protein predicted to be embedded in the membrane.">
+                            <signature-library-release library="TMHMM" version="2.0c"/>
+                        </signature>
+                        <model-ac>TMhelix</model-ac>
+                        <locations>
+                            <tmhmm-location start="41" end="63">
+<location-fragments>
+    <tmhmm-location-fragment start="41" end="63" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </tmhmm-location>
+                        </locations>
+                    </tmhmm-match>
+                </matches>
+            </protein>
+        </orf>
+        <orf end="1911" start="1621" strand="ANTISENSE">
+            <protein>
+                <sequence md5="52b292b4a8a81efedacf130da5326ed9">TKGYETNSTAFPYFHLIQATSYISTADQIFMQSCNLQGAGFNFWRTKSQTKEGTLFSCMLRDQLHQHIHGHTLQFMRLKVKQWWKKASIWESGIRIT</sequence>
+                <xref id="orange1.1g015662m_30" name="orange1.1g015662m_30 [2128 - 1838] (REVERSE SENSE) PAC:18136220 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g018514m_28" name="orange1.1g018514m_28 [1865 - 1575] (REVERSE SENSE) PAC:18136222 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g022797m_32" name="orange1.1g022797m_32 [2070 - 1780] (REVERSE SENSE) PAC:18136225 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015615m_27" name="orange1.1g015615m_27 [1855 - 1565] (REVERSE SENSE) PAC:18136219 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g017341m_33" name="orange1.1g017341m_33 [2219 - 1929] (REVERSE SENSE) PAC:18136221 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015645m_28" name="orange1.1g015645m_28 [1927 - 1637] (REVERSE SENSE) PAC:18136218 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015632m_28" name="orange1.1g015632m_28 [1911 - 1621] (REVERSE SENSE) PAC:18136217 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g022799m_34" name="orange1.1g022799m_34 [2161 - 1871] (REVERSE SENSE) PAC:18136224 (mRNA) Citrus sinensis"/>
+                <matches/>
+            </protein>
+        </orf>
+        <orf end="1767" start="508" strand="SENSE">
+            <protein>
+                <sequence md5="2a633f8e2ea2d655bd9baa07ce154d53">LVKVNLEGGGRFCYFFRMASVSVVPASGNTVGVDRLPEEMNDMKIRDDKEMEATVVDGNGTEAGHIIVTTIGGKNGQPKQTISYMAERVVGHGSFGVVFQAKCLETGEAVAIKKVLQDKRYKNRELQTMRLLDHPNVVSLKHCFFSTTEKDELYLNLVLEYVPETVHRVIKHHYKMSQRMPLIYVKLYFYQICRALAYIHNTIGVCHRDIKPQNLLVNPHTHQLKLCDFGSAKVLVKGEPNISYICSRYYRAPELIFGATEYTAAIDIWSAGCVLAELLLGQPLFPGESGVDQLVEIIKVLGTPTREEIKCMNPNYTEFKFPQIKAHPWHKIFQKRMPPEAVDLVSRLLQYSPNLRSTALEALIHPFFDELRDPNTRLPNGRFLPPLFNFKPHELKGVPVDMLVKLIPEHARKQCAFLGL</sequence>
+                <xref id="orange1.1g015632m_19" name="orange1.1g015632m_19 [508 - 1767] PAC:18136217 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015662m_21" name="orange1.1g015662m_21 [725 - 1984] PAC:18136220 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015645m_19" name="orange1.1g015645m_19 [524 - 1783] PAC:18136218 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015615m_18" name="orange1.1g015615m_18 [452 - 1711] PAC:18136219 (mRNA) Citrus sinensis"/>
+                <matches>
+                    <coils-match>
+                        <signature ac="Coil" name="Coil">
+                            <signature-library-release library="COILS" version="2.2.1"/>
+                        </signature>
+                        <model-ac>Coil</model-ac>
+                        <locations>
+                            <coils-location start="420" end="420">
+<location-fragments>
+    <coils-location-fragment start="420" end="420" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </coils-location>
+                        </locations>
+                    </coils-match>
+                    <hmmer2-match evalue="6.0E-89" score="311.5">
+                        <signature ac="SM00220" name="serkin_6">
+                            <entry ac="IPR000719" desc="Protein kinase domain" name="Prot_kinase_dom" type="DOMAIN">
+<go-xref category="MOLECULAR_FUNCTION" db="GO" id="GO:0005524" name="ATP binding"/>
+<go-xref category="MOLECULAR_FUNCTION" db="GO" id="GO:0004672" name="protein kinase activity"/>
+<go-xref category="BIOLOGICAL_PROCESS" db="GO" id="GO:0006468" name="protein phosphorylation"/>
+                            </entry>
+                            <signature-library-release library="SMART" version="7.1"/>
+                        </signature>
+                        <model-ac>SM00220</model-ac>
+                        <locations>
+                            <hmmer2-location score="311.5" evalue="6.0E-89" hmm-start="1" hmm-end="231" hmm-length="231" hmm-bounds="COMPLETE" start="84" end="368">
+<location-fragments>
+    <hmmer2-location-fragment start="84" end="368" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </hmmer2-location>
+                        </locations>
+                    </hmmer2-match>
+                    <hmmer3-match evalue="3.0E-35" score="121.7">
+                        <signature ac="G3DSA:3.30.200.20">
+                            <signature-library-release library="GENE3D" version="4.2.0"/>
+                        </signature>
+                        <model-ac>1q5kA01</model-ac>
+                        <locations>
+                            <hmmer3-location env-end="163" env-start="68" post-processed="true" score="121.0" evalue="5.0E-35" hmm-start="6" hmm-end="97" hmm-length="97" hmm-bounds="COMPLETE" start="68" end="163">
+<location-fragments>
+    <hmmer3-location-fragment start="68" end="163" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </hmmer3-location>
+                        </locations>
+                    </hmmer3-match>
+                    <hmmer3-match evalue="5.5E-80" score="270.3">
+                        <signature ac="G3DSA:1.10.510.10">
+                            <signature-library-release library="GENE3D" version="4.2.0"/>
+                        </signature>
+                        <model-ac>4e7wA02</model-ac>
+                        <locations>
+                            <hmmer3-location env-end="412" env-start="164" post-processed="true" score="269.8" evalue="7.6E-80" hmm-start="3" hmm-end="233" hmm-length="247" hmm-bounds="COMPLETE" start="164" end="412">
+<location-fragments>
+    <hmmer3-location-fragment start="164" end="412" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </hmmer3-location>
+                        </locations>
+                    </hmmer3-match>
+                    <hmmer3-match evalue="1.0E-64" score="218.4">
+                        <signature ac="PF00069" desc="Protein kinase domain" name="Pkinase">
+                            <entry ac="IPR000719" desc="Protein kinase domain" name="Prot_kinase_dom" type="DOMAIN">
+<go-xref category="MOLECULAR_FUNCTION" db="GO" id="GO:0005524" name="ATP binding"/>
+<go-xref category="MOLECULAR_FUNCTION" db="GO" id="GO:0004672" name="protein kinase activity"/>
+<go-xref category="BIOLOGICAL_PROCESS" db="GO" id="GO:0006468" name="protein phosphorylation"/>
+                            </entry>
+                            <signature-library-release library="PFAM" version="32.0"/>
+                        </signature>
+                        <model-ac>PF00069</model-ac>
+                        <locations>
+                            <hmmer3-location env-end="368" env-start="84" post-processed="true" score="218.2" evalue="1.2E-64" hmm-start="1" hmm-end="264" hmm-length="264" hmm-bounds="COMPLETE" start="84" end="368">
+<location-fragments>
+    <hmmer3-location-fragment start="84" end="368" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </hmmer3-location>
+                        </locations>
+                    </hmmer3-match>
+                    <panther-match evalue="1.3E-267" familyName="SHAGGY-RELATED PROTEIN KINASE ALPHA" score="889.4">
+                        <signature ac="PTHR24057:SF41" name="SHAGGY-RELATED PROTEIN KINASE ALPHA">
+                            <signature-library-release library="PANTHER" version="14.1"/>
+                        </signature>
+                        <model-ac>PTHR24057:SF41</model-ac>
+                        <locations>
+                            <panther-location env-start="18" env-end="420" hmm-start="1" hmm-end="406" hmm-length="406" hmm-bounds="COMPLETE" start="18" end="420">
+<location-fragments>
+    <panther-location-fragment start="18" end="420" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </panther-location>
+                        </locations>
+                    </panther-match>
+                    <panther-match evalue="1.3E-267" familyName="SHAGGY-RELATED PROTEIN KINASE ALPHA" score="889.4">
+                        <signature ac="PTHR24057" name="GLYCOGEN SYNTHASE KINASE-3 ALPHA">
+                            <signature-library-release library="PANTHER" version="14.1"/>
+                        </signature>
+                        <model-ac>PTHR24057</model-ac>
+                        <locations>
+                            <panther-location env-start="18" env-end="420" hmm-start="1" hmm-end="406" hmm-length="406" hmm-bounds="COMPLETE" start="18" end="420">
+<location-fragments>
+    <panther-location-fragment start="18" end="420" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </panther-location>
+                        </locations>
+                    </panther-match>
+                    <patternscan-match>
+                        <signature ac="PS00107" desc="Protein kinases ATP-binding region signature." name="PROTEIN_KINASE_ATP">
+                            <entry ac="IPR017441" desc="Protein kinase, ATP binding site" name="Protein_kinase_ATP_BS" type="BINDING_SITE">
+<go-xref category="MOLECULAR_FUNCTION" db="GO" id="GO:0005524" name="ATP binding"/>
+                            </entry>
+                            <signature-library-release library="PROSITE_PATTERNS" version="2019_01"/>
+                        </signature>
+                        <model-ac>PS00107</model-ac>
+                        <locations>
+                            <patternscan-location level="STRONG" start="90" end="114">
+<location-fragments>
+    <patternscan-location-fragment start="90" end="114" dc-status="CONTINUOUS"/>
+</location-fragments>
+<alignment>VGHGSFGVVFqAkcletgeavAIKK</alignment>
+                            </patternscan-location>
+                        </locations>
+                    </patternscan-match>
+                    <patternscan-match>
+                        <signature ac="PS00108" desc="Serine/Threonine protein kinases active-site signature." name="PROTEIN_KINASE_ST">
+                            <entry ac="IPR008271" desc="Serine/threonine-protein kinase, active site" name="Ser/Thr_kinase_AS" type="ACTIVE_SITE">
+<go-xref category="BIOLOGICAL_PROCESS" db="GO" id="GO:0006468" name="protein phosphorylation"/>
+<go-xref category="MOLECULAR_FUNCTION" db="GO" id="GO:0004672" name="protein kinase activity"/>
+                            </entry>
+                            <signature-library-release library="PROSITE_PATTERNS" version="2019_01"/>
+                        </signature>
+                        <model-ac>PS00108</model-ac>
+                        <locations>
+                            <patternscan-location level="STRONG" start="205" end="217">
+<location-fragments>
+    <patternscan-location-fragment start="205" end="217" dc-status="CONTINUOUS"/>
+</location-fragments>
+<alignment>VcHrDIKpqNLLV</alignment>
+                            </patternscan-location>
+                        </locations>
+                    </patternscan-match>
+                    <profilescan-match>
+                        <signature ac="PS50011" desc="Protein kinase domain profile." name="PROTEIN_KINASE_DOM">
+                            <entry ac="IPR000719" desc="Protein kinase domain" name="Prot_kinase_dom" type="DOMAIN">
+<go-xref category="MOLECULAR_FUNCTION" db="GO" id="GO:0005524" name="ATP binding"/>
+<go-xref category="MOLECULAR_FUNCTION" db="GO" id="GO:0004672" name="protein kinase activity"/>
+<go-xref category="BIOLOGICAL_PROCESS" db="GO" id="GO:0006468" name="protein phosphorylation"/>
+                            </entry>
+                            <signature-library-release library="PROSITE_PROFILES" version="2019_01"/>
+                        </signature>
+                        <model-ac>PS50011</model-ac>
+                        <locations>
+                            <profilescan-location score="44.513" start="84" end="368">
+<location-fragments>
+    <profilescan-location-fragment start="84" end="368" dc-status="CONTINUOUS"/>
+</location-fragments>
+<alignment>YMAERVVGHGSFGVVFQAKCLETGEAVAIKKVLQ------DKRYKNRELQTMRLLDHPNVVSLKHCFFSTtekdeLYLNLVLEYVPE-TVHRVIKHHykmSQRMPLIYVKLYFYQICRALAYIHNTiGVCHRDIKPQNLLVNPHtHQLKLCDFGSAKVLVKG-EPNISYICSRYYRAPELIFGATEYTAAIDIWSAGCVLAELLLGQPLFPGEsgvDQLVEIIKVLGTPTREeikcmnPNytefkFPQIKAhpwhkifqkrMPPEAVDLVSRLLQYSPNLRSTALEALIHPFF</alignment>
+                            </profilescan-location>
+                        </locations>
+                    </profilescan-match>
+                    <rpsblast-match>
+                        <signature ac="cd14137" desc="STKc_GSK3" name="STKc_GSK3">
+                            <entry ac="IPR039192" desc="Glycogen synthase kinase 3, catalytic domain" name="STKc_GSK3" type="DOMAIN">
+<pathway-xref db="Reactome" id="R-HSA-5674400" name="Constitutive Signaling by AKT1 E17K in Cancer"/>
+<pathway-xref db="Reactome" id="R-HSA-198323" name="AKT phosphorylates targets in the cytosol"/>
+                            </entry>
+                            <signature-library-release library="CDD" version="3.16"/>
+                        </signature>
+                        <model-ac>cd14137</model-ac>
+                        <locations>
+                            <rpsblast-location evalue="0.0" score="598.333" start="79" end="371">
+<location-fragments>
+    <rpsblast-location-fragment start="79" end="371" dc-status="CONTINUOUS"/>
+</location-fragments>
+<sites>
+    <rpsblast-site description="dimer interface" numLocations="25">
+        <site-locations>
+            <site-location residue="S" start="243" end="243"/>
+            <site-location residue="S" start="94" end="94"/>
+            <site-location residue="P" start="240" end="240"/>
+            <site-location residue="F" start="95" end="95"/>
+            <site-location residue="D" start="292" end="292"/>
+            <site-location residue="F" start="319" end="319"/>
+            <site-location residue="I" start="256" end="256"/>
+            <site-location residue="E" start="288" end="288"/>
+            <site-location residue="F" start="257" end="257"/>
+            <site-location residue="F" start="321" end="321"/>
+            <site-location residue="R" start="248" end="248"/>
+            <site-location residue="S" start="289" end="289"/>
+            <site-location residue="K" start="320" end="320"/>
+            <site-location residue="L" start="294" end="294"/>
+            <site-location residue="V" start="291" end="291"/>
+            <site-location residue="Y" start="244" end="244"/>
+            <site-location residue="C" start="246" end="246"/>
+            <site-location residue="G" start="290" end="290"/>
+            <site-location residue="I" start="242" end="242"/>
+            <site-location residue="V" start="295" end="295"/>
+            <site-location residue="S" start="247" end="247"/>
+            <site-location residue="K" start="299" end="299"/>
+            <site-location residue="I" start="245" end="245"/>
+            <site-location residue="N" start="241" end="241"/>
+            <site-location residue="P" start="322" end="322"/>
+        </site-locations>
+    </rpsblast-site>
+    <rpsblast-site description="ATP binding site" numLocations="18">
+        <site-locations>
+            <site-location residue="L" start="159" end="159"/>
+            <site-location residue="D" start="228" end="228"/>
+            <site-location residue="V" start="90" end="90"/>
+            <site-location residue="A" start="111" end="111"/>
+            <site-location residue="V" start="138" end="138"/>
+            <site-location residue="T" start="165" end="165"/>
+            <site-location residue="G" start="91" end="91"/>
+            <site-location residue="K" start="113" end="113"/>
+            <site-location residue="E" start="160" end="160"/>
+            <site-location residue="H" start="92" end="92"/>
+            <site-location residue="L" start="216" end="216"/>
+            <site-location residue="V" start="98" end="98"/>
+            <site-location residue="V" start="162" end="162"/>
+            <site-location residue="N" start="214" end="214"/>
+            <site-location residue="G" start="93" end="93"/>
+            <site-location residue="K" start="211" end="211"/>
+            <site-location residue="Y" start="161" end="161"/>
+            <site-location residue="Q" start="213" end="213"/>
+        </site-locations>
+    </rpsblast-site>
+    <rpsblast-site description="polypeptide substrate binding site" numLocations="12">
+        <site-locations>
+            <site-location residue="Y" start="244" end="244"/>
+            <site-location residue="C" start="246" end="246"/>
+            <site-location residue="I" start="245" end="245"/>
+            <site-location residue="H" start="167" end="167"/>
+            <site-location residue="D" start="209" end="209"/>
+            <site-location residue="I" start="242" end="242"/>
+            <site-location residue="G" start="287" end="287"/>
+            <site-location residue="S" start="231" end="231"/>
+            <site-location residue="S" start="247" end="247"/>
+            <site-location residue="R" start="124" end="124"/>
+            <site-location residue="K" start="211" end="211"/>
+            <site-location residue="Y" start="249" end="249"/>
+        </site-locations>
+    </rpsblast-site>
+    <rpsblast-site description="active site" numLocations="31">
+        <site-locations>
+            <site-location residue="S" start="94" end="94"/>
+            <site-location residue="D" start="228" end="228"/>
+            <site-location residue="S" start="231" end="231"/>
+            <site-location residue="V" start="138" end="138"/>
+            <site-location residue="T" start="165" end="165"/>
+            <site-location residue="Y" start="249" end="249"/>
+            <site-location residue="G" start="91" end="91"/>
+            <site-location residue="K" start="113" end="113"/>
+            <site-location residue="E" start="160" end="160"/>
+            <site-location residue="H" start="92" end="92"/>
+            <site-location residue="H" start="167" end="167"/>
+            <site-location residue="D" start="209" end="209"/>
+            <site-location residue="G" start="287" end="287"/>
+            <site-location residue="V" start="98" end="98"/>
+            <site-location residue="V" start="162" end="162"/>
+            <site-location residue="N" start="214" end="214"/>
+            <site-location residue="G" start="93" end="93"/>
+            <site-location residue="K" start="211" end="211"/>
+            <site-location residue="Y" start="244" end="244"/>
+            <site-location residue="C" start="246" end="246"/>
+            <site-location residue="L" start="159" end="159"/>
+            <site-location residue="I" start="242" end="242"/>
+            <site-location residue="S" start="247" end="247"/>
+            <site-location residue="V" start="90" end="90"/>
+            <site-location residue="A" start="111" end="111"/>
+            <site-location residue="R" start="168" end="168"/>
+            <site-location residue="L" start="216" end="216"/>
+            <site-location residue="I" start="245" end="245"/>
+            <site-location residue="R" start="124" end="124"/>
+            <site-location residue="Y" start="161" end="161"/>
+            <site-location residue="Q" start="213" end="213"/>
+        </site-locations>
+    </rpsblast-site>
+    <rpsblast-site description="activation loop (A-loop)" numLocations="22">
+        <site-locations>
+            <site-location residue="S" start="243" end="243"/>
+            <site-location residue="Y" start="244" end="244"/>
+            <site-location residue="C" start="246" end="246"/>
+            <site-location residue="P" start="240" end="240"/>
+            <site-location residue="D" start="228" end="228"/>
+            <site-location residue="V" start="236" end="236"/>
+            <site-location residue="K" start="237" end="237"/>
+            <site-location residue="I" start="242" end="242"/>
+            <site-location residue="S" start="231" end="231"/>
+            <site-location residue="S" start="247" end="247"/>
+            <site-location residue="V" start="234" end="234"/>
+            <site-location residue="G" start="230" end="230"/>
+            <site-location residue="Y" start="249" end="249"/>
+            <site-location residue="R" start="248" end="248"/>
+            <site-location residue="C" start="227" end="227"/>
+            <site-location residue="A" start="232" end="232"/>
+            <site-location residue="E" start="239" end="239"/>
+            <site-location residue="I" start="245" end="245"/>
+            <site-location residue="F" start="229" end="229"/>
+            <site-location residue="L" start="235" end="235"/>
+            <site-location residue="N" start="241" end="241"/>
+            <site-location residue="K" start="233" end="233"/>
+        </site-locations>
+    </rpsblast-site>
+    <rpsblast-site description="axin binding site" numLocations="13">
+        <site-locations>
+            <site-location residue="Q" start="323" end="323"/>
+            <site-location residue="D" start="292" end="292"/>
+            <site-location residue="F" start="319" end="319"/>
+            <site-location residue="V" start="295" end="295"/>
+            <site-location residue="I" start="256" end="256"/>
+            <site-location residue="K" start="299" end="299"/>
+            <site-location residue="F" start="321" end="321"/>
+            <site-location residue="I" start="324" end="324"/>
+            <site-location residue="K" start="320" end="320"/>
+            <site-location residue="I" start="298" end="298"/>
+            <site-location residue="L" start="294" end="294"/>
+            <site-location residue="V" start="291" end="291"/>
+            <site-location residue="P" start="322" end="322"/>
+        </site-locations>
+    </rpsblast-site>
+</sites>
+                            </rpsblast-location>
+                        </locations>
+                    </rpsblast-match>
+                    <superfamilyhmmer3-match evalue="2.56E-89">
+                        <signature ac="SSF56112" name="Protein kinase-like (PK-like)">
+                            <entry ac="IPR011009" desc="Protein kinase-like domain superfamily" name="Kinase-like_dom_sf" type="HOMOLOGOUS_SUPERFAMILY"/>
+                            <signature-library-release library="SUPERFAMILY" version="1.75"/>
+                        </signature>
+                        <model-ac>0038477</model-ac>
+                        <locations>
+                            <superfamilyhmmer3-location hmm-length="352" start="83" end="394">
+<location-fragments>
+    <superfamilyhmmer3-location-fragment start="83" end="394" dc-status="CONTINUOUS"/>
+</location-fragments>
+                            </superfamilyhmmer3-location>
+                        </locations>
+                    </superfamilyhmmer3-match>
+                </matches>
+            </protein>
+        </orf>
+        <orf end="1149" start="967" strand="ANTISENSE">
+            <protein>
+                <sequence md5="059dd70952ba067f19290cb1365bc6c2">ILRLYVPVANSNSVMDVSKCSTYLVKVKFDVNQWHPLAHFIVMFDHPVNGLRNILKNKVKI</sequence>
+                <xref id="orange1.1g015662m_41" name="orange1.1g015662m_41 [1366 - 1184] (REVERSE SENSE) PAC:18136220 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g018514m_39" name="orange1.1g018514m_39 [1093 - 911] (REVERSE SENSE) PAC:18136222 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g022799m_45" name="orange1.1g022799m_45 [1399 - 1217] (REVERSE SENSE) PAC:18136224 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015645m_39" name="orange1.1g015645m_39 [1165 - 983] (REVERSE SENSE) PAC:18136218 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015632m_39" name="orange1.1g015632m_39 [1149 - 967] (REVERSE SENSE) PAC:18136217 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g022520m_27" name="orange1.1g022520m_27 [1093 - 911] (REVERSE SENSE) PAC:18136223 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015615m_38" name="orange1.1g015615m_38 [1093 - 911] (REVERSE SENSE) PAC:18136219 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g017341m_44" name="orange1.1g017341m_44 [1457 - 1275] (REVERSE SENSE) PAC:18136221 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g022797m_43" name="orange1.1g022797m_43 [1308 - 1126] (REVERSE SENSE) PAC:18136225 (mRNA) Citrus sinensis"/>
+                <matches/>
+            </protein>
+        </orf>
+        <orf end="1862" start="1686" strand="ANTISENSE">
+            <protein>
+                <sequence md5="6a96f88fc7e91201bb3d4ac91e9250c7">YRPLATSLQQIKYLCKAATCKEQASTFGEPNHKPRKAHCFLACSGISFTNISTGTPFSS</sequence>
+                <xref id="orange1.1g015615m_25" name="orange1.1g015615m_25 [1806 - 1630] (REVERSE SENSE) PAC:18136219 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g022799m_32" name="orange1.1g022799m_32 [2112 - 1936] (REVERSE SENSE) PAC:18136224 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015645m_26" name="orange1.1g015645m_26 [1878 - 1702] (REVERSE SENSE) PAC:18136218 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g022797m_30" name="orange1.1g022797m_30 [2021 - 1845] (REVERSE SENSE) PAC:18136225 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g018514m_26" name="orange1.1g018514m_26 [1816 - 1640] (REVERSE SENSE) PAC:18136222 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g017341m_31" name="orange1.1g017341m_31 [2170 - 1994] (REVERSE SENSE) PAC:18136221 (mRNA) Citrus sinensis"/>
+                <xref id="orange1.1g015632m_26" name="orange1.1g015632m_26 [1862 - 1686] (REVERSE SENSE) PAC:18136217 (mRNA) Citrus sinensis"/>
+                <matches/>
+            </protein>
+        </orf>
+    </nucleotide-sequence>
+</nucleotide-sequence-matches>
