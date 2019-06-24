@@ -940,7 +940,7 @@ class LoadClient(Client):
                         hit_dict['hit_url'] = blast_db.urlprefix + accession
                     else:
                         query = self.session.query(self.model.feature).filter_by(uniquename=hit_name)
-                        if query:
+                        if query.count():
                             hit_dict['hit_url'] = "ID" + query.one().feature_id
                         else:
                             hit_dict['hit_url'] = None
