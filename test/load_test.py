@@ -20,8 +20,8 @@ class LoadTest(ChadoTestCase):
         feat_id = feats[0]['feature_id']
 
         res = self.ci.session.query(self.ci.model.analysisfeatureprop) \
-            .join(self.ci.model.featureprop, self.ci.model.featureprop.analysisfeature_id == self.ci.model.analysisfeatureprop.analysisfeature_id) \
-            .filter(self.ci.model.featureprop.feature_id == feat_id, self.ci.model.featureprop.analysis_id == an_blast_id)
+            .join(self.ci.model.analysisfeature, self.ci.model.analysisfeature.analysisfeature_id == self.ci.model.analysisfeatureprop.analysisfeature_id) \
+            .filter(self.ci.model.analysisfeature.feature_id == feat_id, self.ci.model.analysisfeature.analysis_id == an_blast_id)
         assert res.count(), "No result in analysisfeatureprop table for this feature and analysis"
         assert res.count() == 1, "More than one result in analysisfeatureprop table for this feature and analysis"
 
@@ -63,8 +63,8 @@ class LoadTest(ChadoTestCase):
         assert test_term['cvterm_definition'] == "Protein kinase-like domain superfamily", "Wrong cvterm definition"
 
         res = self.ci.ession.query(self.ci.model.analysisfeatureprop) \
-            .join(self.ci.model.featureprop, self.ci.model.featureprop.analysisfeature_id == self.ci.model.analysisfeatureprop.analysisfeature_id) \
-            .filter(self.ci.model.featureprop.feature_id == feat_id, self.ci.model.featureprop.analysis_id == an_interpro_id)
+            .join(self.ci.model.analysisfeature, self.ci.model.analysisfeature.analysisfeature_id == self.ci.model.analysisfeatureprop.analysisfeature_id) \
+            .filter(self.ci.model.analysisfeature.feature_id == feat_id, self.ci.model.analysisfeature.analysis_id == an_interpro_id)
         assert res.count(), "No result in analysisfeatureprop table for this feature and analysis"
         assert res.count() == 9, "Number of results not matching in analysisfeatureprop table for this feature and analysis : " + res.count()
 
