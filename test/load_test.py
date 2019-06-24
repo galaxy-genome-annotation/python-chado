@@ -11,6 +11,7 @@ class LoadTest(ChadoTestCase):
         blast_file_path = "./test-data/blast.xml"
         an_blast = self._create_fake_an('BLAST')
         an_blast_id = an_blast['analysis_id']
+        self.ci.feature.load_fasta(fasta="./test-data/genome.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], sequence_type='supercontig')
         self.ci.feature.load_gff(gff="./test-data/annot.gff", analysis_id=an['analysis_id'], organism_id=org['organism_id'], no_seq_compute=True)
         self.ci.load.blast(an_blast_id, blast_file_path, blastdb="swissprot:display", search_keywords=True, query_type="mRNA")
 
@@ -36,6 +37,7 @@ class LoadTest(ChadoTestCase):
         interpro_file_path = "./test-data/interproscan.xml"
         an_interpro = self._create_fake_an('INTERPRO')
         an_interpro_id = an_interpro['analysis_id']
+        self.ci.feature.load_fasta(fasta="./test-data/genome.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], sequence_type='supercontig')
         self.ci.feature.load_gff(gff="./test-data/annot.gff", analysis_id=an['analysis_id'], organism_id=org['organism_id'], no_seq_compute=True)
         feats = self.ci.feature.get_features(organism_id=org['organism_id'], uniquename='PAC:18136217', analysis_id=an['analysis_id'])
         assert feats.count(), "Feature PAC:18136217 was not created"
