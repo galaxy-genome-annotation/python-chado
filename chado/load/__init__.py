@@ -427,7 +427,7 @@ class LoadClient(Client):
         analysis_feature_prop.analysisfeature_id = analysis_feature_id
         analysis_feature_prop.type_id = type_id
         # Only works for a specific indent.. might be a way to do it better maybe
-        analysis_feature_prop.value = "   " + ET.tostring(xml, encoding="unicode")
+        analysis_feature_prop.value = "   " + ET.tostring(xml).decode()
         analysis_feature_prop.rank = rank
         self.session.add(analysis_feature_prop)
         self.session.flush()
@@ -719,7 +719,7 @@ class LoadClient(Client):
                     if hit.tag == "Hit":
                         if (no_parsed == "all" or num_hits <= no_parsed):
                             xml_content += "        <Hit>"
-                            xml_content += hit.text + ''.join(ET.tostring(e, encoding="unicode") for e in hit)
+                            xml_content += hit.text + ''.join(ET.tostring(e).decode() for e in hit)
                             xml_content += "</Hit>\n"
                     num_hits += 1
                 xml_content += "\n  </{}>\n</Iteration>".format(child.tag)
