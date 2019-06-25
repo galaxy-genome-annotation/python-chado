@@ -37,11 +37,6 @@ from chakin.decorators import custom_exception, dict_output
     is_flag=True
 )
 @click.option(
-    "--is_concat",
-    help="If the blast result file is simply a list of concatenated blast results.",
-    is_flag=True
-)
-@click.option(
     "--search_keywords",
     help="Extract keywords for Tripal search",
     is_flag=True
@@ -49,11 +44,11 @@ from chakin.decorators import custom_exception, dict_output
 @pass_context
 @custom_exception
 @dict_output
-def cli(ctx, analysis_id, blast_output, blastdb="", blastdb_id="", blast_parameters="", query_re="", query_type="", query_uniquename=False, is_concat=False, search_keywords=False):
+def cli(ctx, analysis_id, blast_output, blastdb="", blastdb_id="", blast_parameters="", query_re="", query_type="", query_uniquename=False, search_keywords=False):
     """Load a blast analysis
 
 Output:
 
     Number of processed hits
     """
-    return ctx.gi.load.blast(analysis_id, blast_output, blastdb=blastdb, blastdb_id=blastdb_id, blast_parameters=blast_parameters, query_re=query_re, query_type=query_type, query_uniquename=query_uniquename, is_concat=is_concat, search_keywords=search_keywords)
+    return ctx.gi.load.blast(analysis_id, blast_output, blastdb=blastdb, blastdb_id=blastdb_id, blast_parameters=blast_parameters, query_re=query_re, query_type=query_type, query_uniquename=query_uniquename, search_keywords=search_keywords)
