@@ -20,8 +20,12 @@ class LoadTest(ChadoTestCase):
         feat_id = feats[0]['feature_id']
 
         res = self.ci.session.query(self.ci.model.analysisfeatureprop) \
-            .join(self.ci.model.analysisfeature, self.ci.model.analysisfeature.analysisfeature_id == self.ci.model.analysisfeatureprop.analysisfeature_id) \
-            .filter(self.ci.model.analysisfeature.feature_id == feat_id, self.ci.model.analysisfeature.analysis_id == an_blast_id)
+            .join(self.ci.model.analysisfeature, self.ci.model.analysisfeature.analysisfeature_id == self.ci.model.analysisfeatureprop.analysisfeature_id)
+        print(res.count())
+        print(feat_id)
+        print(an_blast_id)
+        res = res.filter(self.ci.model.analysisfeature.feature_id == feat_id, self.ci.model.analysisfeature.analysis_id == an_blast_id)
+        print(res.count())
         assert res.count(), "No result in analysisfeatureprop table for this feature and analysis"
         assert res.count() == 1, "More than one result in analysisfeatureprop table for this feature and analysis"
 
