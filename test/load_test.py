@@ -1,9 +1,9 @@
 import warnings
 
-from . import ChadoTestCase, ci
-
 from sqlalchemy import Column, Index, Integer, String, Table
 from sqlalchemy import exc as sa_exc
+
+from . import ChadoTestCase, ci
 
 
 class LoadTest(ChadoTestCase):
