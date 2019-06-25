@@ -1002,7 +1002,7 @@ class LoadClient(Client):
                     Column('regex_hit_organism', String, nullable=False),
                     Column('hit_organism', String, nullable=False),
                     Column('genbank_style', Integer, primary_key=True, default=0),
-                    schema=self.ci.dbschema
+                    schema="public"
                 )
                 tripal_analysis_blast_table.create(self.engine)
 
