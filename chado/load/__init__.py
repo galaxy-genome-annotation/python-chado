@@ -1002,7 +1002,7 @@ class LoadClient(Client):
             # Tables for blast
             if not hasattr(self.model, 'tripal_analysis_blast'):
                 tripal_analysis_blast_table = Table(
-                    'tripal_analysis_blast', self._metadata,
+                    'tripal_analysis_blast', self.metadata,
                     Column('db_id', Integer, primary_key=True, nullable=False, default=0, index=True),
                     Column('regex_hit_id', String, nullable=False),
                     Column('regex_hit_def', String, nullable=False),
@@ -1012,17 +1012,17 @@ class LoadClient(Client):
                     Column('genbank_style', Integer, primary_key=True, default=0),
                     schema=self.ci.dbschema
                 )
-                tripal_analysis_blast_table.create(self._engine)
+                tripal_analysis_blast_table.create(self.engine)
 
             if not hasattr(self.model, 'blast_organisms'):
                 blast_organisms_table = Table(
-                    'tripal_analysis_blast', self._metadata,
+                    'tripal_analysis_blast', self.metadata,
                     Column('blast_org_id', String, primary_key=True, nullable=False),
                     Column('blast_org_name', String, index=True, unique=True),
                     schema=self.ci.dbschema
                 )
 
-                blast_organisms_table.create(self._engine)
+                blast_organisms_table.create(self.engine)
                 # Needed here for foreign key later
                 with warnings.catch_warnings():
                     # https://stackoverflow.com/a/5225951
@@ -1032,7 +1032,7 @@ class LoadClient(Client):
 
             if not hasattr(self.model, 'blast_hit_data'):
                 blast_hit_data_table = Table(
-                    'blast_hit_data', self.ci._metadata,
+                    'blast_hit_data', self.ci.metadata,
                     Column('analysisfeature_id', Integer, ForeignKey(self.model.analysisfeature.analysisfeature_id), nullable=False, index=True),
                     Column('analysis_id', Integer, ForeignKey(self.model.analysis.analysis_id), nullable=False, index=True,),
                     Column('feature_id', Integer, ForeignKey(self.model.feature.feature_id), nullable=False, index=True),
@@ -1050,7 +1050,7 @@ class LoadClient(Client):
                     schema=self.ci.dbschema
                 )
 
-                blast_hit_data_table.create(self._engine)
+                blast_hit_data_table.create(self.engine)
                 self.ci._reflect_tables()
                 self.model = self.ci.model
 
