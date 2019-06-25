@@ -60,4 +60,5 @@ def get_instance(instance_name=None, offline=False, no_reflect=False, full=False
                          dbschema=conf['dbschema'],
                          dbport=conf['dbport'],
                          offline=offline,
-                         no_reflect=no_reflect)
+                         no_reflect=no_reflect,
+                         full=full)
