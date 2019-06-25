@@ -1,4 +1,7 @@
 from . import ChadoTestCase, ci
+import warnings
+from sqlalchemy import Column, Index, Integer, String, Table
+from sqlalchemy import exc as sa_exc
 
 
 class LoadTest(ChadoTestCase):
@@ -24,7 +27,6 @@ class LoadTest(ChadoTestCase):
         #    .filter(self.ci.model.analysisfeature.feature_id == feat_id, self.ci.model.analysisfeature.analysis_id == an_blast_id)
 
         res = self.ci.session.query(self.ci.model.analysisfeatureprop)
-        print(res.count())
         assert res.count(), "No result in analysisfeatureprop table for this feature and analysis"
         assert res.count() == 1, "More than one result in analysisfeatureprop table for this feature and analysis"
 
@@ -74,6 +76,35 @@ class LoadTest(ChadoTestCase):
         cvterm_id = self.ci.get_cvterm_id("analysis_interpro_xmloutput_hit", "tripal")
         res = res.filter(self.ci.model.analysisfeatureprop.type_id == cvterm_id)
         assert res.count(), "Cvterm analysis_interpro_xmloutput_hit not found in table"
+
+    def _add_cvterms(self):
+        """
+        Make sure required cvterms are loaded
+        """
+        # Term for interpro
+        self.ci.create_cvterm(term='analysis_interpro_xmloutput_hit', term_definition='Hit in the interpro XML output. Each hit belongs to a chado feature. This cvterm represents a hit in the output', cv_name='tripal', db_name='tripal')
+        # Term for blast
+        self.ci.create_cvterm(term='analysis_blast_output_iteration_hits', term_definition='Hits of a blast', cv_name='tripal', db_name='tripal')
+
+        # Table for blast
+        if not hasattr(self.ci.model, 'tripal_analysis_blast'):
+            tripal_analysis_blast_table = Table(
+                'tripal_analysis_blast', self.ci.metadata,
+                Column('db_id', Integer, primary_key=True, nullable=False, default=0),
+                Column('regex_hit_id', String, nullable=False),
+                Column('regex_hit_def', String, nullable=False),
+                Column('regex_hit_accession', String, nullable=False),
+                Column('regex_hit_organism', String, nullable=False),
+                Column('hit_organism', String, nullable=False),
+                Column('genbank_style', Integer, primary_key=True, default=0),
+                Index('db_id'),
+                schema=self.ci.dbschema
+            )
+            tripal_analysis_blast_table.create(self.ci.engine)
+            with warnings.catch_warnings():
+                # https://stackoverflow.com/a/5225951
+                warnings.simplefilter("ignore", category=sa_exc.SAWarning)
+                self.ci._reflect_tables()
 
     def setUp(self):
 
