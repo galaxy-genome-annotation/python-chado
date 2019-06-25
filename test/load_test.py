@@ -47,7 +47,7 @@ class LoadTest(ChadoTestCase):
         assert len(feats) != 0, "Feature PAC:18136217 was not created"
         feat_id = feats[0]['feature_id']
 
-        cv_terms = self.ci.feature.get_feature_cvterm(feat_id)
+        cv_terms = self.ci.feature.get_feature_cvterms(feat_id)
         assert cv_terms == [], "CV term list is not empty before adding terms!"
 
         self.ci.load.interpro(an_interpro_id, interpro_file_path, parse_go=True, query_type='mRNA')
