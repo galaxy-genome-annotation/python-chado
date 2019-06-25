@@ -17,7 +17,7 @@ class LoadTest(ChadoTestCase):
 
         feats = self.ci.feature.get_features(organism_id=org['organism_id'], uniquename='PAC:18136217', analysis_id=an['analysis_id'])
         assert feats != [], "Feature PAC:18136217 was not created"
-        feat_id = feats[0]['feature_id']
+        # feat_id = feats[0]['feature_id']
 
         # res = self.ci.session.query(self.ci.model.analysisfeatureprop) \
         #    .join(self.ci.model.analysisfeature, self.ci.model.analysisfeature.analysisfeature_id == self.ci.model.analysisfeatureprop.analysisfeature_id) \
