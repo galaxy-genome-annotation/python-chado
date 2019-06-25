@@ -109,9 +109,11 @@ class LoadClient(Client):
         if not res.count():
             raise Exception("Analysis with the id {} was not found".format(analysis_id))
 
-        if os.path.isfile(blast_output):
+        if os.path.exists(blast_output):
             count_ins = self._parse_blast_xml(analysis_id, blastdb_id, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords)
             return {'inserted': count_ins}
+        else:
+            raise Exception("{} was not found".format(blast_output))
 
     def go(self, input, organism_id, analysis_id, query_type='polypeptide', match_on_name=False,
             name_column=2, go_column=5, re_name=None, skip_missing=False):
