@@ -672,6 +672,12 @@ class LoadClient(Client):
         num_hits = 1
         feature = None
 
+        # Need to find the feature in chado
+        entity_cv_term_id = self.ci.get_cvterm_id(query_type, 'sequence')
+
+        if not entity_cv_term_id:
+            raise Exception("Cannot find cvterm id for query type {}".format(query_type))
+
         for child in iteration:
             if child.tag == 'Iteration_query-def':
                 iteration_tags_xml += "  <{}>{}</{}>\n".format(child.tag, child.text, child.tag)
@@ -683,12 +689,6 @@ class LoadClient(Client):
                     feature = child.text
                 if not feature and query_re:
                     raise Exception("Cannot find feature in {} using the regular expression: {}".format(child.text, query_re))
-
-                # Need to find the feature in chado
-                entity_cv_term_id = self.ci.get_cvterm_id(query_type, 'sequence')
-
-                if not entity_cv_term_id:
-                    raise Exception("Cannot find cvterm id for query type {}".format(query_type))
 
                 res = self.session.query(self.model.feature).filter_by(type_id=entity_cv_term_id)
                 if query_uniquename:
