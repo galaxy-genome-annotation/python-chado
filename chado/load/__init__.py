@@ -48,10 +48,9 @@ class LoadClient(Client):
         self._featsyn_cache = None
         self._featureprop_cache = None
 
-    def blast(self, analysis_id, blast_output, blast_ext=None, blastdb=None, blastdb_id=None,
+    def blast(self, analysis_id, blast_output, blastdb=None, blastdb_id=None,
               blast_parameters=None, query_re=None, query_type=None,
-              query_uniquename=False, is_concat=False, search_keywords=False,
-              no_parsed="all"):
+              query_uniquename=False, is_concat=False, search_keywords=False):
         """
         Load a blast analysis
 
@@ -60,9 +59,6 @@ class LoadClient(Client):
 
         :type blast_output: str
         :param blast_output: Path to the Blast file to load (single XML file, or directory containing multiple XML files)
-
-        :type blast_ext: str
-        :param blast_ext: If looking for files in a directory, extension of the blast result files
 
         :type blastdb: str
         :param blastdb: Name of the database blasted against (must be in the Chado db table)
@@ -88,9 +84,6 @@ class LoadClient(Client):
         :type search_keywords: bool
         :param search_keywords: Extract keywords for Tripal search
 
-        :type no_parsed: str
-        :param no_parsed: Maximum number of hits to parse per feature. Default=all
-
         :rtype: dict
         :return: Number of processed hits
 
@@ -115,7 +108,7 @@ class LoadClient(Client):
 
         if os.path.isfile(blast_output):
             self._setup_tables("blast")
-            count_ins = self._parse_blast_xml(analysis_id, blastdb_id, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords)
+            count_ins = self._parse_blast_xml(analysis_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, is_concat, search_keywords)
             return {'inserted': count_ins}
 
     def go(self, input, organism_id, analysis_id, query_type='polypeptide', match_on_name=False,
@@ -642,7 +635,7 @@ class LoadClient(Client):
                     self.session.add(analysisfeatureprop)
                     self.session.flush()
 
-    def _parse_blast_xml(self, an_id, blastdb_id, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords):
+    def _parse_blast_xml(self, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, is_concat, search_keywords):
 
         cv_term_id = self.ci.get_cvterm_id('analysis_blast_output_iteration_hits', 'tripal')
         num_iter = 0
@@ -659,7 +652,7 @@ class LoadClient(Client):
                         # If we have a full part, process it and delete/recreate temp file
                         if(re.search('</BlastOutput>', line)):
                             fd.close()
-                            num_iter += self._parse_blast_xml(an_id, blastdb_id, path, no_parsed, blast_ext, query_re, query_type, query_uniquename, False, search_keywords)
+                            num_iter += self._parse_blast_xml(an_id, blastdb_id, path, query_re, query_type, query_uniquename, False, search_keywords)
                             os.remove(path)
                             fd, path = tempfile.mkstemp()
             finally:
@@ -670,11 +663,11 @@ class LoadClient(Client):
         tree = ET.ElementTree(file=blast_output)
 
         for iteration in tree.iter(tag="Iteration"):
-            self._manage_iteration(iteration, an_id, blastdb_id, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords, cv_term_id)
+            self._manage_iteration(iteration, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, is_concat, search_keywords, cv_term_id)
             num_iter += 1
         return num_iter
 
-    def _manage_iteration(self, iteration, an_id, blastdb_id, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords, cv_term_id):
+    def _manage_iteration(self, iteration, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, is_concat, search_keywords, cv_term_id):
         feature_id = 0
         analysis_feature_id = 0
         iteration_tags_xml = ''
@@ -723,10 +716,9 @@ class LoadClient(Client):
                 xml_content = "<Iteration>\n{}    <{}>\n".format(iteration_tags_xml, child.tag)
                 for hit in child:
                     if hit.tag == "Hit":
-                        if (no_parsed == "all" or num_hits <= no_parsed):
-                            xml_content += "        <Hit>"
-                            xml_content += hit.text + ''.join(ET.tostring(e).decode() for e in hit)
-                            xml_content += "</Hit>\n"
+                        xml_content += "        <Hit>"
+                        xml_content += hit.text + ''.join(ET.tostring(e).decode() for e in hit)
+                        xml_content += "</Hit>\n"
                     num_hits += 1
                 xml_content += "\n  </{}>\n</Iteration>".format(child.tag)
 
