@@ -36,19 +36,14 @@ from chakin.decorators import custom_exception, dict_output
     help="Use this if the --query-re regular expression matches unique names instead of names in the database.",
     is_flag=True
 )
-@click.option(
-    "--search_keywords",
-    help="Extract keywords for Tripal search",
-    is_flag=True
-)
 @pass_context
 @custom_exception
 @dict_output
-def cli(ctx, analysis_id, blast_output, blastdb="", blastdb_id="", blast_parameters="", query_re="", query_type="", query_uniquename=False, search_keywords=False):
+def cli(ctx, analysis_id, blast_output, blastdb="", blastdb_id="", blast_parameters="", query_re="", query_type="", query_uniquename=False):
     """Load a blast analysis
 
 Output:
 
     Number of processed hits
     """
-    return ctx.gi.load.blast(analysis_id, blast_output, blastdb=blastdb, blastdb_id=blastdb_id, blast_parameters=blast_parameters, query_re=query_re, query_type=query_type, query_uniquename=query_uniquename, search_keywords=search_keywords)
+    return ctx.gi.load.blast(analysis_id, blast_output, blastdb=blastdb, blastdb_id=blastdb_id, blast_parameters=blast_parameters, query_re=query_re, query_type=query_type, query_uniquename=query_uniquename)

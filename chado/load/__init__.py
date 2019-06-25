@@ -50,7 +50,7 @@ class LoadClient(Client):
 
     def blast(self, analysis_id, blast_output, blastdb=None, blastdb_id=None,
               blast_parameters=None, query_re=None, query_type="polypeptide",
-              query_uniquename=False, search_keywords=False):
+              query_uniquename=False):
         """
         Load a blast analysis, in the same way as does the tripal_analysis_blast module
 
@@ -78,9 +78,6 @@ class LoadClient(Client):
         :type query_uniquename: bool
         :param query_uniquename: Use this if the --query-re regular expression matches unique names instead of names in the database.
 
-        :type search_keywords: bool
-        :param search_keywords: Extract keywords for Tripal search
-
         :rtype: dict
         :return: Number of processed hits
 
@@ -105,7 +102,7 @@ class LoadClient(Client):
 
         if os.path.isfile(blast_output):
             self._setup_tables("blast")
-            count_ins = self._parse_blast_xml(analysis_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, True, search_keywords)
+            count_ins = self._parse_blast_xml(analysis_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, True)
             return {'inserted': count_ins}
 
     def go(self, input, organism_id, analysis_id, query_type='polypeptide', match_on_name=False,
@@ -632,7 +629,7 @@ class LoadClient(Client):
                     self.session.add(analysisfeatureprop)
                     self.session.flush()
 
-    def _parse_blast_xml(self, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, check_concat, search_keywords):
+    def _parse_blast_xml(self, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, check_concat):
 
         cv_term_id = self.ci.get_cvterm_id('analysis_blast_output_iteration_hits', 'tripal')
         num_iter = 0
@@ -649,7 +646,7 @@ class LoadClient(Client):
                         # If we have a full part, process it and delete/recreate temp file
                         if (re.search('</BlastOutput>', line)):
                             fd.close()
-                            num_iter += self._parse_blast_xml(an_id, blastdb_id, path, query_re, query_type, query_uniquename, False, search_keywords)
+                            num_iter += self._parse_blast_xml(an_id, blastdb_id, path, query_re, query_type, query_uniquename, False)
                             os.remove(path)
                             fd, path = tempfile.mkstemp()
             finally:
@@ -660,12 +657,12 @@ class LoadClient(Client):
             tree = ET.ElementTree(file=blast_output)
 
             for iteration in tree.iter(tag="Iteration"):
-                self._manage_iteration(iteration, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, search_keywords, cv_term_id)
+                self._manage_iteration(iteration, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, cv_term_id)
                 num_iter += 1
 
         return num_iter
 
-    def _manage_iteration(self, iteration, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, search_keywords, cv_term_id):
+    def _manage_iteration(self, iteration, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, cv_term_id):
         feature_id = 0
         analysis_feature_id = 0
         iteration_tags_xml = ''
@@ -739,6 +736,7 @@ class LoadClient(Client):
                     .join(self.model.analysisfeature, self.model.analysisfeature.analysisfeature_id == self.model.analysisfeatureprop.analysisfeature_id) \
                     .filter(self.model.analysisfeature.feature_id == feature_id, self.model.analysisfeature.analysis_id == an_id, self.model.analysisfeatureprop.type_id == cv_term_id)
 
+                # TODO load this into cache at the beginning
                 if analysis_feature_prop.count():
                     an_feature_prop_id = analysis_feature_prop.first().analysisfeatureprop_id
                     self.session.query(self.model.analysisfeatureprop).filter_by(analysisfeatureprop_id=an_feature_prop_id).update({'value': xml_content})
@@ -752,54 +750,54 @@ class LoadClient(Client):
                     self.session.flush()
                     self.session.refresh(analysis_feature_prop)
 
-                if search_keywords:
-                    # remove any existing entries. we'll replace them
-                    res = self.session.query(self.model.blast_hit_data).filter_by(analysisfeature_id=analysis_feature_id)
-                    res.delete(synchronize_session=False)
-                    self.session.commit()
+                # Load hit details in blast_hit_data table
+                # remove any existing entries for current feature, we'll replace them
+                res = self.session.query(self.model.blast_hit_data).filter_by(analysisfeature_id=analysis_feature_id)
+                res.delete(synchronize_session=False)
+                self.session.commit()
 
-                    db = self.session.query(self.model.db).filter_by(db_id=blastdb_id)
-                    analysis = self.session.query(self.model.analysis).filter_by(analysis_id=an_id)
+                db = self.session.query(self.model.db).filter_by(db_id=blastdb_id)
+                analysis = self.session.query(self.model.analysis).filter_by(analysis_id=an_id)
 
-                    blast_obj = self._get_blast_obj(xml_content, db.one(), feature_id, analysis.one())
+                blast_obj = self._get_blast_obj(xml_content, db.one(), feature_id, analysis.one())
 
-                    # iterate through the hits and add the records to the blast_hit_data table
-                    index = 1
+                # iterate through the hits and add the records to the blast_hit_data table
+                index = 1
 
-                    for hit in blast_obj["hits_array"]:
-                        blast_org_name = hit["hit_organism"]
-                        blast_org_id = None
+                for hit in blast_obj["hits_array"]:
+                    blast_org_name = hit["hit_organism"]
+                    blast_org_id = None
 
-                        if blast_org_name:
-                            res = self.session.query(self.model.blast_organisms).filter_by(blast_org_name=blast_org_name)
-                            if not res.count():
-                                blast_organism = self.model.blast_organisms()
-                                blast_organism.blast_org_name = blast_org_name
-                                self.session.add(blast_organism)
-                                self.session.flush()
-                                self.session.refresh(blast_organism)
-                                blast_org_id = blast_organism.blast_org_id
-                            else:
-                                blast_org_id = res.one().blast_org_id
+                    if blast_org_name:
+                        res = self.session.query(self.model.blast_organisms).filter_by(blast_org_name=blast_org_name)
+                        if not res.count():
+                            blast_organism = self.model.blast_organisms()
+                            blast_organism.blast_org_name = blast_org_name
+                            self.session.add(blast_organism)
+                            self.session.flush()
+                            self.session.refresh(blast_organism)
+                            blast_org_id = blast_organism.blast_org_id
+                        else:
+                            blast_org_id = res.one().blast_org_id
 
-                        blast_hit_data = self.model.blast_hit_data()
-                        blast_hit_data.analysisfeature_id = analysis_feature_id
-                        blast_hit_data.analysis_id = an_id
-                        blast_hit_data.feature_id = feature_id
-                        blast_hit_data.db_id = blastdb_id
-                        blast_hit_data.hit_num = index
-                        blast_hit_data.hit_name = hit['hit_name']
-                        blast_hit_data.hit_url = hit['hit_url']
-                        blast_hit_data.hit_description = hit['description']
-                        blast_hit_data.hit_organism = blast_org_name
-                        blast_hit_data.blast_org_id = blast_org_id
-                        blast_hit_data.hit_accession = hit['accession']
-                        blast_hit_data.hit_best_eval = hit['best_evalue']
-                        blast_hit_data.hit_best_score = hit['best_score']
-                        blast_hit_data.hit_pid = hit['percent_identity']
-                        self.session.add(blast_hit_data)
-                        self.session.flush()
-                        index += 1
+                    blast_hit_data = self.model.blast_hit_data()
+                    blast_hit_data.analysisfeature_id = analysis_feature_id
+                    blast_hit_data.analysis_id = an_id
+                    blast_hit_data.feature_id = feature_id
+                    blast_hit_data.db_id = blastdb_id
+                    blast_hit_data.hit_num = index
+                    blast_hit_data.hit_name = hit['hit_name']
+                    blast_hit_data.hit_url = hit['hit_url']
+                    blast_hit_data.hit_description = hit['description']
+                    blast_hit_data.hit_organism = blast_org_name
+                    blast_hit_data.blast_org_id = blast_org_id
+                    blast_hit_data.hit_accession = hit['accession']
+                    blast_hit_data.hit_best_eval = hit['best_evalue']
+                    blast_hit_data.hit_best_score = hit['best_score']
+                    blast_hit_data.hit_pid = hit['percent_identity']
+                    self.session.add(blast_hit_data)
+                    self.session.flush()
+                    index += 1
             else:
                 iteration_tags_xml += "  <{}>{}</{}>\n".format(child.tag, child.text, child.tag)
 
