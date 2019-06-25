@@ -1009,7 +1009,7 @@ class LoadClient(Client):
             if not hasattr(self.model, 'blast_organisms'):
                 blast_organisms_table = Table(
                     'blast_organisms', self.metadata,
-                    Column('blast_org_id', String, primary_key=True, nullable=False),
+                    Column('blast_org_id', Integer, primary_key=True, nullable=False),
                     Column('blast_org_name', String, index=True, unique=True),
                     schema=self.ci.dbschema
                 )
@@ -1024,7 +1024,7 @@ class LoadClient(Client):
 
             if not hasattr(self.model, 'blast_hit_data'):
                 blast_hit_data_table = Table(
-                    'blast_hit_data', self.ci.metadata,
+                    'blast_hit_data', self.metadata,
                     Column('analysisfeature_id', Integer, ForeignKey(self.model.analysisfeature.analysisfeature_id), nullable=False, index=True),
                     Column('analysis_id', Integer, ForeignKey(self.model.analysis.analysis_id), nullable=False, index=True,),
                     Column('feature_id', Integer, ForeignKey(self.model.feature.feature_id), nullable=False, index=True),
@@ -1032,7 +1032,7 @@ class LoadClient(Client):
                     Column('hit_num', Integer, nullable=False),
                     Column('hit_name', String, index=True),
                     Column('hit_url', String),
-                    Column('hit_description'),
+                    Column('hit_description', String),
                     Column('hit_organism', String, index=True),
                     Column('blast_org_id', Integer, ForeignKey(self.model.blast_organisms.blast_org_id), index=True),
                     Column('hit_accession', String, index=True),
