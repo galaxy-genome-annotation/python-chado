@@ -1,5 +1,7 @@
-from . import ChadoTestCase, ci
 import warnings
+
+from . import ChadoTestCase, ci
+
 from sqlalchemy import Column, Index, Integer, String, Table
 from sqlalchemy import exc as sa_exc
 
