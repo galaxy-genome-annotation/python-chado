@@ -35,7 +35,7 @@ class ChadoModel(object):
 
 class ChadoInstance(object):
 
-    def __init__(self, dbhost="localhost", dbname="chado", dbuser="chado", dbpass="chado", dbschema="public", dbport=5432, offline=False, no_reflect=False, **kwargs):
+    def __init__(self, dbhost="localhost", dbname="chado", dbuser="chado", dbpass="chado", dbschema="public", dbport=5432, offline=False, no_reflect=False, full=False, **kwargs):
         self.dbhost = dbhost
         self.dbname = dbname
         self.dbuser = dbuser
@@ -65,7 +65,7 @@ class ChadoInstance(object):
                 with warnings.catch_warnings():
                     # https://stackoverflow.com/a/5225951
                     warnings.simplefilter("ignore", category=sa_exc.SAWarning)
-                    self._reflect_tables()
+                    self._reflect_tables(full=full)
             self._mapped = True
 
         # Initialize Clients
@@ -82,7 +82,7 @@ class ChadoInstance(object):
     def __str__(self):
         return '<ChadoInstance at %s>' % self.dbhost
 
-    def _reflect_tables(self):
+    def _reflect_tables(self, full=False):
         Base = automap_base()
 
         class Blast_hit_data(Base):
@@ -106,6 +106,8 @@ class ChadoInstance(object):
             hit_pid = Column(Float())
 
         Base.prepare(self._engine, reflect=True, schema=self.dbschema)
+        if full and self.dbschema != "public":
+            Base.prepare(self._engine, reflect=True, schema='public')
         # Check for schema name instead of hardcoding?
         self.model = Base.classes
 

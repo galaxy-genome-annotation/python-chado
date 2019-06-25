@@ -994,10 +994,10 @@ class LoadClient(Client):
 
     def _setup_tables(self, module):
         if module == "interpro":
-            self.create_cvterm(term='analysis_interpro_xmloutput_hit', term_definition='Hit in the interpro XML output. Each hit belongs to a chado feature. This cvterm represents a hit in the output', cv_name='tripal', db_name='tripal')
+            self.ci.create_cvterm(term='analysis_interpro_xmloutput_hit', term_definition='Hit in the interpro XML output. Each hit belongs to a chado feature. This cvterm represents a hit in the output', cv_name='tripal', db_name='tripal')
         # Term for blast
         if module == "blast":
-            self.create_cvterm(term='analysis_blast_output_iteration_hits', term_definition='Hits of a blast', cv_name='tripal', db_name='tripal')
+            self.ci.create_cvterm(term='analysis_blast_output_iteration_hits', term_definition='Hits of a blast', cv_name='tripal', db_name='tripal')
 
             # Tables for blast
             if not hasattr(self.model, 'tripal_analysis_blast'):
