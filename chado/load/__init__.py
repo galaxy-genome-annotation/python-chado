@@ -1031,16 +1031,16 @@ class LoadClient(Client):
             if not hasattr(self.model, 'blast_hit_data'):
                 blast_hit_data_table = Table(
                     'blast_hit_data', self.metadata,
-                    Column('analysisfeature_id', Integer, ForeignKey(self.model.analysisfeature.analysisfeature_id), nullable=False, index=True),
-                    Column('analysis_id', Integer, ForeignKey(self.model.analysis.analysis_id), nullable=False, index=True,),
-                    Column('feature_id', Integer, ForeignKey(self.model.feature.feature_id), nullable=False, index=True),
-                    Column('db_id', Integer, ForeignKey(self.model.db.db_id), nullable=False, index=True),
-                    Column('hit_num', Integer, nullable=False),
+                    Column('analysisfeature_id', Integer, ForeignKey(self.model.analysisfeature.analysisfeature_id, ondelete="CASCADE"), nullable=False, index=True,  primary_key=True),
+                    Column('analysis_id', Integer, ForeignKey(self.model.analysis.analysis_id, ondelete="CASCADE"), nullable=False, index=True,  primary_key=True),
+                    Column('feature_id', Integer, ForeignKey(self.model.feature.feature_id, ondelete="CASCADE"), nullable=False, index=True,  primary_key=True),
+                    Column('db_id', Integer, ForeignKey(self.model.db.db_id, ondelete="CASCADE"), nullable=False, index=True,  primary_key=True),
+                    Column('hit_num', Integer, nullable=False, primary_key=True),
                     Column('hit_name', String, index=True),
                     Column('hit_url', String),
                     Column('hit_description', String),
                     Column('hit_organism', String, index=True),
-                    Column('blast_org_id', Integer, ForeignKey(self.model.blast_organisms.blast_org_id), index=True),
+                    Column('blast_org_id', Integer, ForeignKey(self.model.blast_organisms.blast_org_id, ondelete="CASCADE"), index=True),
                     Column('hit_accession', String, index=True),
                     Column('hit_best_eval', Float, index=True),
                     Column('hit_best_score', Float),
@@ -1049,10 +1049,9 @@ class LoadClient(Client):
                 )
 
                 blast_hit_data_table.create(self.engine)
-                self.ci._reflect_tables()
-                self.model = self.ci.model
 
             with warnings.catch_warnings():
                 # https://stackoverflow.com/a/5225951
                 warnings.simplefilter("ignore", category=sa_exc.SAWarning)
                 self.ci._reflect_tables()
+                self.model = self.ci.model
