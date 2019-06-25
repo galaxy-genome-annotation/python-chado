@@ -52,7 +52,7 @@ class LoadClient(Client):
               blast_parameters=None, query_re=None, query_type="polypeptide",
               query_uniquename=False, search_keywords=False):
         """
-        Load a blast analysis
+        Load a blast analysis, in the same way as does the tripal_analysis_blast module
 
         :type analysis_id: int
         :param analysis_id: Analysis ID
@@ -111,7 +111,7 @@ class LoadClient(Client):
     def go(self, input, organism_id, analysis_id, query_type='polypeptide', match_on_name=False,
            name_column=2, go_column=5, re_name=None, skip_missing=False):
         """
-        Load GO annotation from a tabular file
+        Load GO annotation from a tabular file, in the same way as does the tripal_analysis_go module
 
         :type input: str
         :param input: Path to the input tabular file to load
@@ -246,7 +246,7 @@ class LoadClient(Client):
 
     def interpro(self, analysis_id, interpro_output, parse_go=False, query_re=None, query_type="polypeptide", query_uniquename=False):
         """
-        Load a blast analysis
+        Load a blast analysis, in the same way as does the tripal_analysis_intepro module
 
         :type analysis_id: int
         :param analysis_id: Analysis ID
@@ -690,6 +690,7 @@ class LoadClient(Client):
                 if not feature and query_re:
                     raise Exception("Cannot find feature in {} using the regular expression: {}".format(child.text, query_re))
 
+                # TODO load this into cache at the beginning
                 res = self.session.query(self.model.feature).filter_by(type_id=entity_cv_term_id)
                 if query_uniquename:
                     res = res.filter_by(uniquename=query_uniquename)
@@ -720,6 +721,7 @@ class LoadClient(Client):
                     num_hits += 1
                 xml_content += "\n  </{}>\n</Iteration>".format(child.tag)
 
+                # TODO load this into cache at the beginning
                 analysis_feature = self.session.query(self.model.analysisfeature).filter_by(feature_id=feature_id, analysis_id=an_id)
                 # Create if not existing
                 if not analysis_feature.count():

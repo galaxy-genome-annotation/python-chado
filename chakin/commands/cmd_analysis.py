@@ -15,4 +15,3 @@ def cli():
 cli.add_command(func0)
 cli.add_command(func1)
 cli.add_command(func2)
-cli.add_command(func3)
