@@ -645,12 +645,12 @@ class LoadClient(Client):
                         fd.write(line + "\n")
                         # If we have a full part, process it and delete/recreate temp file
                         if (re.search('</BlastOutput>', line)):
-                            fd.close()
+                            os.close(fd)
                             num_iter += self._parse_blast_xml(an_id, blastdb_id, path, query_re, query_type, query_uniquename, False)
                             os.remove(path)
                             fd, path = tempfile.mkstemp()
             finally:
-                fd.close()
+                os.close(fd)
                 os.remove(path)
                 return
         else:
