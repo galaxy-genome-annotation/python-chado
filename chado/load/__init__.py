@@ -100,10 +100,12 @@ class LoadClient(Client):
         if not res.count():
             raise Exception("Analysis with the id {} was not found".format(analysis_id))
 
-        if os.path.isfile(blast_output):
+        if os.path.exists(blast_output):
             self._setup_tables("blast")
             count_ins = self._parse_blast_xml(analysis_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, True)
             return {'inserted': count_ins}
+        else:
+            raise Exception("{} was not found".format(blast_output))
 
     def go(self, input, organism_id, analysis_id, query_type='polypeptide', match_on_name=False,
            name_column=2, go_column=5, re_name=None, skip_missing=False):
@@ -633,26 +635,33 @@ class LoadClient(Client):
 
         cv_term_id = self.ci.get_cvterm_id('analysis_blast_output_iteration_hits', 'tripal')
         num_iter = 0
+        error = False
         if (check_concat):
             # File is concatenated, need to break it appart
             try:
                 fd, path = tempfile.mkstemp()
-                with os.open(blast_output) as in_fh:
+                with open(blast_output) as in_fh:
+                    file = open(path,'a')
                     for line in in_fh:
                         line = line.strip()
                         if not line:
                             continue
-                        fd.write(line + "\n")
+                        file.write(line + "\n")
                         # If we have a full part, process it and delete/recreate temp file
                         if (re.search('</BlastOutput>', line)):
-                            os.close(fd)
+                            file.close()
                             num_iter += self._parse_blast_xml(an_id, blastdb_id, path, query_re, query_type, query_uniquename, False)
                             os.remove(path)
                             fd, path = tempfile.mkstemp()
+                            file = open(path, 'a')
+            except Exception as e:
+                error = e
             finally:
-                os.close(fd)
+                file.close()
                 os.remove(path)
-                return
+                if error:
+                    raise error
+                return num_iter
         else:
             tree = ET.ElementTree(file=blast_output)
 
@@ -988,7 +997,6 @@ class LoadClient(Client):
         # Term for blast
         if module == "blast":
             self.ci.create_cvterm(term='analysis_blast_output_iteration_hits', term_definition='Hits of a blast', cv_name='tripal', db_name='tripal')
-
             # Tables for blast
             if not hasattr(self.model, 'tripal_analysis_blast'):
                 tripal_analysis_blast_table = Table(

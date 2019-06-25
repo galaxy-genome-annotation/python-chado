@@ -13,7 +13,8 @@ class LoadTest(ChadoTestCase):
         an_blast_id = an_blast['analysis_id']
         self.ci.feature.load_fasta(fasta="./test-data/genome.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], sequence_type='supercontig')
         self.ci.feature.load_gff(gff="./test-data/annot.gff", analysis_id=an['analysis_id'], organism_id=org['organism_id'], no_seq_compute=True)
-        self.ci.load.blast(an_blast_id, blast_file_path, blastdb="swissprot:display", query_type="mRNA")
+        test = self.ci.load.blast(an_blast_id, blast_file_path, blastdb="swissprot:display", query_type="mRNA")
+        assert test['inserted'] == 1, test
         feats = self.ci.feature.get_features(organism_id=org['organism_id'], uniquename='PAC:18136217', analysis_id=an['analysis_id'])
         assert feats != [], "Feature PAC:18136217 was not created"
         feat_id = feats[0]['feature_id']
