@@ -7,11 +7,6 @@ from chakin.decorators import custom_exception, dict_output
 @click.argument("analysis_id", type=int)
 @click.argument("blast_output", type=str)
 @click.option(
-    "--blast_ext",
-    help="If looking for files in a directory, extension of the blast result files",
-    type=str
-)
-@click.option(
     "--blastdb",
     help="Name of the database blasted against (must be in the Chado db table)",
     type=str
@@ -51,21 +46,14 @@ from chakin.decorators import custom_exception, dict_output
     help="Extract keywords for Tripal search",
     is_flag=True
 )
-@click.option(
-    "--no_parsed",
-    help="Maximum number of hits to parse per feature. Default=all",
-    default="all",
-    show_default=True,
-    type=str
-)
 @pass_context
 @custom_exception
 @dict_output
-def cli(ctx, analysis_id, blast_output, blast_ext="", blastdb="", blastdb_id="", blast_parameters="", query_re="", query_type="", query_uniquename=False, is_concat=False, search_keywords=False, no_parsed="all"):
+def cli(ctx, analysis_id, blast_output, blastdb="", blastdb_id="", blast_parameters="", query_re="", query_type="", query_uniquename=False, is_concat=False, search_keywords=False):
     """Load a blast analysis
 
 Output:
 
     Number of processed hits
     """
-    return ctx.gi.load.blast(analysis_id, blast_output, blast_ext=blast_ext, blastdb=blastdb, blastdb_id=blastdb_id, blast_parameters=blast_parameters, query_re=query_re, query_type=query_type, query_uniquename=query_uniquename, is_concat=is_concat, search_keywords=search_keywords, no_parsed=no_parsed)
+    return ctx.gi.load.blast(analysis_id, blast_output, blastdb=blastdb, blastdb_id=blastdb_id, blast_parameters=blast_parameters, query_re=query_re, query_type=query_type, query_uniquename=query_uniquename, is_concat=is_concat, search_keywords=search_keywords)
