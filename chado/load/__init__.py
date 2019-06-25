@@ -994,15 +994,15 @@ class LoadClient(Client):
 
     def _setup_tables(self, module):
         if module == "interpro":
-            self.ci.create_cvterm(term='analysis_interpro_xmloutput_hit', term_definition='Hit in the interpro XML output. Each hit belongs to a chado feature. This cvterm represents a hit in the output', cv_name='tripal', db_name='tripal')
+            self.create_cvterm(term='analysis_interpro_xmloutput_hit', term_definition='Hit in the interpro XML output. Each hit belongs to a chado feature. This cvterm represents a hit in the output', cv_name='tripal', db_name='tripal')
         # Term for blast
         if module == "blast":
-            self.ci.create_cvterm(term='analysis_blast_output_iteration_hits', term_definition='Hits of a blast', cv_name='tripal', db_name='tripal')
+            self.create_cvterm(term='analysis_blast_output_iteration_hits', term_definition='Hits of a blast', cv_name='tripal', db_name='tripal')
 
             # Tables for blast
-            if not hasattr(self.ci.model, 'tripal_analysis_blast'):
+            if not hasattr(self.model, 'tripal_analysis_blast'):
                 tripal_analysis_blast_table = Table(
-                    'tripal_analysis_blast', self.ci._metadata,
+                    'tripal_analysis_blast', self._metadata,
                     Column('db_id', Integer, primary_key=True, nullable=False, default=0, index=True),
                     Column('regex_hit_id', String, nullable=False),
                     Column('regex_hit_def', String, nullable=False),
@@ -1012,24 +1012,25 @@ class LoadClient(Client):
                     Column('genbank_style', Integer, primary_key=True, default=0),
                     schema=self.ci.dbschema
                 )
-                tripal_analysis_blast_table.create(self.ci._engine)
+                tripal_analysis_blast_table.create(self._engine)
 
-            if not hasattr(self.ci.model, 'blast_organisms'):
+            if not hasattr(self.model, 'blast_organisms'):
                 blast_organisms_table = Table(
-                    'tripal_analysis_blast', self.ci._metadata,
+                    'tripal_analysis_blast', self._metadata,
                     Column('blast_org_id', String, primary_key=True, nullable=False),
                     Column('blast_org_name', String, index=True, unique=True),
                     schema=self.ci.dbschema
                 )
 
-                blast_organisms_table.create(self.ci._engine)
+                blast_organisms_table.create(self._engine)
                 # Needed here for foreign key later
                 with warnings.catch_warnings():
                     # https://stackoverflow.com/a/5225951
                     warnings.simplefilter("ignore", category=sa_exc.SAWarning)
                     self.ci._reflect_tables()
+                    self.model = self.ci.model
 
-            if not hasattr(self.ci.model, 'blast_hit_data'):
+            if not hasattr(self.model, 'blast_hit_data'):
                 blast_hit_data_table = Table(
                     'blast_hit_data', self.ci._metadata,
                     Column('analysisfeature_id', Integer, ForeignKey(self.model.analysisfeature.analysisfeature_id), nullable=False, index=True),
@@ -1049,7 +1050,9 @@ class LoadClient(Client):
                     schema=self.ci.dbschema
                 )
 
-                blast_hit_data_table.create(self.ci._engine)
+                blast_hit_data_table.create(self._engine)
+                self.ci._reflect_tables()
+                self.model = self.ci.model
 
             with warnings.catch_warnings():
                 # https://stackoverflow.com/a/5225951
