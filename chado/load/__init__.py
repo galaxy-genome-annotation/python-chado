@@ -11,6 +11,7 @@ import os
 import re
 import tempfile
 import xml.etree.ElementTree as ET
+import warnings
 
 import chado
 from chado.client import Client
@@ -18,6 +19,9 @@ from chado.client import Client
 from chakin.io import warn
 
 from future import standard_library
+
+from sqlalchemy import Column, ForeignKey, Integer, Float, String, Table
+from sqlalchemy import exc as sa_exc
 
 standard_library.install_aliases()
 
@@ -109,14 +113,13 @@ class LoadClient(Client):
         if not res.count():
             raise Exception("Analysis with the id {} was not found".format(analysis_id))
 
-        if os.path.exists(blast_output):
+        if os.path.isfile(blast_output):
+            self._setup_tables("blast")
             count_ins = self._parse_blast_xml(analysis_id, blastdb_id, blast_output, no_parsed, blast_ext, query_re, query_type, query_uniquename, is_concat, search_keywords)
             return {'inserted': count_ins}
-        else:
-            raise Exception("{} was not found".format(blast_output))
 
     def go(self, input, organism_id, analysis_id, query_type='polypeptide', match_on_name=False,
-            name_column=2, go_column=5, re_name=None, skip_missing=False):
+           name_column=2, go_column=5, re_name=None, skip_missing=False):
         """
         Load GO annotation from a tabular file
 
@@ -288,6 +291,7 @@ class LoadClient(Client):
                 res.delete(synchronize_session=False)
         # If this is an unique file, parse it
         count_ins = 0
+        self._setup_tables("interpro")
         if os.path.isfile(interpro_output):
             count_ins += self._parse_interpro_xml(analysis_id, interpro_output, parse_go, query_re, query_type, query_uniquename)
             self.session.commit()
@@ -987,3 +991,67 @@ class LoadClient(Client):
             if feat not in self._featcvterm_cache:
                 self._featcvterm_cache[feat] = []
             self._featcvterm_cache[feat].append(term)
+
+    def _setup_tables(self, module):
+        if module == "interpro":
+            self.ci.create_cvterm(term='analysis_interpro_xmloutput_hit', term_definition='Hit in the interpro XML output. Each hit belongs to a chado feature. This cvterm represents a hit in the output', cv_name='tripal', db_name='tripal')
+        # Term for blast
+        if module == "blast":
+            self.ci.create_cvterm(term='analysis_blast_output_iteration_hits', term_definition='Hits of a blast', cv_name='tripal', db_name='tripal')
+
+            # Tables for blast
+            if not hasattr(self.ci.model, 'tripal_analysis_blast'):
+                tripal_analysis_blast_table = Table(
+                    'tripal_analysis_blast', self.ci._metadata,
+                    Column('db_id', Integer, primary_key=True, nullable=False, default=0, index=True),
+                    Column('regex_hit_id', String, nullable=False),
+                    Column('regex_hit_def', String, nullable=False),
+                    Column('regex_hit_accession', String, nullable=False),
+                    Column('regex_hit_organism', String, nullable=False),
+                    Column('hit_organism', String, nullable=False),
+                    Column('genbank_style', Integer, primary_key=True, default=0),
+                    schema=self.ci.dbschema
+                )
+                tripal_analysis_blast_table.create(self.ci._engine)
+
+            if not hasattr(self.ci.model, 'blast_organisms'):
+                blast_organisms_table = Table(
+                    'tripal_analysis_blast', self.ci._metadata,
+                    Column('blast_org_id', String, primary_key=True, nullable=False),
+                    Column('blast_org_name', String, index=True, unique=True),
+                    schema=self.ci.dbschema
+                )
+
+                blast_organisms_table.create(self.ci._engine)
+                # Needed here for foreign key later
+                with warnings.catch_warnings():
+                    # https://stackoverflow.com/a/5225951
+                    warnings.simplefilter("ignore", category=sa_exc.SAWarning)
+                    self.ci._reflect_tables()
+
+            if not hasattr(self.ci.model, 'blast_hit_data'):
+                blast_hit_data_table = Table(
+                    'blast_hit_data', self.ci._metadata,
+                    Column('analysisfeature_id', Integer, ForeignKey(self.model.analysisfeature.analysisfeature_id), nullable=False, index=True),
+                    Column('analysis_id', Integer, ForeignKey(self.model.analysis.analysis_id), nullable=False, index=True,),
+                    Column('feature_id', Integer, ForeignKey(self.model.feature.feature_id), nullable=False, index=True),
+                    Column('db_id', Integer, ForeignKey(self.model.db.db_id), nullable=False, index=True),
+                    Column('hit_num', Integer, nullable=False),
+                    Column('hit_name', String, index=True),
+                    Column('hit_url', String),
+                    Column('hit_description'),
+                    Column('hit_organism', String, index=True),
+                    Column('blast_org_id', Integer, ForeignKey(self.model.blast_organisms.blast_org_id), index=True),
+                    Column('hit_accession', String, index=True),
+                    Column('hit_best_eval', Float, index=True),
+                    Column('hit_best_score', Float),
+                    Column('hit_pid', Float),
+                    schema=self.ci.dbschema
+                )
+
+                blast_hit_data_table.create(self.ci._engine)
+
+            with warnings.catch_warnings():
+                # https://stackoverflow.com/a/5225951
+                warnings.simplefilter("ignore", category=sa_exc.SAWarning)
+                self.ci._reflect_tables()
