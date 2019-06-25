@@ -49,7 +49,7 @@ class LoadClient(Client):
         self._featureprop_cache = None
 
     def blast(self, analysis_id, blast_output, blastdb=None, blastdb_id=None,
-              blast_parameters=None, query_re=None, query_type=None,
+              blast_parameters=None, query_re=None, query_type="polypeptide",
               query_uniquename=False, search_keywords=False):
         """
         Load a blast analysis
@@ -73,7 +73,7 @@ class LoadClient(Client):
         :param query_re: The regular expression that can uniquely identify the query name. This parameters is required if the feature name is not the first word in the blast query name.
 
         :type query_type: str
-        :param query_type: The feature type (e.g. \'gene\', \'mRNA\', \'contig\') of the query. It must be a valid Sequence Ontology term.
+        :param query_type: The feature type (e.g. \'gene\', \'mRNA\', 'polypeptide', \'contig\') of the query. It must be a valid Sequence Ontology term.
 
         :type query_uniquename: bool
         :param query_uniquename: Use this if the --query-re regular expression matches unique names instead of names in the database.
@@ -244,7 +244,7 @@ class LoadClient(Client):
 
         return {'inserted': count_ins}
 
-    def interpro(self, analysis_id, interpro_output, parse_go=False, query_re=None, query_type=None, query_uniquename=False):
+    def interpro(self, analysis_id, interpro_output, parse_go=False, query_re=None, query_type="polypeptide", query_uniquename=False):
         """
         Load a blast analysis
 
@@ -261,7 +261,7 @@ class LoadClient(Client):
         :param query_re: The regular expression that can uniquely identify the query name. This parameter is required if the feature name is not the first word in the blast query name.
 
         :type query_type: str
-        :param query_type: The feature type (e.g. \'gene\', \'mRNA\', \'contig\') of the query. It must be a valid Sequence Ontology term.
+        :param query_type: The feature type (e.g. \'gene\', \'mRNA\', \'polypeptide\', \'contig\') of the query. It must be a valid Sequence Ontology term.
 
         :type query_uniquename: bool
         :param query_uniquename: Use this if the --query-re regular expression matches unique names instead of names in the database.
