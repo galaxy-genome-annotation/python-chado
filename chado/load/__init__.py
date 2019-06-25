@@ -49,10 +49,10 @@ class LoadClient(Client):
         self._featureprop_cache = None
 
     def blast(self, analysis_id, blast_output, blastdb=None, blastdb_id=None,
-              blast_parameters=None, query_re=None, query_type=None,
-              query_uniquename=False, is_concat=False, search_keywords=False):
+              blast_parameters=None, query_re=None, query_type="polypeptide",
+              query_uniquename=False, search_keywords=False):
         """
-        Load a blast analysis
+        Load a blast analysis, in the same way as does the tripal_analysis_blast module
 
         :type analysis_id: int
         :param analysis_id: Analysis ID
@@ -73,13 +73,10 @@ class LoadClient(Client):
         :param query_re: The regular expression that can uniquely identify the query name. This parameters is required if the feature name is not the first word in the blast query name.
 
         :type query_type: str
-        :param query_type: The feature type (e.g. \'gene\', \'mRNA\', \'contig\') of the query. It must be a valid Sequence Ontology term.
+        :param query_type: The feature type (e.g. \'gene\', \'mRNA\', 'polypeptide', \'contig\') of the query. It must be a valid Sequence Ontology term.
 
         :type query_uniquename: bool
         :param query_uniquename: Use this if the --query-re regular expression matches unique names instead of names in the database.
-
-        :type is_concat: bool
-        :param is_concat: If the blast result file is simply a list of concatenated blast results.
 
         :type search_keywords: bool
         :param search_keywords: Extract keywords for Tripal search
@@ -108,13 +105,13 @@ class LoadClient(Client):
 
         if os.path.isfile(blast_output):
             self._setup_tables("blast")
-            count_ins = self._parse_blast_xml(analysis_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, is_concat, search_keywords)
+            count_ins = self._parse_blast_xml(analysis_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, True, search_keywords)
             return {'inserted': count_ins}
 
     def go(self, input, organism_id, analysis_id, query_type='polypeptide', match_on_name=False,
            name_column=2, go_column=5, re_name=None, skip_missing=False):
         """
-        Load GO annotation from a tabular file
+        Load GO annotation from a tabular file, in the same way as does the tripal_analysis_go module
 
         :type input: str
         :param input: Path to the input tabular file to load
@@ -247,9 +244,9 @@ class LoadClient(Client):
 
         return {'inserted': count_ins}
 
-    def interpro(self, analysis_id, interpro_output, parse_go=False, query_re=None, query_type=None, query_uniquename=False):
+    def interpro(self, analysis_id, interpro_output, parse_go=False, query_re=None, query_type="polypeptide", query_uniquename=False):
         """
-        Load a blast analysis
+        Load a blast analysis, in the same way as does the tripal_analysis_intepro module
 
         :type analysis_id: int
         :param analysis_id: Analysis ID
@@ -264,7 +261,7 @@ class LoadClient(Client):
         :param query_re: The regular expression that can uniquely identify the query name. This parameter is required if the feature name is not the first word in the blast query name.
 
         :type query_type: str
-        :param query_type: The feature type (e.g. \'gene\', \'mRNA\', \'contig\') of the query. It must be a valid Sequence Ontology term.
+        :param query_type: The feature type (e.g. \'gene\', \'mRNA\', \'polypeptide\', \'contig\') of the query. It must be a valid Sequence Ontology term.
 
         :type query_uniquename: bool
         :param query_uniquename: Use this if the --query-re regular expression matches unique names instead of names in the database.
@@ -553,7 +550,7 @@ class LoadClient(Client):
             res = res.filter_by(uniquename=feature)
         else:
             res = res.filter_by(name=feature)
-        if(query_type):
+        if (query_type):
             entity_cv_term_id = self.ci.get_cvterm_id(query_type, 'sequence')
             res = res.filter_by(type_id=entity_cv_term_id)
         if not res.count():
@@ -635,11 +632,11 @@ class LoadClient(Client):
                     self.session.add(analysisfeatureprop)
                     self.session.flush()
 
-    def _parse_blast_xml(self, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, is_concat, search_keywords):
+    def _parse_blast_xml(self, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, check_concat, search_keywords):
 
         cv_term_id = self.ci.get_cvterm_id('analysis_blast_output_iteration_hits', 'tripal')
         num_iter = 0
-        if(is_concat):
+        if (check_concat):
             # File is concatenated, need to break it appart
             try:
                 fd, path = tempfile.mkstemp()
@@ -650,7 +647,7 @@ class LoadClient(Client):
                             continue
                         fd.write(line + "\n")
                         # If we have a full part, process it and delete/recreate temp file
-                        if(re.search('</BlastOutput>', line)):
+                        if (re.search('</BlastOutput>', line)):
                             fd.close()
                             num_iter += self._parse_blast_xml(an_id, blastdb_id, path, query_re, query_type, query_uniquename, False, search_keywords)
                             os.remove(path)
@@ -659,20 +656,27 @@ class LoadClient(Client):
                 fd.close()
                 os.remove(path)
                 return
+        else:
+            tree = ET.ElementTree(file=blast_output)
 
-        tree = ET.ElementTree(file=blast_output)
+            for iteration in tree.iter(tag="Iteration"):
+                self._manage_iteration(iteration, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, search_keywords, cv_term_id)
+                num_iter += 1
 
-        for iteration in tree.iter(tag="Iteration"):
-            self._manage_iteration(iteration, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, is_concat, search_keywords, cv_term_id)
-            num_iter += 1
         return num_iter
 
-    def _manage_iteration(self, iteration, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, is_concat, search_keywords, cv_term_id):
+    def _manage_iteration(self, iteration, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, search_keywords, cv_term_id):
         feature_id = 0
         analysis_feature_id = 0
         iteration_tags_xml = ''
         num_hits = 1
         feature = None
+
+        # Need to find the feature in chado
+        entity_cv_term_id = self.ci.get_cvterm_id(query_type, 'sequence')
+
+        if not entity_cv_term_id:
+            raise Exception("Cannot find cvterm id for query type {}".format(query_type))
 
         for child in iteration:
             if child.tag == 'Iteration_query-def':
@@ -686,12 +690,7 @@ class LoadClient(Client):
                 if not feature and query_re:
                     raise Exception("Cannot find feature in {} using the regular expression: {}".format(child.text, query_re))
 
-                # Need to find the feature in chado
-                entity_cv_term_id = self.ci.get_cvterm_id(query_type, 'sequence')
-
-                if not entity_cv_term_id:
-                    raise Exception("Cannot find cvterm id for query type {}".format(query_type))
-
+                # TODO load this into cache at the beginning
                 res = self.session.query(self.model.feature).filter_by(type_id=entity_cv_term_id)
                 if query_uniquename:
                     res = res.filter_by(uniquename=query_uniquename)
@@ -722,6 +721,7 @@ class LoadClient(Client):
                     num_hits += 1
                 xml_content += "\n  </{}>\n</Iteration>".format(child.tag)
 
+                # TODO load this into cache at the beginning
                 analysis_feature = self.session.query(self.model.analysisfeature).filter_by(feature_id=feature_id, analysis_id=an_id)
                 # Create if not existing
                 if not analysis_feature.count():
