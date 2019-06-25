@@ -11,6 +11,7 @@ class LoadTest(ChadoTestCase):
     def test_add_blast(self):
 
         # Setup testing data
+        self._add_cvterms()
         org = self._create_fake_org()
         an = self._create_fake_an()
         blast_file_path = "./test-data/blast.xml"
@@ -22,13 +23,12 @@ class LoadTest(ChadoTestCase):
 
         feats = self.ci.feature.get_features(organism_id=org['organism_id'], uniquename='PAC:18136217', analysis_id=an['analysis_id'])
         assert feats != [], "Feature PAC:18136217 was not created"
-        # feat_id = feats[0]['feature_id']
+        feat_id = feats[0]['feature_id']
 
-        # res = self.ci.session.query(self.ci.model.analysisfeatureprop) \
-        #    .join(self.ci.model.analysisfeature, self.ci.model.analysisfeature.analysisfeature_id == self.ci.model.analysisfeatureprop.analysisfeature_id) \
-        #    .filter(self.ci.model.analysisfeature.feature_id == feat_id, self.ci.model.analysisfeature.analysis_id == an_blast_id)
+        res = self.ci.session.query(self.ci.model.analysisfeatureprop) \
+            .join(self.ci.model.analysisfeature, self.ci.model.analysisfeature.analysisfeature_id == self.ci.model.analysisfeatureprop.analysisfeature_id) \
+            .filter(self.ci.model.analysisfeature.feature_id == feat_id, self.ci.model.analysisfeature.analysis_id == an_blast_id)
 
-        res = self.ci.session.query(self.ci.model.analysisfeatureprop)
         assert res.count(), "No result in analysisfeatureprop table for this feature and analysis"
         assert res.count() == 1, "More than one result in analysisfeatureprop table for this feature and analysis"
 
@@ -38,6 +38,7 @@ class LoadTest(ChadoTestCase):
 
     def test_add_interpro(self):
 
+        self._add_cvterms()
         # Setup testing data
         org = self._create_fake_org()
         an = self._create_fake_an()
