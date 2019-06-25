@@ -1008,7 +1008,7 @@ class LoadClient(Client):
 
             if not hasattr(self.model, 'blast_organisms'):
                 blast_organisms_table = Table(
-                    'tripal_analysis_blast', self.metadata,
+                    'blast_organisms', self.metadata,
                     Column('blast_org_id', String, primary_key=True, nullable=False),
                     Column('blast_org_name', String, index=True, unique=True),
                     schema=self.ci.dbschema
