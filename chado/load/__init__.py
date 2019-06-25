@@ -10,8 +10,8 @@ import csv
 import os
 import re
 import tempfile
-import xml.etree.ElementTree as ET
 import warnings
+import xml.etree.ElementTree as ET
 
 import chado
 from chado.client import Client
@@ -20,7 +20,7 @@ from chakin.io import warn
 
 from future import standard_library
 
-from sqlalchemy import Column, ForeignKey, Integer, Float, String, Table
+from sqlalchemy import Column, Float, ForeignKey, Integer, String, Table
 from sqlalchemy import exc as sa_exc
 
 standard_library.install_aliases()
