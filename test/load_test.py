@@ -92,7 +92,7 @@ class LoadTest(ChadoTestCase):
         # Table for blast
         if not hasattr(self.ci.model, 'tripal_analysis_blast'):
             tripal_analysis_blast_table = Table(
-                'tripal_analysis_blast', self.ci.metadata,
+                'tripal_analysis_blast', self.metadata,
                 Column('db_id', Integer, primary_key=True, nullable=False, default=0),
                 Column('regex_hit_id', String, nullable=False),
                 Column('regex_hit_def', String, nullable=False),
