@@ -1,7 +1,7 @@
 import click
-from chakin.commands.export.export_fasta import cli as func0
-from chakin.commands.export.export_gbk import cli as func1
-from chakin.commands.export.export_gff3 import cli as func2
+from chakin.commands.export.export_fasta import cli as export_fasta
+from chakin.commands.export.export_gbk import cli as export_gbk
+from chakin.commands.export.export_gff3 import cli as export_gff3
 
 
 @click.group()
@@ -12,6 +12,6 @@ def cli():
     pass
 
 
-cli.add_command(func0)
-cli.add_command(func1)
-cli.add_command(func2)
+cli.add_command(export_fasta)
+cli.add_command(export_gbk)
+cli.add_command(export_gff3)

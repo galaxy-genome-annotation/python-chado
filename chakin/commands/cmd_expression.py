@@ -1,10 +1,10 @@
 import click
-from chakin.commands.expression.add_biomaterial import cli as func0
-from chakin.commands.expression.add_expression import cli as func1
-from chakin.commands.expression.delete_all_biomaterials import cli as func2
-from chakin.commands.expression.delete_biomaterial import cli as func3
-from chakin.commands.expression.delete_biomaterials import cli as func4
-from chakin.commands.expression.get_biomaterials import cli as func5
+from chakin.commands.expression.add_biomaterial import cli as add_biomaterial
+from chakin.commands.expression.add_expression import cli as add_expression
+from chakin.commands.expression.delete_all_biomaterials import cli as delete_all_biomaterials
+from chakin.commands.expression.delete_biomaterial import cli as delete_biomaterial
+from chakin.commands.expression.delete_biomaterials import cli as delete_biomaterials
+from chakin.commands.expression.get_biomaterials import cli as get_biomaterials
 
 
 @click.group()
@@ -15,9 +15,9 @@ def cli():
     pass
 
 
-cli.add_command(func0)
-cli.add_command(func1)
-cli.add_command(func2)
-cli.add_command(func3)
-cli.add_command(func4)
-cli.add_command(func5)
+cli.add_command(add_biomaterial)
+cli.add_command(add_expression)
+cli.add_command(delete_all_biomaterials)
+cli.add_command(delete_biomaterial)
+cli.add_command(delete_biomaterials)
+cli.add_command(get_biomaterials)

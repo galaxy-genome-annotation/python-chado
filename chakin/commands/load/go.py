@@ -1,5 +1,5 @@
 import click
-from chakin.cli import pass_context
+from chakin.cli import pass_context, json_loads
 from chakin.decorators import custom_exception, dict_output
 
 
@@ -47,7 +47,7 @@ from chakin.decorators import custom_exception, dict_output
 @custom_exception
 @dict_output
 def cli(ctx, input, organism_id, analysis_id, query_type="polypeptide", match_on_name=False, name_column=2, go_column=5, re_name="", skip_missing=False):
-    """Load GO annotation from a tabular file
+    """Load GO annotation from a tabular file, in the same way as does the tripal_analysis_go module
 
 Output:
 

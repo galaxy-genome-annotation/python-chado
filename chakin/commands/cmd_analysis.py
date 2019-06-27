@@ -1,7 +1,7 @@
 import click
-from chakin.commands.analysis.add_analysis import cli as func0
-from chakin.commands.analysis.delete_analyses import cli as func1
-from chakin.commands.analysis.get_analyses import cli as func2
+from chakin.commands.analysis.add_analysis import cli as add_analysis
+from chakin.commands.analysis.delete_analyses import cli as delete_analyses
+from chakin.commands.analysis.get_analyses import cli as get_analyses
 
 
 @click.group()
@@ -12,6 +12,6 @@ def cli():
     pass
 
 
-cli.add_command(func0)
-cli.add_command(func1)
-cli.add_command(func2)
+cli.add_command(add_analysis)
+cli.add_command(delete_analyses)
+cli.add_command(get_analyses)

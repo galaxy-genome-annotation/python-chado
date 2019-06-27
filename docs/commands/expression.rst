@@ -49,13 +49,15 @@ Add an expression matrix file to the database
 **Output**
 
 
-    I have no idea
+    Number of expression data loaded
     
 **Options**::
 
 
       --separator TEXT  Separating character in the matrix file (ex : ','). Default
                         character is tab.  [default:        ]
+      --unit TEXT       The units associated with the loaded values (ie, FPKM, RPKM,
+                        raw counts)
       -h, --help        Show this message and exit.
     
 

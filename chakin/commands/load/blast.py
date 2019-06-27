@@ -1,11 +1,11 @@
 import click
-from chakin.cli import pass_context
+from chakin.cli import pass_context, json_loads
 from chakin.decorators import custom_exception, dict_output
 
 
 @click.command('blast')
 @click.argument("analysis_id", type=int)
-@click.argument("blast_output", type=str)
+@click.argument("input", type=str)
 @click.option(
     "--blastdb",
     help="Name of the database blasted against (must be in the Chado db table)",
@@ -28,7 +28,9 @@ from chakin.decorators import custom_exception, dict_output
 )
 @click.option(
     "--query_type",
-    help="The feature type (e.g. 'gene', 'mRNA', 'contig') of the query. It must be a valid Sequence Ontology term.",
+    help="The feature type (e.g. 'gene', 'mRNA', 'polypeptide', 'contig') of the query. It must be a valid Sequence Ontology term.",
+    default="polypeptide",
+    show_default=True,
     type=str
 )
 @click.option(
@@ -39,11 +41,11 @@ from chakin.decorators import custom_exception, dict_output
 @pass_context
 @custom_exception
 @dict_output
-def cli(ctx, analysis_id, blast_output, blastdb="", blastdb_id="", blast_parameters="", query_re="", query_type="", query_uniquename=False):
-    """Load a blast analysis
+def cli(ctx, analysis_id, input, blastdb="", blastdb_id="", blast_parameters="", query_re="", query_type="polypeptide", query_uniquename=False):
+    """Load a blast analysis, in the same way as does the tripal_analysis_blast module
 
 Output:
 
     Number of processed hits
     """
-    return ctx.gi.load.blast(analysis_id, blast_output, blastdb=blastdb, blastdb_id=blastdb_id, blast_parameters=blast_parameters, query_re=query_re, query_type=query_type, query_uniquename=query_uniquename)
+    return ctx.gi.load.blast(analysis_id, input, blastdb=blastdb, blastdb_id=blastdb_id, blast_parameters=blast_parameters, query_re=query_re, query_type=query_type, query_uniquename=query_uniquename)

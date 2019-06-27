@@ -1,8 +1,8 @@
 import click
-from chakin.commands.organism.add_organism import cli as func0
-from chakin.commands.organism.delete_all_organisms import cli as func1
-from chakin.commands.organism.delete_organisms import cli as func2
-from chakin.commands.organism.get_organisms import cli as func3
+from chakin.commands.organism.add_organism import cli as add_organism
+from chakin.commands.organism.delete_all_organisms import cli as delete_all_organisms
+from chakin.commands.organism.delete_organisms import cli as delete_organisms
+from chakin.commands.organism.get_organisms import cli as get_organisms
 
 
 @click.group()
@@ -13,7 +13,7 @@ def cli():
     pass
 
 
-cli.add_command(func0)
-cli.add_command(func1)
-cli.add_command(func2)
-cli.add_command(func3)
+cli.add_command(add_organism)
+cli.add_command(delete_all_organisms)
+cli.add_command(delete_organisms)
+cli.add_command(get_organisms)

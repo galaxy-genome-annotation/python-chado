@@ -1,5 +1,5 @@
 import click
-from chakin.cli import pass_context
+from chakin.cli import pass_context, json_loads
 from chakin.decorators import custom_exception, None_output
 
 
