@@ -48,7 +48,7 @@ class LoadClient(Client):
         self._featsyn_cache = None
         self._featureprop_cache = None
 
-    def blast(self, analysis_id, blast_output, blastdb=None, blastdb_id=None,
+    def blast(self, analysis_id, input, blastdb=None, blastdb_id=None,
               blast_parameters=None, query_re=None, query_type="polypeptide",
               query_uniquename=False):
         """
@@ -57,8 +57,8 @@ class LoadClient(Client):
         :type analysis_id: int
         :param analysis_id: Analysis ID
 
-        :type blast_output: str
-        :param blast_output: Path to the Blast XML file to load
+        :type input: str
+        :param input: Path to the Blast XML file to load
 
         :type blastdb: str
         :param blastdb: Name of the database blasted against (must be in the Chado db table)
@@ -100,12 +100,12 @@ class LoadClient(Client):
         if not res.count():
             raise Exception("Analysis with the id {} was not found".format(analysis_id))
 
-        if os.path.exists(blast_output):
+        if os.path.exists(input):
             self._setup_tables("blast")
-            count_ins = self._parse_blast_xml(analysis_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, True)
+            count_ins = self._parse_blast_xml(analysis_id, blastdb_id, input, query_re, query_type, query_uniquename, True)
             return {'inserted': count_ins}
         else:
-            raise Exception("{} was not found".format(blast_output))
+            raise Exception("{} was not found".format(input))
 
     def go(self, input, organism_id, analysis_id, query_type='polypeptide', match_on_name=False,
            name_column=2, go_column=5, re_name=None, skip_missing=False):
@@ -243,15 +243,15 @@ class LoadClient(Client):
 
         return {'inserted': count_ins}
 
-    def interpro(self, analysis_id, interpro_output, parse_go=False, query_re=None, query_type="polypeptide", query_uniquename=False):
+    def interpro(self, analysis_id, input, parse_go=False, query_re=None, query_type="polypeptide", query_uniquename=False):
         """
         Load a blast analysis, in the same way as does the tripal_analysis_intepro module
 
         :type analysis_id: int
         :param analysis_id: Analysis ID
 
-        :type interpro_output: str
-        :param interpro_output: Path to the InterProScan file to load
+        :type input: str
+        :param input: Path to the InterProScan file to load
 
         :type parse_go: bool
         :param parse_go: Load GO annotation to the database
@@ -274,20 +274,19 @@ class LoadClient(Client):
         if not res.count():
             raise Exception("Analysis with the id {} was not found".format(analysis_id))
 
-        if os.path.exists(interpro_output):
-            res = self.session.query(self.model.analysisfeature).filter_by(analysis_id=analysis_id)
-            if res.count():
-                res.delete(synchronize_session=False)
-        # If this is an unique file, parse it
+        res = self.session.query(self.model.analysisfeature).filter_by(analysis_id=analysis_id)
+        if res.count():
+            res.delete(synchronize_session=False)
+
         count_ins = 0
         self._setup_tables("interpro")
-        if os.path.exists(interpro_output):
-            count_ins += self._parse_interpro_xml(analysis_id, interpro_output, parse_go, query_re, query_type, query_uniquename)
+        if os.path.exists(input):
+            count_ins += self._parse_interpro_xml(analysis_id, input, parse_go, query_re, query_type, query_uniquename)
             self.session.commit()
             return {'inserted': count_ins}
         else:
             self.session.rollback()
-            raise Exception("{} was not found".format(interpro_output))
+            raise Exception("{} was not found".format(input))
 
     def _parse_interpro_xml(self, analysis_id, interpro_output, parse_go, query_re, query_type, query_uniquename):
         tree = ET.iterparse(interpro_output)
@@ -534,15 +533,19 @@ class LoadClient(Client):
             feature = re.search(r"^(.*?)\s.*$", sequence_id).group(1)
         else:
             feature = sequence_id
+
         # Get the feature from Chado
+        # TODO add some caching here
         res = self.session.query(self.model.feature)
         if query_uniquename:
             res = res.filter_by(uniquename=feature)
         else:
             res = res.filter_by(name=feature)
+
         if (query_type):
             entity_cv_term_id = self.ci.get_cvterm_id(query_type, 'sequence')
             res = res.filter_by(type_id=entity_cv_term_id)
+
         if not res.count():
             warn("Failed: cannot find a matching feature for %s in the database", feature)
             return None
