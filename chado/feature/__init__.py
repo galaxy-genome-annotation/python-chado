@@ -789,7 +789,7 @@ class FeatureClient(Client):
             if self.cache_everything:
                 res = self.session.query(self.model.feature.feature_id, self.model.featureloc.srcfeature_id, self.model.featureloc.fmin, self.model.featureloc.fmax, self.model.featureloc.strand) \
                     .filter(self.model.feature.organism_id == organism_id) \
-                    .join(self.ci.model.featureloc, self.ci.model.featureloc.feature_id == self.ci.model.feature.feature_id)
+                    .join(self.model.featureloc, self.model.featureloc.feature_id == self.model.feature.feature_id)
 
                 for x in res:
                     if x.feature_id not in self._featureloc_cache:
@@ -985,7 +985,7 @@ class FeatureClient(Client):
             if self.cache_everything:
                 res = self.session.query(self.model.feature.feature_id, self.model.featureprop.type_id, self.model.featureprop.value) \
                     .filter(self.model.feature.organism_id == organism_id) \
-                    .join(self.ci.model.featureprop, self.ci.model.featureprop.feature_id == self.ci.model.feature.feature_id)
+                    .join(self.model.featureprop, self.model.featureprop.feature_id == self.model.feature.feature_id)
 
                 for x in res:
                     prehash = (x.feature_id, x.type_id)
