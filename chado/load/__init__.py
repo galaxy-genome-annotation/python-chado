@@ -641,7 +641,7 @@ class LoadClient(Client):
             try:
                 fd, path = tempfile.mkstemp()
                 with open(blast_output) as in_fh:
-                    file = open(path,'a')
+                    file = open(path, 'a')
                     for line in in_fh:
                         line = line.strip()
                         if not line:
@@ -768,16 +768,16 @@ class LoadClient(Client):
                 db = self.session.query(self.model.db).filter_by(db_id=blastdb_id)
                 analysis = self.session.query(self.model.analysis).filter_by(analysis_id=an_id)
 
-                blast_obj = self._get_blast_obj(xml_content, db.one(), feature_id, analysis.one())
+                hits_details = self._get_hits_details(xml_content, db.one(), feature_id, analysis.one())
 
                 # iterate through the hits and add the records to the blast_hit_data table
-                index = 1
-
-                for hit in blast_obj["hits_array"]:
+                hit_num = 1
+                for hit in hits_details:
                     blast_org_name = hit["hit_organism"]
                     blast_org_id = None
 
                     if blast_org_name:
+                        # TODO maybe cache this too (maybe not useful)
                         res = self.session.query(self.model.blast_organisms).filter_by(blast_org_name=blast_org_name)
                         if not res.count():
                             blast_organism = self.model.blast_organisms()
@@ -794,7 +794,7 @@ class LoadClient(Client):
                     blast_hit_data.analysis_id = an_id
                     blast_hit_data.feature_id = feature_id
                     blast_hit_data.db_id = blastdb_id
-                    blast_hit_data.hit_num = index
+                    blast_hit_data.hit_num = hit_num
                     blast_hit_data.hit_name = hit['hit_name']
                     blast_hit_data.hit_url = hit['hit_url']
                     blast_hit_data.hit_description = hit['description']
@@ -806,16 +806,13 @@ class LoadClient(Client):
                     blast_hit_data.hit_pid = hit['percent_identity']
                     self.session.add(blast_hit_data)
                     self.session.flush()
-                    index += 1
+                    hit_num += 1
             else:
                 iteration_tags_xml += "  <{}>{}</{}>\n".format(child.tag, child.text, child.tag)
 
-    def _get_blast_obj(self, xml_content, blast_db, feature_id, blast_analysis):
-        blast_object = {}
+    def _get_hits_details(self, xml_content, blast_db, feature_id, blast_analysis):
+        hits_details = []
 
-        blast_object["xml"] = xml_content
-
-        db_name = ""
         is_genbank = ""
         regex_hit_id = ""
         regex_hit_def = ""
@@ -826,7 +823,6 @@ class LoadClient(Client):
         parser_query = self.session.query(self.model.tripal_analysis_blast).filter_by(db_id=blast_db.db_id)
         if parser_query.count():
             parser = parser_query.one()
-            db_name = parser.displayname
             is_genbank = parser.genbank_style
             regex_hit_id = parser.regex_hit_id
             regex_hit_def = parser.regex_hit_def
@@ -844,17 +840,6 @@ class LoadClient(Client):
         if not regex_hit_accession:
             regex_hit_accession = r'^(.*?)\s.*$'
 
-        # get analysis information
-
-        blast_object["analysis"] = blast_analysis
-        blast_db.displayname = db_name
-        blast_object["db"] = blast_db
-
-        if not db_name:
-            blast_object["title"] = blast_analysis.name
-        else:
-            blast_object["title"] = db_name
-
         if hasattr(self.model, 'tripal_analysis'):
             res = self.session.query(self.model.tripal_analysis).filter_by(analysis_id=blast_analysis.analysis_id)
             if res.count():
@@ -863,21 +848,11 @@ class LoadClient(Client):
         root = ET.fromstring(xml_content)
 
         for sub_iteration in root:
-            if sub_iteration.tag == 'Iteration_query-def':
-                blast_object["xml_tag"] = sub_iteration.text
-
             if sub_iteration.tag == 'Iteration_hits':
-                blast_object["xml_tag"] = sub_iteration.text
-                blast_object["feature_id"] = feature_id
-                # Initialize hit variable
-                # Replaced php array with python list (no int key)
-                hits_array = []
-                number_hits = 0
                 accession = ''
                 hit_name = ''
                 description = ''
                 hit_organism = 'Unknown'
-                # Initialize hsp variable
 
                 for hit in sub_iteration:
                     best_evalue = 0
@@ -890,9 +865,6 @@ class LoadClient(Client):
                     hit_organism = 'Unknown'
 
                     for hit_value in hit:
-                        # This part was commented out in php version. (https://github.com/tripal/tripal_analysis_blast/blob/7.x-3.x/includes/TripalImporter/BlastImporter.inc#L943)
-                        # if hit_value.tag == "Hit_id":
-                        # if is_genbank:
                         if hit_value.tag == "Hit_def":
                             if is_genbank:
                                 description = hit_value.text
@@ -931,7 +903,6 @@ class LoadClient(Client):
                                         if not best_len:
                                             best_len = hsp_type.text
                     # Finished a Hit, saving value
-                    number_hits += 1
                     hit_dict = {
                         'accession': accession,
                         'hit_organism': hit_organism,
@@ -954,11 +925,8 @@ class LoadClient(Client):
                         percent_identity = "{0:.2f}".format((float(best_identity) / float(best_len)) * 100)
                         hit_dict['percent_identity'] = percent_identity
 
-                    hits_array.append(hit_dict)
-
-        blast_object['number_hits'] = number_hits
-        blast_object['hits_array'] = hits_array
-        return blast_object
+                    hits_details.append(hit_dict)
+        return hits_details
 
     def _populate_featcvterm_cache(self):
         if self._featcvterm_cache is None:
@@ -994,10 +962,12 @@ class LoadClient(Client):
     def _setup_tables(self, module):
         if module == "interpro":
             self.ci.create_cvterm(term='analysis_interpro_xmloutput_hit', term_definition='Hit in the interpro XML output. Each hit belongs to a chado feature. This cvterm represents a hit in the output', cv_name='tripal', db_name='tripal')
+
         # Term for blast
         if module == "blast":
             self.ci.create_cvterm(term='analysis_blast_output_iteration_hits', term_definition='Hits of a blast', cv_name='tripal', db_name='tripal')
             # Tables for blast
+            added_table = False
             if not hasattr(self.model, 'tripal_analysis_blast'):
                 tripal_analysis_blast_table = Table(
                     'tripal_analysis_blast', self.metadata,
@@ -1011,6 +981,7 @@ class LoadClient(Client):
                     schema="public"
                 )
                 tripal_analysis_blast_table.create(self.engine)
+                added_table = True
 
             if not hasattr(self.model, 'blast_organisms'):
                 blast_organisms_table = Table(
@@ -1031,10 +1002,10 @@ class LoadClient(Client):
             if not hasattr(self.model, 'blast_hit_data'):
                 blast_hit_data_table = Table(
                     'blast_hit_data', self.metadata,
-                    Column('analysisfeature_id', Integer, ForeignKey(self.model.analysisfeature.analysisfeature_id, ondelete="CASCADE"), nullable=False, index=True,  primary_key=True),
-                    Column('analysis_id', Integer, ForeignKey(self.model.analysis.analysis_id, ondelete="CASCADE"), nullable=False, index=True,  primary_key=True),
-                    Column('feature_id', Integer, ForeignKey(self.model.feature.feature_id, ondelete="CASCADE"), nullable=False, index=True,  primary_key=True),
-                    Column('db_id', Integer, ForeignKey(self.model.db.db_id, ondelete="CASCADE"), nullable=False, index=True,  primary_key=True),
+                    Column('analysisfeature_id', Integer, ForeignKey(self.model.analysisfeature.analysisfeature_id, ondelete="CASCADE"), nullable=False, index=True, primary_key=True),
+                    Column('analysis_id', Integer, ForeignKey(self.model.analysis.analysis_id, ondelete="CASCADE"), nullable=False, index=True, primary_key=True),
+                    Column('feature_id', Integer, ForeignKey(self.model.feature.feature_id, ondelete="CASCADE"), nullable=False, index=True, primary_key=True),
+                    Column('db_id', Integer, ForeignKey(self.model.db.db_id, ondelete="CASCADE"), nullable=False, index=True, primary_key=True),
                     Column('hit_num', Integer, nullable=False, primary_key=True),
                     Column('hit_name', String, index=True),
                     Column('hit_url', String),
@@ -1055,3 +1026,48 @@ class LoadClient(Client):
                 warnings.simplefilter("ignore", category=sa_exc.SAWarning)
                 self.ci._reflect_tables()
                 self.model = self.ci.model
+
+            if added_table:
+                # TODO test this
+                # add swissprot, trembl and co
+                res = self.session.query(self.model.db.db_id) \
+                                  .filter(self.model.db.name.ilike('%swissprot%'))
+                for x in res:
+                    blast_db_record = self.model.tripal_analysis_blast()
+                    blast_db_record.db_id = x.db_id
+                    blast_db_record.displayname = 'ExPASy Swissprot'
+                    blast_db_record.regex_hit_id = '^sp\\|.*?\\|(.*?)\\s.*?$'
+                    blast_db_record.regex_hit_def = '^sp\\|.*?\\|.*?\\s(.*)$'
+                    blast_db_record.regex_hit_accession = 'sp\\|(.*?)\\|.*?\\s.*?$'
+                    blast_db_record.genbank_style = 0
+                    blast_db_record.regex_hit_organism = '^.*?OS=(.*?)\\s\\w\\w=.*$'
+                    self.session.add(blast_db_record)
+                    self.session.flush()
+
+                res = self.session.query(self.model.db.db_id) \
+                                  .filter(self.model.db.name.ilike('%trembl%'))
+                for x in res:
+                    blast_db_record = self.model.tripal_analysis_blast()
+                    blast_db_record.db_id = x.db_id
+                    blast_db_record.displayname = 'ExPASy TrEMBL'
+                    blast_db_record.regex_hit_id = '^.*?\\|(.*?)\\s.*?$'
+                    blast_db_record.regex_hit_def = '^.*?\\|.*?\\s(.*)$'
+                    blast_db_record.regex_hit_accession = '^(.*?)\\|.*?\\s.*?$'
+                    blast_db_record.genbank_style = 0
+                    blast_db_record.regex_hit_organism = '^.*?OS=(.*?)\\s\\w\\w=.*$'
+                    self.session.add(blast_db_record)
+                    self.session.flush()
+
+                res = self.session.query(self.model.db.db_id) \
+                                  .filter(self.model.db.name.ilike('%genbank%'))
+                for x in res:
+                    blast_db_record = self.model.tripal_analysis_blast()
+                    blast_db_record.db_id = x.db_id
+                    blast_db_record.displayname = 'Genbank'
+                    blast_db_record.regex_hit_id = ''
+                    blast_db_record.regex_hit_def = ''
+                    blast_db_record.regex_hit_accession = ''
+                    blast_db_record.genbank_style = 1
+                    blast_db_record.regex_hit_organism = ''
+                    self.session.add(blast_db_record)
+                    self.session.flush()
