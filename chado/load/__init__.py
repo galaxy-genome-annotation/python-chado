@@ -358,17 +358,6 @@ class LoadClient(Client):
             # match the protein id with the feature name
             feature_id = 0
             seqid = protein.get('id')
-            # if the sequence name a generic name (i.e. 'Sequence_1') then the
-            # results do not contain the original sequence names.  The only
-            # option we have is to use the filename.  This will work in the case of
-            # Blast2GO which stores the XML for each sequence in a file with the
-            # the filename the name of the sequence
-            if re.search(r'Sequence_\d+', seqid):
-                # Original regex does not work if there are no slashes (well it doesn't work at all actually..)
-                last = interpro_file.split('/')[-1]
-                filename = re.search(r'^(.*).xml$', last).group(1)
-                warn("Sequence name for results is not specific, using filename: %s as the sequence name", filename)
-                seqid = filename
             # Remove _ORF from the sequence name
             seqid = re.search(r'^(.+)_\d+_ORF\d+.*', seqid).group(1)
             # match the name of the feature in the XML file to a feature in Chado
@@ -568,17 +557,19 @@ class LoadClient(Client):
 
     def _load_ipr_terms(self, ipr_terms, feature_id, analysisfeature_id):
         for ipr_id, ipr_term in ipr_terms.items():
-            if (ipr_term["ipr_name"] and not ipr_term["ipr_name"] == 'noIPR'):
+            if (ipr_term["ipr_name"] and ipr_term["ipr_name"] != 'noIPR'):
                 # currently there is no InterPro Ontology OBO file so we can't
                 # load the IPR terms that way, we need to just add them
                 # as we encounter them. If the term already exists
                 # we do not want to update it.
                 cvterm_id = self.ci.create_cvterm(ipr_term['ipr_name'], 'INTERPRO', 'INTERPRO', term_definition=ipr_term['ipr_desc'], accession=ipr_id)
                 if not cvterm_id:
+                    # TODO warn or error? (option as in go?)
                     warn("Failed: Cannot find cvterm: %s %s", ipr_id, ipr_term['ipr_name'])
                     continue
                 # Insert IPR terms into the feature_cvterm table
                 # the default pub_id of 1 (NULL) is used. if the cvterm already exists then just skip adding it
+                # TODO cache this too
                 res = self.session.query(self.model.feature_cvterm).filter_by(feature_id=feature_id, cvterm_id=cvterm_id, pub_id=1)
                 if not res.count():
                     feature_cvterm = self.model.feature_cvterm()
@@ -590,7 +581,7 @@ class LoadClient(Client):
 
                 # Insert IPR terms into the analysisfeatureprop table but only if it
                 # doesn't already exist
-                # Tripal implementation uses prepared statement.. no idea if it's needed
+                # TODO cache this too
                 res = self.session.query(self.model.analysisfeatureprop).filter_by(analysisfeature_id=analysisfeature_id, type_id=cvterm_id, rank=0, value=ipr_id)
                 if not res.count():
                     analysisfeatureprop = self.model.analysisfeatureprop()
@@ -607,15 +598,18 @@ class LoadClient(Client):
             regex = re.search(r'^.*?GO:(\d+).*$', go_id)
             if regex:
                 # Find cvterm_id for the matched GO term using accession and db_id
+                # TODO Cache this
                 res = self.session.query(self.model.cvterm.cvterm_id) \
                     .join(self.model.dbxref, self.model.dbxref.dbxref_id == self.model.cvterm.dbxref_id) \
                     .filter(self.model.dbxref.accession == regex.group(1), self.model.dbxref.db_id == go_db_id)
                 if not res.count():
+                    # TODO warn or error?
                     warn("Cannot find GO cvterm: 'GO:%s'. skipping.", regex.group(1))
                     continue
                 goterm_id = res.first().cvterm_id
                 # Insert GO terms into feature_cvterm table. Default pub_id = 1 (NULL) was used. But
                 # only insert if not already there
+                # TODO Cache this
                 res = self.session.query(self.model.feature_cvterm).filter_by(feature_id=feature_id, cvterm_id=goterm_id, pub_id=1)
                 if not res.count():
                     feature_cvterm = self.model.feature_cvterm()
@@ -626,6 +620,7 @@ class LoadClient(Client):
                     self.session.flush()
                 # Insert Go terms into the analysisfeatureprop table but only if it
                 # doesn't already exist
+                # TODO Cache this
                 res = self.session.query(self.model.analysisfeatureprop).filter_by(analysisfeature_id=analysisfeature_id, type_id=goterm_id, rank=0)
                 if not res.count():
                     analysisfeatureprop = self.model.analysisfeatureprop()
@@ -635,6 +630,9 @@ class LoadClient(Client):
                     analysisfeatureprop.value = regex.group(1)
                     self.session.add(analysisfeatureprop)
                     self.session.flush()
+            else:
+                self.session.rollback()
+                raise Exception("Cannot parse GO term {}".format(go_id))
 
     def _parse_blast_xml(self, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, check_concat):
 
