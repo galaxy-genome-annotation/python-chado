@@ -54,7 +54,7 @@ def _get_instance(instance_name=None):
     return conf[instance_name]
 
 
-def get_instance(instance_name=None, offline=False, no_reflect=False, full=False):
+def get_instance(instance_name=None, offline=False, no_reflect=False, reflect_tripal_tables=False):
     conf = _get_instance(instance_name=instance_name)
     return ChadoInstance(dbhost=conf['dbhost'],
                          dbname=conf['dbname'],
@@ -64,4 +64,4 @@ def get_instance(instance_name=None, offline=False, no_reflect=False, full=False
                          dbport=conf['dbport'],
                          offline=offline,
                          no_reflect=no_reflect,
-                         full=full)
+                         reflect_tripal_tables=reflect_tripal_tables)
