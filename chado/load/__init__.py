@@ -305,6 +305,13 @@ class LoadClient(Client):
         return counts
 
     def _parse_interpro_xml5(self, analysis_id, xml, parse_go, query_re, query_type, query_uniquename):
+        res = self.session.query(self.model.db).filter_by(name="GO")
+        if res.count():
+            go_db_id = res.one().db_id
+        else:
+            warn("Goterm loading was requested but the GO schema is not installed in chado, skipping")
+            go_db_id = False
+
         total_count = 0
         for entity in xml:
             total_count += 1
@@ -323,13 +330,8 @@ class LoadClient(Client):
                     ipr_terms = ipr_array["iprterms"]
                     self._load_ipr_terms(ipr_terms, feature_id, analysisfeature_id)
 
-                    if parse_go:
-                        res = self.session.query(self.model.db).filter_by(name="GO")
-                        if res.count():
-                            self._load_go_terms(ipr_array["goterms"], feature_id, analysisfeature_id, res.one().db_id)
-                        else:
-                            warn("Goterm were requested but the GO schema is not installed in chado; Skipping")
-                            parse_go = False
+                    if parse_go and go_db_id:
+                        self._load_go_terms(ipr_array["goterms"], feature_id, analysisfeature_id, go_db_id)
             return total_count
 
     def _parse_interpro_xml4(self, analysis_id, xml, interpro_file, parse_go, query_re, query_type, query_uniquename):
@@ -338,6 +340,13 @@ class LoadClient(Client):
         # occurs if results were generated with the online InterProScan tool.
         # if the XML starts in with the results then this happens when InterProScan
         # is used command-line and we can just use the object as is
+        res = self.session.query(self.model.db).filter_by(name="GO")
+        if res.count():
+            go_db_id = res.one().db_id
+        else:
+            warn("Goterm loading was requested but the GO schema is not installed in chado, skipping")
+            go_db_id = False
+
         total_count = 0
         if re.search("^EBIInterProScanResults", xml.tag):
             proteins = xml[1]
@@ -378,17 +387,13 @@ class LoadClient(Client):
             # Add IPR terms
             self._load_ipr_terms(ipr_terms, feature_id, analysisfeature_id)
 
-            if parse_go:
-                res = self.session.query(self.model.db).filter_by(name="GO")
-                if res.count():
-                    self._load_go_terms(ipr_array["goterms"], feature_id, analysisfeature_id, res.one().db_id)
-                else:
-                    warn("Goterm were requested but the GO schema is not installed in chado")
-                    parse_go = False
+            if parse_go and go_db_id:
+                self._load_go_terms(ipr_array["goterms"], feature_id, analysisfeature_id, go_db_id)
         return total_count
 
     def _add_analysis_feature(self, feature_id, analysis_id, xml):
 
+        # TODO cache things as for gff here
         type_id = self.ci.get_cvterm_id('analysis_interpro_xmloutput_hit', 'tripal')
         res = self.session.query(self.model.analysisfeature).filter_by(feature_id=feature_id, analysis_id=analysis_id)
         if not res.count():
@@ -401,7 +406,9 @@ class LoadClient(Client):
             analysis_feature_id = analysis_feature.analysisfeature_id
         else:
             analysis_feature_id = res.one().analysisfeature_id
+
         # Need to insert the raw xml
+        # TODO cache things as for gff here
         rank = 0
         res = self.session.query(self.model.analysisfeatureprop).filter_by(analysisfeature_id=analysis_feature_id, type_id=type_id) \
             .order_by(self.model.analysisfeatureprop.rank.desc())
@@ -426,7 +433,7 @@ class LoadClient(Client):
         if name == 'nucleotide-sequence':
             return self._parse_feature_xml5_nucleotide(xml, feature_id)
         if name == 'protein':
-            # XML 5 protein key has no attributes XML4 does
+            # XML 5 protein key has no attributes, XML4 does
             if len(attrib) == 0:
                 return self._parse_feature_xml5_protein(xml, feature_id)
             else:
@@ -518,6 +525,7 @@ class LoadClient(Client):
                         terms['goterms'].append(go_id)
         return terms
 
+    # TODO use this for blast and go too?
     def _match_feature(self, sequence_id, query_re, query_type, query_uniquename, sequence_name=""):
         feature = ""
         # Cleanup the feature_name/id
@@ -527,6 +535,7 @@ class LoadClient(Client):
             elif (sequence_name and re.search(query_re, sequence_name)):
                 feature = re.search(query_re, sequence_name).group(1)
             else:
+                # TODO warn or error? (option as in go?)
                 warn("Failed: Cannot find feature for %s using the regular expression: %s", sequence_id, query_re)
                 return False
         elif re.search(r"^(.*?)\s.*$", sequence_id):
@@ -547,9 +556,11 @@ class LoadClient(Client):
             res = res.filter_by(type_id=entity_cv_term_id)
 
         if not res.count():
+            # TODO warn or error? (option as in go?)
             warn("Failed: cannot find a matching feature for %s in the database", feature)
             return None
         elif res.count() > 1:
+            # TODO warn or error? (option as in go?)
             warn("Ambiguous: %s matches more than one feature and is being skipped.", feature)
             return None
         else:
