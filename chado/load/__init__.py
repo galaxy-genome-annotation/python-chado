@@ -58,7 +58,7 @@ class LoadClient(Client):
         :param analysis_id: Analysis ID
 
         :type blast_output: str
-        :param blast_output: Path to the Blast file to load (single XML file, or directory containing multiple XML files)
+        :param blast_output: Path to the Blast XML file to load
 
         :type blastdb: str
         :param blastdb: Name of the database blasted against (must be in the Chado db table)
@@ -251,7 +251,7 @@ class LoadClient(Client):
         :param analysis_id: Analysis ID
 
         :type interpro_output: str
-        :param interpro_output: Path to the InterProScan file to load (single XML file, or directory containing multiple XML files)
+        :param interpro_output: Path to the InterProScan file to load
 
         :type parse_go: bool
         :param parse_go: Load GO annotation to the database
@@ -281,22 +281,13 @@ class LoadClient(Client):
         # If this is an unique file, parse it
         count_ins = 0
         self._setup_tables("interpro")
-        if os.path.isfile(interpro_output):
+        if os.path.exists(interpro_output):
             count_ins += self._parse_interpro_xml(analysis_id, interpro_output, parse_go, query_re, query_type, query_uniquename)
             self.session.commit()
             return {'inserted': count_ins}
-        # Else if it's a dir, parse each file in it
-        elif os.path.isdir(interpro_output):
-            for filename in os.listdir(interpro_output):
-                if filename.endswith(".xml"):
-                    count_ins += self._parse_interpro_xml(analysis_id, filename, parse_go, query_re, query_type, query_uniquename)
-            self.session.commit()
-            self._reset_cache()
-
-            return {'inserted': count_ins}
         else:
             self.session.rollback()
-            raise Exception("{} is neither a file nor a directory".format(interpro_output))
+            raise Exception("{} was not found".format(interpro_output))
 
     def _parse_interpro_xml(self, analysis_id, interpro_output, parse_go, query_re, query_type, query_uniquename):
         tree = ET.iterparse(interpro_output)
@@ -972,11 +963,11 @@ class LoadClient(Client):
                 tripal_analysis_blast_table = Table(
                     'tripal_analysis_blast', self.metadata,
                     Column('db_id', Integer, primary_key=True, nullable=False, default=0, index=True),
-                    Column('regex_hit_id', String, nullable=False),
-                    Column('regex_hit_def', String, nullable=False),
-                    Column('regex_hit_accession', String, nullable=False),
-                    Column('regex_hit_organism', String, nullable=False),
-                    Column('hit_organism', String, nullable=False),
+                    Column('regex_hit_id', String, nullable=True),
+                    Column('regex_hit_def', String, nullable=True),
+                    Column('regex_hit_accession', String, nullable=True),
+                    Column('regex_hit_organism', String, nullable=True),
+                    Column('hit_organism', String, nullable=True),
                     Column('genbank_style', Integer, primary_key=True, default=0),
                     schema="public"
                 )

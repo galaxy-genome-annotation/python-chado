@@ -87,6 +87,10 @@ $ chakin feature load_fasta \
 
 ## History
 
+- 2.3
+    - added loading of Blast and InterProScan data
+    - moved `chakin feature load_go` to `chakin load go`
+
 - 2.2.6
     - fix requirement name for psycopg2 (name change for version >=2.8)
 
