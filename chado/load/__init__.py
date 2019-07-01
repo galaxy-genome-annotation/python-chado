@@ -49,8 +49,8 @@ class LoadClient(Client):
         self._featureprop_cache = None
 
     def blast(self, analysis_id, input, blastdb=None, blastdb_id=None,
-              blast_parameters=None, query_re=None, query_type="polypeptide",
-              query_uniquename=False):
+              blast_parameters=None, re_name=None, query_type="polypeptide",
+              match_on_name=False):
         """
         Load a blast analysis, in the same way as does the tripal_analysis_blast module
 
@@ -69,14 +69,14 @@ class LoadClient(Client):
         :type blast_parameters: str
         :param blast_parameters: Blast parameters used to produce these results
 
-        :type query_re: str
-        :param query_re: The regular expression that can uniquely identify the query name. This parameters is required if the feature name is not the first word in the blast query name.
-
         :type query_type: str
         :param query_type: The feature type (e.g. \'gene\', \'mRNA\', 'polypeptide', \'contig\') of the query. It must be a valid Sequence Ontology term.
 
-        :type query_uniquename: bool
-        :param query_uniquename: Use this if the --query-re regular expression matches unique names instead of names in the database.
+        :type match_on_name: bool
+        :param match_on_name: Match features using their name instead of their uniquename
+
+        :type re_name: str
+        :param re_name: Regular expression to extract the feature name from the input file (first capturing group will be used).
 
         :rtype: dict
         :return: Number of processed hits
@@ -102,7 +102,7 @@ class LoadClient(Client):
 
         if os.path.exists(input):
             self._setup_tables("blast")
-            count_ins = self._parse_blast_xml(analysis_id, blastdb_id, input, query_re, query_type, query_uniquename, True)
+            count_ins = self._parse_blast_xml(analysis_id, blastdb_id, input, re_name, query_type, match_on_name, True)
             return {'inserted': count_ins}
         else:
             raise Exception("{} was not found".format(input))
@@ -243,9 +243,9 @@ class LoadClient(Client):
 
         return {'inserted': count_ins}
 
-    def interpro(self, analysis_id, input, parse_go=False, query_re=None, query_type="polypeptide", query_uniquename=False):
+    def interpro(self, analysis_id, input, parse_go=False, re_name=None, query_type="polypeptide", match_on_name=False):
         """
-        Load a blast analysis, in the same way as does the tripal_analysis_intepro module
+        Load an InterProScan analysis, in the same way as does the tripal_analysis_intepro module
 
         :type analysis_id: int
         :param analysis_id: Analysis ID
@@ -256,14 +256,14 @@ class LoadClient(Client):
         :type parse_go: bool
         :param parse_go: Load GO annotation to the database
 
-        :type query_re: str
-        :param query_re: The regular expression that can uniquely identify the query name. This parameter is required if the feature name is not the first word in the blast query name.
-
         :type query_type: str
         :param query_type: The feature type (e.g. \'gene\', \'mRNA\', \'polypeptide\', \'contig\') of the query. It must be a valid Sequence Ontology term.
 
-        :type query_uniquename: bool
-        :param query_uniquename: Use this if the --query-re regular expression matches unique names instead of names in the database.
+        :type match_on_name: bool
+        :param match_on_name: Match features using their name instead of their uniquename
+
+        :type re_name: str
+        :param re_name: Regular expression to extract the feature name from the input file (first capturing group will be used).
 
         :rtype: dict
         :return: Number of processed hits
@@ -281,14 +281,14 @@ class LoadClient(Client):
         count_ins = 0
         self._setup_tables("interpro")
         if os.path.exists(input):
-            count_ins += self._parse_interpro_xml(analysis_id, input, parse_go, query_re, query_type, query_uniquename)
+            count_ins += self._parse_interpro_xml(analysis_id, input, parse_go, re_name, query_type, match_on_name)
             self.session.commit()
             return {'inserted': count_ins}
         else:
             self.session.rollback()
             raise Exception("{} was not found".format(input))
 
-    def _parse_interpro_xml(self, analysis_id, interpro_output, parse_go, query_re, query_type, query_uniquename):
+    def _parse_interpro_xml(self, analysis_id, interpro_output, parse_go, re_name, query_type, match_on_name):
         tree = ET.iterparse(interpro_output)
         # If it starts with 'protein-matches' or 'nucleotide-sequence-matches' then this is InterPro v5 XML
         # Need to strip namespace
@@ -297,14 +297,14 @@ class LoadClient(Client):
                 elem.tag = elem.tag.split('}', 1)[1]
         root = tree.root
         if re.search("^protein-matches", root.tag) or re.search("^nucleotide-sequence-matches", root.tag):
-            counts = self._parse_interpro_xml5(analysis_id, root, parse_go, query_re, query_type, query_uniquename)
+            counts = self._parse_interpro_xml5(analysis_id, root, parse_go, re_name, query_type, match_on_name)
         elif re.search("^EBIInterProScanResults", root.tag) or re.search("^interpro_matches", root.tag):
-            counts = self._parse_interpro_xml4(analysis_id, root, interpro_output, parse_go, query_re, query_type, query_uniquename)
+            counts = self._parse_interpro_xml4(analysis_id, root, interpro_output, parse_go, re_name, query_type, match_on_name)
         else:
             raise Exception("Xml format was not recognised")
         return counts
 
-    def _parse_interpro_xml5(self, analysis_id, xml, parse_go, query_re, query_type, query_uniquename):
+    def _parse_interpro_xml5(self, analysis_id, xml, parse_go, re_name, query_type, match_on_name):
         res = self.session.query(self.model.db).filter_by(name="GO")
         if res.count():
             go_db_id = res.one().db_id
@@ -320,7 +320,7 @@ class LoadClient(Client):
                 if child_name == "xref":
                     seq_id = child.get('id')
                     seq_name = child.get('name', "")
-                    feature_id = self._match_feature(seq_id, query_re, query_type, query_uniquename, seq_name)
+                    feature_id = self._match_feature(seq_id, re_name, query_type, match_on_name, seq_name)
                     if not feature_id:
                         continue
                     analysisfeature_id = self._add_analysis_feature(feature_id, analysis_id, entity)
@@ -334,7 +334,7 @@ class LoadClient(Client):
                         self._load_go_terms(ipr_array["goterms"], feature_id, analysisfeature_id, go_db_id)
             return total_count
 
-    def _parse_interpro_xml4(self, analysis_id, xml, interpro_file, parse_go, query_re, query_type, query_uniquename):
+    def _parse_interpro_xml4(self, analysis_id, xml, interpro_file, parse_go, re_name, query_type, match_on_name):
         # If there is an EBI header then we need to skip that
         # and set our proteins array to be the second element of the array. This
         # occurs if results were generated with the online InterProScan tool.
@@ -361,7 +361,7 @@ class LoadClient(Client):
             # Remove _ORF from the sequence name
             seqid = re.search(r'^(.+)_\d+_ORF\d+.*', seqid).group(1)
             # match the name of the feature in the XML file to a feature in Chado
-            feature_id = self._match_feature(seqid, query_re, query_type, query_uniquename)
+            feature_id = self._match_feature(seqid, re_name, query_type, match_on_name)
             if not feature_id:
                 continue
             # Create an entry in the analysisfeature table and add the XML for this feature
@@ -515,17 +515,17 @@ class LoadClient(Client):
         return terms
 
     # TODO use this for blast and go too?
-    def _match_feature(self, sequence_id, query_re, query_type, query_uniquename, sequence_name=""):
+    def _match_feature(self, sequence_id, re_name, query_type, match_on_name, sequence_name=""):
         feature = ""
         # Cleanup the feature_name/id
-        if query_re:
-            if re.search(query_re, sequence_id):
-                feature = re.search(query_re, sequence_id).group(1)
-            elif (sequence_name and re.search(query_re, sequence_name)):
-                feature = re.search(query_re, sequence_name).group(1)
+        if re_name:
+            if re.search(re_name, sequence_id):
+                feature = re.search(re_name, sequence_id).group(1)
+            elif (sequence_name and re.search(re_name, sequence_name)):
+                feature = re.search(re_name, sequence_name).group(1)
             else:
                 # TODO warn or error? (option as in go?)
-                warn("Failed: Cannot find feature for %s using the regular expression: %s", sequence_id, query_re)
+                warn("Failed: Cannot find feature for %s using the regular expression: %s", sequence_id, re_name)
                 return False
         elif re.search(r"^(.*?)\s.*$", sequence_id):
             feature = re.search(r"^(.*?)\s.*$", sequence_id).group(1)
@@ -535,10 +535,10 @@ class LoadClient(Client):
         # Get the feature from Chado
         # TODO add some caching here
         res = self.session.query(self.model.feature)
-        if query_uniquename:
-            res = res.filter_by(uniquename=feature)
-        else:
+        if match_on_name:
             res = res.filter_by(name=feature)
+        else:
+            res = res.filter_by(uniquename=feature)
 
         if (query_type):
             entity_cv_term_id = self.ci.get_cvterm_id(query_type, 'sequence')
@@ -634,7 +634,7 @@ class LoadClient(Client):
                 self.session.rollback()
                 raise Exception("Cannot parse GO term {}".format(go_id))
 
-    def _parse_blast_xml(self, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, check_concat):
+    def _parse_blast_xml(self, an_id, blastdb_id, blast_output, re_name, query_type, match_on_name, check_concat):
 
         cv_term_id = self.ci.get_cvterm_id('analysis_blast_output_iteration_hits', 'tripal')
         num_iter = 0
@@ -653,7 +653,7 @@ class LoadClient(Client):
                         # If we have a full part, process it and delete/recreate temp file
                         if (re.search('</BlastOutput>', line)):
                             file.close()
-                            num_iter += self._parse_blast_xml(an_id, blastdb_id, path, query_re, query_type, query_uniquename, False)
+                            num_iter += self._parse_blast_xml(an_id, blastdb_id, path, re_name, query_type, match_on_name, False)
                             os.remove(path)
                             fd, path = tempfile.mkstemp()
                             file = open(path, 'a')
@@ -669,12 +669,12 @@ class LoadClient(Client):
             tree = ET.ElementTree(file=blast_output)
 
             for iteration in tree.iter(tag="Iteration"):
-                self._manage_iteration(iteration, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, cv_term_id)
+                self._manage_iteration(iteration, an_id, blastdb_id, blast_output, re_name, query_type, match_on_name, cv_term_id)
                 num_iter += 1
 
         return num_iter
 
-    def _manage_iteration(self, iteration, an_id, blastdb_id, blast_output, query_re, query_type, query_uniquename, cv_term_id):
+    def _manage_iteration(self, iteration, an_id, blastdb_id, blast_output, re_name, query_type, match_on_name, cv_term_id):
         feature_id = 0
         analysis_feature_id = 0
         iteration_tags_xml = ''
@@ -690,21 +690,21 @@ class LoadClient(Client):
         for child in iteration:
             if child.tag == 'Iteration_query-def':
                 iteration_tags_xml += "  <{}>{}</{}>\n".format(child.tag, child.text, child.tag)
-                if query_re and re.search(query_re, child.text):
-                    feature = re.search(query_re, child.text).group(1)
+                if re_name and re.search(re_name, child.text):
+                    feature = re.search(re_name, child.text).group(1)
                 elif re.search(r'^(.*?)\s.*$', child.text):
                     feature = re.search(r'^(.*?)\s.*$', child.text).group(1)
                 else:
                     feature = child.text
-                if not feature and query_re:
-                    raise Exception("Cannot find feature in {} using the regular expression: {}".format(child.text, query_re))
+                if not feature and re_name:
+                    raise Exception("Cannot find feature in {} using the regular expression: {}".format(child.text, re_name))
 
                 # TODO load this into cache at the beginning
                 res = self.session.query(self.model.feature).filter_by(type_id=entity_cv_term_id)
-                if query_uniquename:
-                    res = res.filter_by(uniquename=query_uniquename)
-                else:
+                if match_on_name:
                     res = res.filter_by(name=feature)
+                else:
+                    res = res.filter_by(uniquename=feature)
 
                 if not res:
                     raise Exception("Database query failed when searching for feature {}".format(feature))
