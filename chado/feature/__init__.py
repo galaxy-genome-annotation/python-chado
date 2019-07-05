@@ -39,20 +39,6 @@ class FeatureClient(Client):
 
         Client.__init__(self, engine, metadata, session, ci)
 
-    def _reset_cache(self):
-
-        self._synonym_cache = None
-        self._db_cache = None
-        self._xref_cache = None
-        self._feature_cache = None
-        self._featureloc_cache = None
-        self._featrel_cache = None
-        self._featured_dirty_rels = None
-        self._featxref_cache = None
-        self._featcvterm_cache = None
-        self._featsyn_cache = None
-        self._featureprop_cache = None
-
     def get_features(self, organism_id=None, analysis_id=None, name=None, uniquename=None):
         """
         Get all or some features
@@ -774,28 +760,8 @@ class FeatureClient(Client):
         feat_term = self.ci.get_cvterm_id(f.type, 'sequence', True)
 
         # Fill the existing feature cache if not already done
-        if self._feature_cache is None:
-            self._feature_cache = {}
-
-            if self.cache_everything:
-                # We fill it even with --add_only as we typically already loaded scaffolds before
-                res = self.session.query(self.model.feature.feature_id, self.model.feature.name, self.model.feature.uniquename, self.model.feature.type_id, self.model.feature.organism_id) \
-                    .filter(self.model.feature.organism_id == organism_id)
-
-                self._feature_cache = {(x.uniquename, x.organism_id, x.type_id): {'feature_id': x.feature_id, 'name': x.name, 'uniquename': x.uniquename} for x in res}
-
-        if self._featureloc_cache is None:
-            self._featureloc_cache = {}
-            if self.cache_everything:
-                res = self.session.query(self.model.feature.feature_id, self.model.featureloc.srcfeature_id, self.model.featureloc.fmin, self.model.featureloc.fmax, self.model.featureloc.strand) \
-                    .filter(self.model.feature.organism_id == organism_id) \
-                    .join(self.model.featureloc, self.model.featureloc.feature_id == self.model.feature.feature_id)
-
-                for x in res:
-                    if x.feature_id not in self._featureloc_cache:
-                        self._featureloc_cache[x.feature_id] = []
-
-                    self._featureloc_cache[x.feature_id].append((x.srcfeature_id, x.fmin, x.fmax, x.strand))
+        self._init_feature_cache(organism_id)
+        self._init_featureloc_cache(organism_id)
 
         # See if we have a sequence to load from fasta file
         if f_uname in self._fasta_sequence_cache:
@@ -928,22 +894,9 @@ class FeatureClient(Client):
             exactterm = self.ci.get_cvterm_id('exact', 'synonym_type')
             pub_id = self.ci.get_pub_id('null')
 
-            if self._synonym_cache is None:
-                self._synonym_cache = {}
-                res = self.session.query(self.model.synonym.name, self.model.synonym.synonym_id) \
-                    .filter(self.model.synonym.type_id == exactterm)
+            self._init_synonym_cache()
 
-                self._synonym_cache = {x.name: x.synonym_id for x in res}
-
-            if self._featsyn_cache is None:
-                self._featsyn_cache = {}
-                if self.cache_everything:
-                    res = self.session.query(self.model.feature_synonym.feature_id, self.model.feature_synonym.synonym_id)
-
-                    for x in res:
-                        if x.feature_id not in self._featsyn_cache:
-                            self._featsyn_cache[x.feature_id] = []
-                        self._featsyn_cache[x.feature_id].append(x.synonym_id)
+            self._init_featsyn_cache()
 
             for alias in f.qualifiers['Alias']:
                 if alias not in self._synonym_cache:
@@ -980,19 +933,7 @@ class FeatureClient(Client):
         cache_hash = (feat, propterm)
         rank = 0
 
-        if self._featureprop_cache is None:
-            self._featureprop_cache = {}
-            if self.cache_everything:
-                res = self.session.query(self.model.feature.feature_id, self.model.featureprop.type_id, self.model.featureprop.value) \
-                    .filter(self.model.feature.organism_id == organism_id) \
-                    .join(self.model.featureprop, self.model.featureprop.feature_id == self.model.feature.feature_id)
-
-                for x in res:
-                    prehash = (x.feature_id, x.type_id)
-                    if prehash not in self._featureprop_cache:
-                        self._featureprop_cache[prehash] = []
-
-                    self._featureprop_cache[prehash].append(x.value)
+        self._init_featureprop_cache(organism_id)
 
         if cache_hash in self._featureprop_cache:
             if value in self._featureprop_cache[cache_hash]:
@@ -1014,30 +955,13 @@ class FeatureClient(Client):
 
     def _load_feat_dbxref(self, f, feat):
 
-        if self._db_cache is None:
-            self._db_cache = {}
-            res = self.session.query(self.model.db.db_id, self.model.db.name)
+        self._init_db_cache()
 
-            self._db_cache = {x.name: x.db_id for x in res}
+        self._init_xref_cache()
 
-        if self._xref_cache is None:
-            self._xref_cache = {}
-            res = self.session.query(self.model.dbxref.accession, self.model.dbxref.dbxref_id, self.model.db.name) \
-                .join(self.model.db, self.model.db.db_id == self.model.dbxref.db_id)
+        self._init_featxref_cache()
 
-            self._xref_cache = {(x.name, x.accession): x.dbxref_id for x in res}
-
-        if self._featxref_cache is None:
-            self._featxref_cache = {}
-            if self.cache_everything:
-                res = self.session.query(self.model.feature_dbxref.feature_id, self.model.feature_dbxref.dbxref_id)
-
-                for x in res:
-                    if x.feature_id not in self._featxref_cache:
-                        self._featxref_cache[x.feature_id] = []
-                    self._featxref_cache[x.feature_id].append(x.dbxref_id)
-
-        self._populate_featcvterm_cache()
+        self._init_featcvterm_cache()
 
         if 'Dbxref' in f.qualifiers:
 
@@ -1056,17 +980,6 @@ class FeatureClient(Client):
             for term in f.qualifiers['Ontology_term']:
 
                 self._add_feat_cvterm(feat, term)
-
-    def _populate_featcvterm_cache(self):
-        if self._featcvterm_cache is None:
-            self._featcvterm_cache = {}
-            if self.cache_everything:
-                res = self.session.query(self.model.feature_cvterm.feature_id, self.model.feature_cvterm.cvterm_id)
-
-                for x in res:
-                    if x.feature_id not in self._featcvterm_cache:
-                        self._featcvterm_cache[x.feature_id] = []
-                    self._featcvterm_cache[x.feature_id].append(x.cvterm_id)
 
     def _add_feat_dbxref(self, feat, xref):
 
@@ -1178,15 +1091,7 @@ class FeatureClient(Client):
         partofterm = self.ci.get_cvterm_id('part_of', 'sequence', True)
         reltypeterm = self.ci.get_cvterm_id(parent_rel, 'sequence', True)
 
-        if self._featrel_cache is None:
-            self._featrel_cache = {}
-            if self.cache_everything:
-                # object= parent, subject=child
-                res = self.session.query(self.model.feature_relationship.subject_id, self.model.feature_relationship.object_id, self.model.feature_relationship.type_id)
-                for x in res:
-                    if x.object_id not in self._featrel_cache:
-                        self._featrel_cache[x.object_id] = []
-                    self._featrel_cache[x.object_id].append((x.subject_id, x.type_id))
+        self._init_featrel_cache()
 
         if parent not in self._featrel_cache or (feat, reltypeterm) not in self._featrel_cache[parent]:
 
@@ -1382,7 +1287,7 @@ class FeatureClient(Client):
                         raise Exception('Could not find term with name "%s"' % term_acc)
 
                 # Add feature<->cvterm association
-                self._populate_featcvterm_cache()
+                self._init_featcvterm_cache()
                 self._add_feat_cvterm(existing[feat_id], term)
 
                 # Associate the feature to the analysis
