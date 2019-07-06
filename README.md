@@ -87,6 +87,9 @@ $ chakin feature load_fasta \
 
 ## History
 
+- 2.3.0
+    - allow connection using a preformatted url (needed by galaxy tools using pgutil)
+
 - 2.2.6
     - fix requirement name for psycopg2 (name change for version >=2.8)
 
