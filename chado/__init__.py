@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import re
 import warnings
 
 from chado.analysis import AnalysisClient
@@ -35,15 +36,22 @@ class ChadoModel(object):
 
 class ChadoInstance(object):
 
-    def __init__(self, dbhost="localhost", dbname="chado", dbuser="chado", dbpass="chado", dbschema="public", dbport=5432, offline=False, no_reflect=False, reflect_tripal_tables=False, **kwargs):
+    def __init__(self, dbhost="localhost", dbname="chado", dbuser="chado", dbpass="chado", dbschema="public", dbport=5432, dburl=None, offline=False, no_reflect=False, reflect_tripal_tables=False, **kwargs):
         self.dbhost = dbhost
         self.dbname = dbname
         self.dbuser = dbuser
         self.dbpass = dbpass
         self.dbport = dbport
         self.dbschema = dbschema
+        self.dburl = dburl
 
-        self._engine = create_engine('postgresql://%s:%s@%s:%s/%s' % (self.dbuser, self.dbpass, self.dbhost, self.dbport, self.dbname))
+        if self.dburl is not None:
+            if '@[' in self.dburl:
+                # the url given by pglite is not in the correct format for sqlalchmemy
+                self.dburl = re.sub(r"postgres://(.+)@\[(.+)\]/(.+)", r"postgres://\1@/\3?host=\2", self.dburl)
+            self._engine = create_engine('%s' % (self.dburl))
+        else:
+            self._engine = create_engine('postgresql://%s:%s@%s:%s/%s' % (self.dbuser, self.dbpass, self.dbhost, self.dbport, self.dbname))
         self._metadata = MetaData(self._engine, schema=self.dbschema)
         Session = sessionmaker(bind=self._engine)
         self.session = Session()

@@ -56,12 +56,16 @@ def _get_instance(instance_name=None):
 
 def get_instance(instance_name=None, offline=False, no_reflect=False, reflect_tripal_tables=False):
     conf = _get_instance(instance_name=instance_name)
+    dburl = None
+    if 'dburl' in conf:
+        dburl = conf['dburl']
     return ChadoInstance(dbhost=conf['dbhost'],
                          dbname=conf['dbname'],
                          dbuser=conf['dbuser'],
                          dbpass=conf['dbpass'],
                          dbschema=conf['dbschema'],
                          dbport=conf['dbport'],
+                         dburl=dburl,
                          offline=offline,
                          no_reflect=no_reflect,
                          reflect_tripal_tables=reflect_tripal_tables)

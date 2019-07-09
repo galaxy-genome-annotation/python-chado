@@ -87,7 +87,8 @@ $ chakin feature load_fasta \
 
 ## History
 
-- 2.3
+- 2.3.0
+    - allow connection using a preformatted url (needed by galaxy tools using pgutil)
     - added loading of Blast and InterProScan data
     - moved `chakin feature load_go` to `chakin load go`
 
