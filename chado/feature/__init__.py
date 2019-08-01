@@ -408,7 +408,7 @@ class FeatureClient(Client):
                     # We won't touch relationship for updated seqs (cause I'm lazy + I don't want to break an already loaded feature)
                     parent_ok = seq_record.id
 
-                    if re_name:
+                    if re_parent:
                         re_res = re.search(re_parent, parent_ok)
                         if re_res:
                             parent_ok = re_res.group(1)
