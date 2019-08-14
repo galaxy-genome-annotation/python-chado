@@ -6,7 +6,9 @@ from __future__ import unicode_literals
 import re
 import warnings
 
+
 from chado.analysis import AnalysisClient
+from chado.exceptions import RecordNotFoundError
 from chado.export import ExportClient
 from chado.expression import ExpressionClient
 from chado.feature import FeatureClient
@@ -24,10 +26,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 
 standard_library.install_aliases()
-
-
-class RecordNotFoundError(Exception):
-    """Raised when a db select failed."""
 
 
 class ChadoModel(object):

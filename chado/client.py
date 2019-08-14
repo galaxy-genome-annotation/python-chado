@@ -5,6 +5,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import re
+
+from chado.exceptions import RecordNotFoundError
+
+from chakin.io import warn
+
 from future import standard_library
 
 standard_library.install_aliases()
@@ -38,6 +44,9 @@ class Client(object):
         self._featrel_cache = None
         self._featcvterm_cache = None
         self._featured_dirty_rels = None
+        self._analysisfeature_cache = None
+
+        self.cache_existing = True
 
     def _init_db_cache(self, force=False):
 
@@ -69,7 +78,7 @@ class Client(object):
 
         if self._featxref_cache is None:
             self._featxref_cache = {}
-            if self.cache_everything:
+            if self.cache_existing:
                 res = self.session.query(self.model.feature_dbxref.feature_id, self.model.feature_dbxref.dbxref_id)
 
                 for x in res:
@@ -77,7 +86,7 @@ class Client(object):
                         self._featxref_cache[x.feature_id] = []
                     self._featxref_cache[x.feature_id].append(x.dbxref_id)
 
-    def _init_feature_cache(self, organism_id, force=False):
+    def _init_feature_cache(self, organism_id, type_id=None, match_on_name=False, force=False):
 
         if self._feature_cache is not None and force:
             self._feature_cache = None
@@ -85,12 +94,90 @@ class Client(object):
         if self._feature_cache is None:
             self._feature_cache = {}
 
-            if self.cache_everything:
+            if self.cache_existing:
                 # We fill it even with --add_only as we typically already loaded scaffolds before
                 res = self.session.query(self.model.feature.feature_id, self.model.feature.name, self.model.feature.uniquename, self.model.feature.type_id, self.model.feature.organism_id) \
                     .filter(self.model.feature.organism_id == organism_id)
+                if type_id:
+                    res = res.filter(self.model.feature.type_id == type_id)
 
-                self._feature_cache = {(x.uniquename, x.organism_id, x.type_id): {'feature_id': x.feature_id, 'name': x.name, 'uniquename': x.uniquename} for x in res}
+                if match_on_name:
+                    self._feature_cache = {(x.name, x.organism_id, x.type_id): {'feature_id': x.feature_id, 'name': x.name, 'uniquename': x.uniquename} for x in res}
+                else:
+                    self._feature_cache = {(x.uniquename, x.organism_id, x.type_id): {'feature_id': x.feature_id, 'name': x.name, 'uniquename': x.uniquename} for x in res}
+
+    def _match_feature(self, feature_id, re_name, query_type, organism_id, skip_missing=False):
+
+        seqterm = self.ci.get_cvterm_id(query_type, 'sequence')
+
+        if re_name:
+            re_res = re.search(re_name, feature_id)
+            if re_res:
+                feature_id = re_res.group(1)
+
+        cache_id = (feature_id, organism_id, seqterm)
+
+        if cache_id not in self._feature_cache:
+            if skip_missing:
+                warn('Could not find feature with name "%s", skipping it', feature_id)
+                return None
+            else:
+                raise RecordNotFoundError('Could not find feature with name "%s"' % feature_id)
+
+        return self._feature_cache[cache_id]['feature_id']
+
+    def _init_analysisfeature_cache(self, analysis_id, force=False):
+
+        if self._analysisfeature_cache is not None and force:
+            self._analysisfeature_cache = None
+
+        if self._analysisfeature_cache is None:
+            self._analysisfeature_cache = {}
+            res = self.session.query(self.model.analysisfeature.analysisfeature_id, self.model.analysisfeature.feature_id, self.model.analysisfeatureprop.type_id, self.model.analysisfeatureprop.rank) \
+                              .filter(self.model.analysisfeature.analysis_id == analysis_id) \
+                              .outerjoin(self.model.analysisfeatureprop, self.model.analysisfeature.analysisfeature_id == self.model.analysisfeatureprop.analysisfeature_id)
+            for x in res:
+                if x.feature_id not in self._analysisfeature_cache:
+                    self._analysisfeature_cache[x.feature_id] = {'analysisfeature_id': x.analysisfeature_id, 'props': {}}
+                # Add analysisfeatureprop in cache too if there are some
+                if x.type_id is not None and x.rank is not None:
+                    if x.type_id not in self._analysisfeature_cache[x.feature_id]['props']:
+                        self._analysisfeature_cache[x.feature_id]['props'][x.type_id] = 0
+                    if x.rank > self._analysisfeature_cache[x.feature_id]['props'][x.type_id]:
+                        self._analysisfeature_cache[x.feature_id]['props'][x.type_id] = x.rank
+
+    def _add_analysis_feature(self, feature_id, analysis_id, type_id=None, value=None):
+
+        if feature_id not in self._analysisfeature_cache:
+            analysis_feature = self.model.analysisfeature()
+            analysis_feature.feature_id = feature_id
+            analysis_feature.analysis_id = analysis_id
+            self.session.add(analysis_feature)
+            self.session.flush()
+            self.session.refresh(analysis_feature)
+            analysisfeature_id = analysis_feature.analysisfeature_id
+            self._analysisfeature_cache[feature_id] = {'analysisfeature_id': analysisfeature_id, 'props': {}}
+        else:
+            analysisfeature_id = self._analysisfeature_cache[feature_id]['analysisfeature_id']
+
+        # Add analysisfeatureprop to
+        if type_id and value:
+            rank = 0
+            if type_id in self._analysisfeature_cache[feature_id]['props']:
+                rank = self._analysisfeature_cache[feature_id]['props'][type_id] + 1
+
+            analysis_feature_prop = self.model.analysisfeatureprop()
+            analysis_feature_prop.analysisfeature_id = analysisfeature_id
+            analysis_feature_prop.type_id = type_id
+            # Only works for a specific indent.. might be a way to do it better maybe
+            analysis_feature_prop.value = value
+            analysis_feature_prop.rank = rank
+            self.session.add(analysis_feature_prop)
+            self.session.flush()
+
+            self._analysisfeature_cache[feature_id]['props'][type_id] = rank
+
+        return analysisfeature_id
 
     def _init_featureloc_cache(self, organism_id, force=False):
 
@@ -99,7 +186,7 @@ class Client(object):
 
         if self._featureloc_cache is None:
             self._featureloc_cache = {}
-            if self.cache_everything:
+            if self.cache_existing:
                 res = self.session.query(self.model.feature.feature_id, self.model.featureloc.srcfeature_id, self.model.featureloc.fmin, self.model.featureloc.fmax, self.model.featureloc.strand) \
                     .filter(self.model.feature.organism_id == organism_id) \
                     .join(self.model.featureloc, self.model.featureloc.feature_id == self.model.feature.feature_id)
@@ -130,7 +217,7 @@ class Client(object):
 
         if self._featsyn_cache is None:
             self._featsyn_cache = {}
-            if self.cache_everything:
+            if self.cache_existing:
                 res = self.session.query(self.model.feature_synonym.feature_id, self.model.feature_synonym.synonym_id)
 
                 for x in res:
@@ -145,7 +232,7 @@ class Client(object):
 
         if self._featureprop_cache is None:
             self._featureprop_cache = {}
-            if self.cache_everything:
+            if self.cache_existing:
                 res = self.session.query(self.model.feature.feature_id, self.model.featureprop.type_id, self.model.featureprop.value) \
                     .filter(self.model.feature.organism_id == organism_id) \
                     .join(self.model.featureprop, self.model.featureprop.feature_id == self.model.feature.feature_id)
@@ -164,7 +251,7 @@ class Client(object):
 
         if self._featrel_cache is None:
             self._featrel_cache = {}
-            if self.cache_everything:
+            if self.cache_existing:
                 # object= parent, subject=child
                 res = self.session.query(self.model.feature_relationship.subject_id, self.model.feature_relationship.object_id, self.model.feature_relationship.type_id)
                 for x in res:
@@ -179,10 +266,36 @@ class Client(object):
 
         if self._featcvterm_cache is None:
             self._featcvterm_cache = {}
-            if self.cache_everything:
+            if self.cache_existing:
                 res = self.session.query(self.model.feature_cvterm.feature_id, self.model.feature_cvterm.cvterm_id)
 
                 for x in res:
                     if x.feature_id not in self._featcvterm_cache:
                         self._featcvterm_cache[x.feature_id] = []
                     self._featcvterm_cache[x.feature_id].append(x.cvterm_id)
+
+    def _add_feat_cvterm(self, feat, term):
+        xref = term.split(':')
+        if len(xref) != 2:
+            return
+        xref_db = xref[0]
+        xref_acc = xref[1]
+        try:
+            term = self.ci.get_cvterm_id(xref_acc, xref_db)
+        except RecordNotFoundError:
+            term = self.ci.create_cvterm(xref_acc, xref_db, xref_db)
+
+        return self._add_feat_cvterm_with_id(feat, term)
+
+    def _add_feat_cvterm_with_id(self, feat, cvterm_id, pub_id=None):
+        if pub_id is None:
+            pub_id = self.ci.get_pub_id('null')
+        if feat not in self._featcvterm_cache or cvterm_id not in self._featcvterm_cache[feat]:
+            cvt2feat = self.model.feature_cvterm()
+            cvt2feat.cvterm_id = cvterm_id
+            cvt2feat.feature_id = feat
+            cvt2feat.pub_id = pub_id
+            self.session.add(cvt2feat)
+            if feat not in self._featcvterm_cache:
+                self._featcvterm_cache[feat] = []
+            self._featcvterm_cache[feat].append(cvterm_id)

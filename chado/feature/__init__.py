@@ -459,8 +459,6 @@ class FeatureClient(Client):
         if len(self.ci.organism.get_organisms(organism_id=organism_id)) != 1:
             raise Exception("Could not find organism with id '{}'".format(organism_id))
 
-        self.cache_everything = False
-
         # Cache all existing features
         existing = self.session.query(self.model.feature.feature_id, self.model.feature.name, self.model.feature.uniquename) \
             .filter_by(organism_id=organism_id)
@@ -546,7 +544,7 @@ class FeatureClient(Client):
         if protein_id_attr and re_protein:
             raise Exception("--protein_id_attr and --re_protein cannot be used at the same time.".format(organism_id))
 
-        self.cache_everything = not add_only
+        self.cache_existing = not add_only
 
         # Get possible landmarks
         landmarks = self.session.query(self.model.feature.name, self.model.feature.uniquename, self.model.feature.feature_id, self.model.feature.type_id, self.model.feature.organism_id) \
@@ -1023,33 +1021,6 @@ class FeatureClient(Client):
 
             self._featxref_cache[feat].append(self._xref_cache[(xref_db, xref_acc)])
 
-    def _add_feat_cvterm(self, feat, term):
-
-        xref = term.split(':')
-        if len(xref) != 2:
-            return
-        xref_db = xref[0]
-        xref_acc = xref[1]
-
-        try:
-            term = self.ci.get_cvterm_id(xref_acc, xref_db)
-        except chado.RecordNotFoundError:
-            term = self.ci.create_cvterm(xref_acc, xref_db, xref_db)
-
-        pub_id = self.ci.get_pub_id('null')
-
-        if feat not in self._featcvterm_cache or term not in self._featcvterm_cache[feat]:
-            cvt2feat = self.model.feature_cvterm()
-            cvt2feat.cvterm_id = term
-            cvt2feat.feature_id = feat
-            cvt2feat.pub_id = pub_id
-            self.session.add(cvt2feat)
-
-            if feat not in self._featcvterm_cache:
-                self._featcvterm_cache[feat] = []
-
-            self._featcvterm_cache[feat].append(term)
-
     def _add_target(self, feat, target_str):
 
         target = target_str.split(' ')
@@ -1211,105 +1182,4 @@ class FeatureClient(Client):
         :return: Number of inserted GO terms
         """
 
-        # TODO remove the now duplicated code from here (now or next version?)
-        warn("This function is soon to be deprecated. Please use chado/chakin load load_go from now on")
-
-        if analysis_id and len(self.ci.analysis.get_analyses(analysis_id=analysis_id)) != 1:
-            raise Exception("Could not find analysis with id '{}'".format(analysis_id))
-
-        if len(self.ci.organism.get_organisms(organism_id=organism_id)) != 1:
-            raise Exception("Could not find organism with id '{}'".format(organism_id))
-
-        self.cache_everything = True
-        seqterm = self.ci.get_cvterm_id(query_type, 'sequence')
-
-        # Cache all possibly existing features
-        existing = self.session.query(self.model.feature.feature_id, self.model.feature.name, self.model.feature.uniquename) \
-            .filter_by(organism_id=organism_id, type_id=seqterm) \
-            .all()
-        if match_on_name:
-            existing = {ex.name: ex.feature_id for ex in existing}
-        else:
-            existing = {ex.uniquename: ex.feature_id for ex in existing}
-
-        # Cache all existing cvterms from GO cv
-        db = 'GO'
-        self.ci._preload_dbxref2cvterms(db)
-
-        count_ins = 0
-
-        # Cache anaysisfeature content for given analysis_id
-        _analysisfeature_cache = []
-        res = self.session.query(self.model.analysisfeature.feature_id) \
-                          .filter(self.model.analysisfeature.analysis_id == analysis_id)
-        for x in res:
-            if x.feature_id not in _analysisfeature_cache:
-                _analysisfeature_cache.append(x.feature_id)
-
-        # Parse the tab file
-        with open(input) as in_gaf:
-            rd = csv.reader(in_gaf, delimiter=str("\t"))
-            for row in rd:
-                if row[0] and row[0][0] in ('!', '#'):
-                    # skip header
-                    continue
-
-                term = row[go_column - 1]
-                term_sp = term.split(':')
-                if len(term_sp) != 2:
-                    return
-                term_db = term_sp[0]
-                term_acc = term_sp[1]
-
-                feat_id = row[name_column - 1]
-                if re_name:
-                    re_res = re.search(re_name, feat_id)
-                    if re_res:
-                        feat_id = re_res.group(1)
-
-                if feat_id not in existing:
-                    if skip_missing:
-                        print('Could not find feature with name "%s", skipping it' % feat_id)
-                        continue
-                    else:
-                        raise Exception('Could not find feature with name "%s"' % feat_id)
-
-                try:
-                    term_id = self.ci.get_cvterm_id(term_acc, term_db)
-                except chado.RecordNotFoundError:
-                    term_id = None
-
-                if not term_id:
-                    if skip_missing:
-                        print('Could not find term with name "%s", skipping it' % term_acc)
-                        continue
-                    else:
-                        raise Exception('Could not find term with name "%s"' % term_acc)
-
-                # Add feature<->cvterm association
-                self._init_featcvterm_cache()
-                self._add_feat_cvterm(existing[feat_id], term)
-
-                # Associate the feature to the analysis
-                if existing[feat_id] not in _analysisfeature_cache:
-                    afeat = self.model.analysisfeature()
-                    afeat.feature_id = existing[feat_id]
-                    afeat.analysis_id = analysis_id
-                    self.session.add(afeat)
-                    _analysisfeature_cache.append(existing[feat_id])
-
-                    # Add to analysisfeatureprop too (we're sure it doesn't already exist as we just created the analysisfeature)
-                    afeatp = self.model.analysisfeatureprop()
-                    afeatp.analysisfeature = afeat
-                    afeatp.type_id = term_id
-                    afeatp.value = term
-                    afeatp.rank = 0
-                    self.session.add(afeatp)
-
-                count_ins += 1
-
-        self.session.commit()
-
-        self._reset_cache()
-
-        return {'inserted': count_ins}
+        raise Exception("This function has been renamed. Please use chado/chakin load load_go instead")

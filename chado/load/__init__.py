@@ -15,6 +15,7 @@ import xml.etree.ElementTree as ET
 
 import chado
 from chado.client import Client
+from chado.exceptions import RecordNotFoundError
 
 from chakin.io import warn
 
@@ -34,28 +35,17 @@ class LoadClient(Client):
 
         Client.__init__(self, engine, metadata, session, ci)
 
-    def _reset_cache(self):
-
-        self._synonym_cache = None
-        self._db_cache = None
-        self._xref_cache = None
-        self._feature_cache = None
-        self._featureloc_cache = None
-        self._featrel_cache = None
-        self._featured_dirty_rels = None
-        self._featxref_cache = None
-        self._featcvterm_cache = None
-        self._featsyn_cache = None
-        self._featureprop_cache = None
-
-    def blast(self, analysis_id, input, blastdb=None, blastdb_id=None,
+    def blast(self, analysis_id, organism_id, input, blastdb=None, blastdb_id=None,
               blast_parameters=None, re_name=None, query_type="polypeptide",
-              match_on_name=False):
+              match_on_name=False, skip_missing=False):
         """
         Load a blast analysis, in the same way as does the tripal_analysis_blast module
 
         :type analysis_id: int
         :param analysis_id: Analysis ID
+
+        :type organism_id: int
+        :param organism_id: Organism ID
 
         :type input: str
         :param input: Path to the Blast XML file to load
@@ -77,6 +67,9 @@ class LoadClient(Client):
 
         :type re_name: str
         :param re_name: Regular expression to extract the feature name from the input file (first capturing group will be used).
+
+        :type skip_missing: bool
+        :param skip_missing: Skip lines with unknown features or GO id instead of aborting everything.
 
         :rtype: dict
         :return: Number of processed hits
@@ -100,12 +93,26 @@ class LoadClient(Client):
         if not res.count():
             raise Exception("Analysis with the id {} was not found".format(analysis_id))
 
-        if os.path.exists(input):
-            self._setup_tables("blast")
-            count_ins = self._parse_blast_xml(analysis_id, blastdb_id, input, re_name, query_type, match_on_name, True)
-            return {'inserted': count_ins}
-        else:
+        # Cache all possibly existing features
+        self._reset_cache()
+        seqterm = self.ci.get_cvterm_id(query_type, 'sequence')
+        self._init_feature_cache(organism_id, seqterm, match_on_name)
+
+        # Cache analysisfeature content for given analysis_id
+        self._init_analysisfeature_cache(analysis_id)
+
+        if not os.path.exists(input):
             raise Exception("{} was not found".format(input))
+
+        self._setup_tables("blast")
+
+        count_ins = self._parse_blast_xml(analysis_id, blastdb_id, input, re_name, query_type, True, organism_id, skip_missing)
+
+        self.session.commit()
+
+        self._reset_cache()
+
+        return {'inserted': count_ins}
 
     def go(self, input, organism_id, analysis_id, query_type='polypeptide', match_on_name=False,
            name_column=2, go_column=5, re_name=None, skip_missing=False):
@@ -149,31 +156,22 @@ class LoadClient(Client):
         if len(self.ci.organism.get_organisms(organism_id=organism_id)) != 1:
             raise Exception("Could not find organism with id '{}'".format(organism_id))
 
-        self.cache_everything = True
         seqterm = self.ci.get_cvterm_id(query_type, 'sequence')
 
         # Cache all possibly existing features
-        existing = self.session.query(self.model.feature.feature_id, self.model.feature.name, self.model.feature.uniquename) \
-            .filter_by(organism_id=organism_id, type_id=seqterm) \
-            .all()
-        if match_on_name:
-            existing = {ex.name: ex.feature_id for ex in existing}
-        else:
-            existing = {ex.uniquename: ex.feature_id for ex in existing}
+        self._reset_cache()
+        self._init_feature_cache(organism_id, seqterm, match_on_name)
+
+        # Cache analysisfeature content for given analysis_id
+        self._init_analysisfeature_cache(analysis_id)
+
+        self._init_featcvterm_cache()
 
         # Cache all existing cvterms from GO cv
         db = 'GO'
         self.ci._preload_dbxref2cvterms(db)
 
         count_ins = 0
-
-        # Cache anaysisfeature content for given analysis_id
-        _analysisfeature_cache = []
-        res = self.session.query(self.model.analysisfeature.feature_id) \
-                          .filter(self.model.analysisfeature.analysis_id == analysis_id)
-        for x in res:
-            if x.feature_id not in _analysisfeature_cache:
-                _analysisfeature_cache.append(x.feature_id)
 
         # Parse the tab file
         with open(input) as in_gaf:
@@ -186,22 +184,15 @@ class LoadClient(Client):
                 term = row[go_column - 1]
                 term_sp = term.split(':')
                 if len(term_sp) != 2:
-                    return
+                    raise Exception('Malformed term "%s"' % term)
                 term_db = term_sp[0]
                 term_acc = term_sp[1]
 
                 feat_id = row[name_column - 1]
-                if re_name:
-                    re_res = re.search(re_name, feat_id)
-                    if re_res:
-                        feat_id = re_res.group(1)
 
-                if feat_id not in existing:
-                    if skip_missing:
-                        warn('Could not find feature with name "%s", skipping it', feat_id)
-                        continue
-                    else:
-                        raise Exception('Could not find feature with name "%s"' % feat_id)
+                feat_id = self._match_feature(feat_id, re_name, query_type, organism_id, skip_missing)
+                if skip_missing and feat_id is None:
+                    continue
 
                 try:
                     term_id = self.ci.get_cvterm_id(term_acc, term_db)
@@ -216,24 +207,10 @@ class LoadClient(Client):
                         raise Exception('Could not find term with name "%s"' % term_acc)
 
                 # Add feature<->cvterm association
-                self._populate_featcvterm_cache()
-                self._add_feat_cvterm(existing[feat_id], term)
+                self._add_feat_cvterm_with_id(feat_id, term_id)
 
                 # Associate the feature to the analysis
-                if existing[feat_id] not in _analysisfeature_cache:
-                    afeat = self.model.analysisfeature()
-                    afeat.feature_id = existing[feat_id]
-                    afeat.analysis_id = analysis_id
-                    self.session.add(afeat)
-                    _analysisfeature_cache.append(existing[feat_id])
-
-                    # Add to analysisfeatureprop too (we're sure it doesn't already exist as we just created the analysisfeature)
-                    afeatp = self.model.analysisfeatureprop()
-                    afeatp.analysisfeature = afeat
-                    afeatp.type_id = term_id
-                    afeatp.value = term
-                    afeatp.rank = 0
-                    self.session.add(afeatp)
+                self._add_analysis_feature(feat_id, analysis_id, term_id, term)
 
                 count_ins += 1
 
@@ -243,12 +220,16 @@ class LoadClient(Client):
 
         return {'inserted': count_ins}
 
-    def interpro(self, analysis_id, input, parse_go=False, re_name=None, query_type="polypeptide", match_on_name=False):
+    def interpro(self, analysis_id, organism_id, input, parse_go=False, re_name=None, query_type="polypeptide",
+                 match_on_name=False, skip_missing=False):
         """
         Load an InterProScan analysis, in the same way as does the tripal_analysis_intepro module
 
         :type analysis_id: int
         :param analysis_id: Analysis ID
+
+        :type organism_id: int
+        :param organism_id: Organism ID
 
         :type input: str
         :param input: Path to the InterProScan file to load
@@ -265,6 +246,9 @@ class LoadClient(Client):
         :type re_name: str
         :param re_name: Regular expression to extract the feature name from the input file (first capturing group will be used).
 
+        :type skip_missing: bool
+        :param skip_missing: Skip lines with unknown features or GO id instead of aborting everything.
+
         :rtype: dict
         :return: Number of processed hits
 
@@ -274,21 +258,41 @@ class LoadClient(Client):
         if not res.count():
             raise Exception("Analysis with the id {} was not found".format(analysis_id))
 
+        if len(self.ci.organism.get_organisms(organism_id=organism_id)) != 1:
+            raise Exception("Could not find organism with id '{}'".format(organism_id))
+
         res = self.session.query(self.model.analysisfeature).filter_by(analysis_id=analysis_id)
         if res.count():
             res.delete(synchronize_session=False)
 
+        # Cache all possibly existing features
+        self._reset_cache()
+        seqterm = self.ci.get_cvterm_id(query_type, 'sequence')
+        self._init_feature_cache(organism_id, seqterm, match_on_name)
+
+        # Cache analysisfeature content for given analysis_id
+        self._init_analysisfeature_cache(analysis_id)
+        self._init_featcvterm_cache()
+
+        # Cache all existing cvterms from GO cv
+        db = 'GO'
+        self.ci._preload_dbxref2cvterms(db)
+
         count_ins = 0
         self._setup_tables("interpro")
-        if os.path.exists(input):
-            count_ins += self._parse_interpro_xml(analysis_id, input, parse_go, re_name, query_type, match_on_name)
-            self.session.commit()
-            return {'inserted': count_ins}
-        else:
+        if not os.path.exists(input):
             self.session.rollback()
             raise Exception("{} was not found".format(input))
 
-    def _parse_interpro_xml(self, analysis_id, interpro_output, parse_go, re_name, query_type, match_on_name):
+        count_ins += self._parse_interpro_xml(analysis_id, organism_id, input, parse_go, re_name, query_type, skip_missing)
+
+        self.session.commit()
+
+        self._reset_cache()
+
+        return {'inserted': count_ins}
+
+    def _parse_interpro_xml(self, analysis_id, organism_id, interpro_output, parse_go, re_name, query_type, skip_missing):
         tree = ET.iterparse(interpro_output)
         # If it starts with 'protein-matches' or 'nucleotide-sequence-matches' then this is InterPro v5 XML
         # Need to strip namespace
@@ -297,14 +301,14 @@ class LoadClient(Client):
                 elem.tag = elem.tag.split('}', 1)[1]
         root = tree.root
         if re.search("^protein-matches", root.tag) or re.search("^nucleotide-sequence-matches", root.tag):
-            counts = self._parse_interpro_xml5(analysis_id, root, parse_go, re_name, query_type, match_on_name)
+            counts = self._parse_interpro_xml5(analysis_id, organism_id, root, parse_go, re_name, query_type, skip_missing)
         elif re.search("^EBIInterProScanResults", root.tag) or re.search("^interpro_matches", root.tag):
-            counts = self._parse_interpro_xml4(analysis_id, root, interpro_output, parse_go, re_name, query_type, match_on_name)
+            counts = self._parse_interpro_xml4(analysis_id, organism_id, root, interpro_output, parse_go, re_name, query_type, skip_missing)
         else:
             raise Exception("Xml format was not recognised")
         return counts
 
-    def _parse_interpro_xml5(self, analysis_id, xml, parse_go, re_name, query_type, match_on_name):
+    def _parse_interpro_xml5(self, analysis_id, organism_id, xml, parse_go, re_name, query_type, skip_missing):
         res = self.session.query(self.model.db).filter_by(name="GO")
         if res.count():
             go_db_id = res.one().db_id
@@ -319,22 +323,25 @@ class LoadClient(Client):
                 child_name = child.tag
                 if child_name == "xref":
                     seq_id = child.get('id')
-                    seq_name = child.get('name', "")
-                    feature_id = self._match_feature(seq_id, re_name, query_type, match_on_name, seq_name)
-                    if not feature_id:
+                    try:
+                        feature_id = self._match_feature(seq_id, re_name, query_type, organism_id, skip_missing=False)  # we need to have an exception if it fails
+                    except RecordNotFoundError:
+                        seq_name = child.get('name', "")
+                        feature_id = self._match_feature(seq_name, re_name, query_type, organism_id, skip_missing)
+                    if skip_missing and feature_id is None:
                         continue
-                    analysisfeature_id = self._add_analysis_feature(feature_id, analysis_id, entity)
+                    analysisfeature_id = self._add_analysis_feature_ipr(feature_id, analysis_id, entity)
                     if not analysisfeature_id:
                         continue
                     ipr_array = self._parse_feature_xml(entity, feature_id)
                     ipr_terms = ipr_array["iprterms"]
-                    self._load_ipr_terms(ipr_terms, feature_id, analysisfeature_id)
+                    self._load_ipr_terms(ipr_terms, feature_id, analysis_id, skip_missing)
 
                     if parse_go and go_db_id:
-                        self._load_go_terms(ipr_array["goterms"], feature_id, analysisfeature_id, go_db_id)
+                        self._load_go_terms(ipr_array["goterms"], feature_id, analysis_id, go_db_id, skip_missing)
             return total_count
 
-    def _parse_interpro_xml4(self, analysis_id, xml, interpro_file, parse_go, re_name, query_type, match_on_name):
+    def _parse_interpro_xml4(self, analysis_id, organism_id, xml, interpro_file, parse_go, re_name, query_type, skip_missing):
         # If there is an EBI header then we need to skip that
         # and set our proteins array to be the second element of the array. This
         # occurs if results were generated with the online InterProScan tool.
@@ -361,12 +368,12 @@ class LoadClient(Client):
             # Remove _ORF from the sequence name
             seqid = re.search(r'^(.+)_\d+_ORF\d+.*', seqid).group(1)
             # match the name of the feature in the XML file to a feature in Chado
-            feature_id = self._match_feature(seqid, re_name, query_type, match_on_name)
+            feature_id = self._match_feature(seqid, re_name, query_type, organism_id, skip_missing)
             if not feature_id:
                 continue
             # Create an entry in the analysisfeature table and add the XML for this feature
             # to the analysisfeatureprop table
-            analysisfeature_id = self._add_analysis_feature(feature_id, analysis_id, protein)
+            analysisfeature_id = self._add_analysis_feature_ipr(feature_id, analysis_id, protein)
             if not analysisfeature_id:
                 continue
 
@@ -374,46 +381,17 @@ class LoadClient(Client):
             ipr_array = self._parse_feature_xml(protein, feature_id)
             ipr_terms = ipr_array['iprterms']
             # Add IPR terms
-            self._load_ipr_terms(ipr_terms, feature_id, analysisfeature_id)
+            self._load_ipr_terms(ipr_terms, feature_id, analysis_id, skip_missing)
 
             if parse_go and go_db_id:
-                self._load_go_terms(ipr_array["goterms"], feature_id, analysisfeature_id, go_db_id)
+                self._load_go_terms(ipr_array["goterms"], feature_id, analysis_id, go_db_id, skip_missing)
         return total_count
 
-    def _add_analysis_feature(self, feature_id, analysis_id, xml):
+    def _add_analysis_feature_ipr(self, feature_id, analysis_id, xml):
 
-        # TODO cache things as for gff here
         type_id = self.ci.get_cvterm_id('analysis_interpro_xmloutput_hit', 'tripal')
-        res = self.session.query(self.model.analysisfeature).filter_by(feature_id=feature_id, analysis_id=analysis_id)
-        if not res.count():
-            analysis_feature = self.model.analysisfeature()
-            analysis_feature.feature_id = feature_id
-            analysis_feature.analysis_id = analysis_id
-            self.session.add(analysis_feature)
-            self.session.flush()
-            self.session.refresh(analysis_feature)
-            analysis_feature_id = analysis_feature.analysisfeature_id
-        else:
-            analysis_feature_id = res.one().analysisfeature_id
-
-        # Need to insert the raw xml
-        # TODO cache things as for gff here
-        rank = 0
-        res = self.session.query(self.model.analysisfeatureprop).filter_by(analysisfeature_id=analysis_feature_id, type_id=type_id) \
-            .order_by(self.model.analysisfeatureprop.rank.desc())
-        if res.count():
-            rank = int(res.first().rank) + 1
-
-        analysis_feature_prop = self.model.analysisfeatureprop()
-        analysis_feature_prop.analysisfeature_id = analysis_feature_id
-        analysis_feature_prop.type_id = type_id
-        # Only works for a specific indent.. might be a way to do it better maybe
-        analysis_feature_prop.value = "   " + ET.tostring(xml).decode()
-        analysis_feature_prop.rank = rank
-        self.session.add(analysis_feature_prop)
-        self.session.flush()
-
-        return analysis_feature_id
+        # Only works for a specific indentation, might be a way to do it better maybe
+        return self._add_analysis_feature(feature_id, analysis_id, type_id, "   " + ET.tostring(xml).decode())
 
     def _parse_feature_xml(self, xml, feature_id):
         name = xml.tag
@@ -514,48 +492,7 @@ class LoadClient(Client):
                         terms['goterms'].append(go_id)
         return terms
 
-    # TODO use this for blast and go too?
-    def _match_feature(self, sequence_id, re_name, query_type, match_on_name, sequence_name=""):
-        feature = ""
-        # Cleanup the feature_name/id
-        if re_name:
-            if re.search(re_name, sequence_id):
-                feature = re.search(re_name, sequence_id).group(1)
-            elif (sequence_name and re.search(re_name, sequence_name)):
-                feature = re.search(re_name, sequence_name).group(1)
-            else:
-                # TODO warn or error? (option as in go?)
-                warn("Failed: Cannot find feature for %s using the regular expression: %s", sequence_id, re_name)
-                return False
-        elif re.search(r"^(.*?)\s.*$", sequence_id):
-            feature = re.search(r"^(.*?)\s.*$", sequence_id).group(1)
-        else:
-            feature = sequence_id
-
-        # Get the feature from Chado
-        # TODO add some caching here
-        res = self.session.query(self.model.feature)
-        if match_on_name:
-            res = res.filter_by(name=feature)
-        else:
-            res = res.filter_by(uniquename=feature)
-
-        if (query_type):
-            entity_cv_term_id = self.ci.get_cvterm_id(query_type, 'sequence')
-            res = res.filter_by(type_id=entity_cv_term_id)
-
-        if not res.count():
-            # TODO warn or error? (option as in go?)
-            warn("Failed: cannot find a matching feature for %s in the database", feature)
-            return None
-        elif res.count() > 1:
-            # TODO warn or error? (option as in go?)
-            warn("Ambiguous: %s matches more than one feature and is being skipped.", feature)
-            return None
-        else:
-            return res.one().feature_id
-
-    def _load_ipr_terms(self, ipr_terms, feature_id, analysisfeature_id):
+    def _load_ipr_terms(self, ipr_terms, feature_id, analysis_id, skip_missing):
         for ipr_id, ipr_term in ipr_terms.items():
             if (ipr_term["ipr_name"] and ipr_term["ipr_name"] != 'noIPR'):
                 # currently there is no InterPro Ontology OBO file so we can't
@@ -564,79 +501,52 @@ class LoadClient(Client):
                 # we do not want to update it.
                 cvterm_id = self.ci.create_cvterm(ipr_term['ipr_name'], 'INTERPRO', 'INTERPRO', term_definition=ipr_term['ipr_desc'], accession=ipr_id)
                 if not cvterm_id:
-                    # TODO warn or error? (option as in go?)
-                    warn("Failed: Cannot find cvterm: %s %s", ipr_id, ipr_term['ipr_name'])
-                    continue
+                    if skip_missing:
+                        warn('Could not find cvterm %s %s, skipping it', ipr_id, ipr_term['ipr_name'])
+                        continue
+                    else:
+                        raise Exception('Could not find cvterm %s %s' % ipr_id, ipr_term['ipr_name'])
+
                 # Insert IPR terms into the feature_cvterm table
                 # the default pub_id of 1 (NULL) is used. if the cvterm already exists then just skip adding it
-                # TODO cache this too
-                res = self.session.query(self.model.feature_cvterm).filter_by(feature_id=feature_id, cvterm_id=cvterm_id, pub_id=1)
-                if not res.count():
-                    feature_cvterm = self.model.feature_cvterm()
-                    feature_cvterm.feature_id = feature_id
-                    feature_cvterm.cvterm_id = cvterm_id
-                    feature_cvterm.pub_id = 1
-                    self.session.add(feature_cvterm)
-                    self.session.flush()
+                self._add_feat_cvterm_with_id(feature_id, cvterm_id)
 
                 # Insert IPR terms into the analysisfeatureprop table but only if it
                 # doesn't already exist
-                # TODO cache this too
-                res = self.session.query(self.model.analysisfeatureprop).filter_by(analysisfeature_id=analysisfeature_id, type_id=cvterm_id, rank=0, value=ipr_id)
-                if not res.count():
-                    analysisfeatureprop = self.model.analysisfeatureprop()
-                    analysisfeatureprop.analysisfeature_id = analysisfeature_id
-                    analysisfeatureprop.type_id = cvterm_id
-                    analysisfeatureprop.rank = 0
-                    analysisfeatureprop.value = ipr_id
-                    self.session.add(analysisfeatureprop)
-                    self.session.flush()
+                self._add_analysis_feature(feature_id, analysis_id, cvterm_id, ipr_id)
 
-    def _load_go_terms(self, go_terms, feature_id, analysisfeature_id, go_db_id):
+    def _load_go_terms(self, go_terms, feature_id, analysis_id, go_db_id, skip_missing):
         for go_id in go_terms:
-            # Separate the 'GO:' from the term
-            regex = re.search(r'^.*?GO:(\d+).*$', go_id)
-            if regex:
-                # Find cvterm_id for the matched GO term using accession and db_id
-                # TODO Cache this
-                res = self.session.query(self.model.cvterm.cvterm_id) \
-                    .join(self.model.dbxref, self.model.dbxref.dbxref_id == self.model.cvterm.dbxref_id) \
-                    .filter(self.model.dbxref.accession == regex.group(1), self.model.dbxref.db_id == go_db_id)
-                if not res.count():
-                    # TODO warn or error?
-                    warn("Cannot find GO cvterm: 'GO:%s'. skipping.", regex.group(1))
-                    continue
-                goterm_id = res.first().cvterm_id
-                # Insert GO terms into feature_cvterm table. Default pub_id = 1 (NULL) was used. But
-                # only insert if not already there
-                # TODO Cache this
-                res = self.session.query(self.model.feature_cvterm).filter_by(feature_id=feature_id, cvterm_id=goterm_id, pub_id=1)
-                if not res.count():
-                    feature_cvterm = self.model.feature_cvterm()
-                    feature_cvterm.feature_id = feature_id
-                    feature_cvterm.cvterm_id = goterm_id
-                    feature_cvterm.pub_id = 1
-                    self.session.add(feature_cvterm)
-                    self.session.flush()
-                # Insert Go terms into the analysisfeatureprop table but only if it
-                # doesn't already exist
-                # TODO Cache this
-                res = self.session.query(self.model.analysisfeatureprop).filter_by(analysisfeature_id=analysisfeature_id, type_id=goterm_id, rank=0)
-                if not res.count():
-                    analysisfeatureprop = self.model.analysisfeatureprop()
-                    analysisfeatureprop.analysisfeature_id = analysisfeature_id
-                    analysisfeatureprop.type_id = goterm_id
-                    analysisfeatureprop.rank = 0
-                    analysisfeatureprop.value = regex.group(1)
-                    self.session.add(analysisfeatureprop)
-                    self.session.flush()
-            else:
+            term = go_id
+            term_sp = term.split(':')
+            if len(term_sp) != 2:
                 self.session.rollback()
                 raise Exception("Cannot parse GO term {}".format(go_id))
+            term_db = term_sp[0]
+            term_acc = term_sp[1]
 
-    def _parse_blast_xml(self, an_id, blastdb_id, blast_output, re_name, query_type, match_on_name, check_concat):
+            try:
+                goterm_id = self.ci.get_cvterm_id(term_acc, term_db)
+            except chado.RecordNotFoundError:
+                goterm_id = None
 
-        cv_term_id = self.ci.get_cvterm_id('analysis_blast_output_iteration_hits', 'tripal')
+            if not goterm_id:
+                if skip_missing:
+                    warn('Could not find term with name "%s", skipping it', term_acc)
+                    continue
+                else:
+                    raise Exception('Could not find term with name "%s"' % term_acc)
+
+            # Insert GO terms into feature_cvterm table. Default pub_id = 1 (NULL) was used. But
+            # only insert if not already there
+            self._add_feat_cvterm_with_id(feature_id, goterm_id)
+
+            # Insert Go terms into the analysisfeatureprop table but only if it
+            # doesn't already exist
+            self._add_analysis_feature(feature_id, analysis_id, goterm_id, term_acc)
+
+    def _parse_blast_xml(self, an_id, blastdb_id, blast_output, re_name, query_type, check_concat, organism_id, skip_missing):
+
         num_iter = 0
         error = False
         if (check_concat):
@@ -653,7 +563,7 @@ class LoadClient(Client):
                         # If we have a full part, process it and delete/recreate temp file
                         if (re.search('</BlastOutput>', line)):
                             file.close()
-                            num_iter += self._parse_blast_xml(an_id, blastdb_id, path, re_name, query_type, match_on_name, False)
+                            num_iter += self._parse_blast_xml(an_id, blastdb_id, path, re_name, query_type, False, organism_id, skip_missing)
                             os.remove(path)
                             fd, path = tempfile.mkstemp()
                             file = open(path, 'a')
@@ -669,20 +579,18 @@ class LoadClient(Client):
             tree = ET.ElementTree(file=blast_output)
 
             for iteration in tree.iter(tag="Iteration"):
-                self._manage_iteration(iteration, an_id, blastdb_id, blast_output, re_name, query_type, match_on_name, cv_term_id)
+                self._manage_iteration(iteration, an_id, blastdb_id, blast_output, re_name, query_type, organism_id, skip_missing)
                 num_iter += 1
 
         return num_iter
 
-    def _manage_iteration(self, iteration, an_id, blastdb_id, blast_output, re_name, query_type, match_on_name, cv_term_id):
-        feature_id = 0
-        analysis_feature_id = 0
+    def _manage_iteration(self, iteration, an_id, blastdb_id, blast_output, re_name, query_type, organism_id, skip_missing):
         iteration_tags_xml = ''
         num_hits = 1
-        feature = None
 
         # Need to find the feature in chado
         entity_cv_term_id = self.ci.get_cvterm_id(query_type, 'sequence')
+        cv_term_id = self.ci.get_cvterm_id('analysis_blast_output_iteration_hits', 'tripal')
 
         if not entity_cv_term_id:
             raise Exception("Cannot find cvterm id for query type {}".format(query_type))
@@ -690,37 +598,14 @@ class LoadClient(Client):
         for child in iteration:
             if child.tag == 'Iteration_query-def':
                 iteration_tags_xml += "  <{}>{}</{}>\n".format(child.tag, child.text, child.tag)
-                if re_name and re.search(re_name, child.text):
-                    feature = re.search(re_name, child.text).group(1)
-                elif re.search(r'^(.*?)\s.*$', child.text):
-                    feature = re.search(r'^(.*?)\s.*$', child.text).group(1)
-                else:
-                    feature = child.text
-                if not feature and re_name:
-                    raise Exception("Cannot find feature in {} using the regular expression: {}".format(child.text, re_name))
-
-                # TODO load this into cache at the beginning
-                res = self.session.query(self.model.feature).filter_by(type_id=entity_cv_term_id)
-                if match_on_name:
-                    res = res.filter_by(name=feature)
-                else:
-                    res = res.filter_by(uniquename=feature)
-
-                if not res:
-                    raise Exception("Database query failed when searching for feature {}".format(feature))
-                if not res.count():
-                    raise Exception("Failed: {} cannot find a matching feature in the database".format(feature))
-                if res.count() > 1:
-                    # Ambiguous : Skip feature. Need to log the result.
-                    warn("Ambiguous: %s matches more than one feature and is being skipped", feature)
-                    continue
-                feature_id = res.one().feature_id
+                try:
+                    feature_id = self._match_feature(child.text, re_name, query_type, organism_id, skip_missing=False)  # we need to have an exception if it fails
+                except RecordNotFoundError:
+                    first_word = re.search(r'^(.*?)\s.*$', child.text)
+                    if first_word:
+                        feature_id = self._match_feature(first_word.group(1), re_name, query_type, organism_id, skip_missing)
 
             elif child.tag == 'Iteration_hits':
-                if not feature_id:
-                    # Skip line
-                    warn("Cannot add blast results as feature_id is missing.")
-                    continue
                 xml_content = "<Iteration>\n{}    <{}>\n".format(iteration_tags_xml, child.tag)
                 for hit in child:
                     if hit.tag == "Hit":
@@ -730,43 +615,13 @@ class LoadClient(Client):
                     num_hits += 1
                 xml_content += "\n  </{}>\n</Iteration>".format(child.tag)
 
-                # TODO load this into cache at the beginning
-                analysis_feature = self.session.query(self.model.analysisfeature).filter_by(feature_id=feature_id, analysis_id=an_id)
-                # Create if not existing
-                if not analysis_feature.count():
-                    analysis_feature = self.model.analysisfeature()
-                    analysis_feature.feature_id = feature_id
-                    analysis_feature.analysis_id = an_id
-                    self.session.add(analysis_feature)
-                    self.session.flush()
-                    self.session.refresh(analysis_feature)
-                    analysis_feature_id = analysis_feature.analysisfeature_id
-                else:
-                    analysis_feature_id = analysis_feature.one().analysisfeature_id
-
-                analysis_feature_prop = self.session.query(self.model.analysisfeatureprop) \
-                    .join(self.model.analysisfeature, self.model.analysisfeature.analysisfeature_id == self.model.analysisfeatureprop.analysisfeature_id) \
-                    .filter(self.model.analysisfeature.feature_id == feature_id, self.model.analysisfeature.analysis_id == an_id, self.model.analysisfeatureprop.type_id == cv_term_id)
-
-                # TODO load this into cache at the beginning
-                if analysis_feature_prop.count():
-                    an_feature_prop_id = analysis_feature_prop.first().analysisfeatureprop_id
-                    self.session.query(self.model.analysisfeatureprop).filter_by(analysisfeatureprop_id=an_feature_prop_id).update({'value': xml_content})
-                else:
-                    analysis_feature_prop = self.model.analysisfeatureprop()
-                    analysis_feature_prop.analysisfeature_id = analysis_feature_id
-                    analysis_feature_prop.type_id = cv_term_id
-                    analysis_feature_prop.value = xml_content
-                    analysis_feature_prop.rank = 0
-                    self.session.add(analysis_feature_prop)
-                    self.session.flush()
-                    self.session.refresh(analysis_feature_prop)
+                analysis_feature_id = self._add_analysis_feature(feature_id, an_id, cv_term_id, xml_content)
 
                 # Load hit details in blast_hit_data table
                 # remove any existing entries for current feature, we'll replace them
                 res = self.session.query(self.model.blast_hit_data).filter_by(analysisfeature_id=analysis_feature_id)
                 res.delete(synchronize_session=False)
-                self.session.commit()
+                self.session.expire_all()
 
                 db = self.session.query(self.model.db).filter_by(db_id=blastdb_id)
                 analysis = self.session.query(self.model.analysis).filter_by(analysis_id=an_id)
@@ -780,7 +635,6 @@ class LoadClient(Client):
                     blast_org_id = None
 
                     if blast_org_name:
-                        # TODO maybe cache this too (maybe not useful)
                         res = self.session.query(self.model.blast_organisms).filter_by(blast_org_name=blast_org_name)
                         if not res.count():
                             blast_organism = self.model.blast_organisms()
@@ -931,37 +785,6 @@ class LoadClient(Client):
                     hits_details.append(hit_dict)
         return hits_details
 
-    def _populate_featcvterm_cache(self):
-        if self._featcvterm_cache is None:
-            self._featcvterm_cache = {}
-            if self.cache_everything:
-                res = self.session.query(self.model.feature_cvterm.feature_id, self.model.feature_cvterm.cvterm_id)
-                for x in res:
-                    if x.feature_id not in self._featcvterm_cache:
-                        self._featcvterm_cache[x.feature_id] = []
-                        self._featcvterm_cache[x.feature_id].append(x.cvterm_id)
-
-    def _add_feat_cvterm(self, feat, term):
-        xref = term.split(':')
-        if len(xref) != 2:
-            return
-        xref_db = xref[0]
-        xref_acc = xref[1]
-        try:
-            term = self.ci.get_cvterm_id(xref_acc, xref_db)
-        except chado.RecordNotFoundError:
-            term = self.ci.create_cvterm(xref_acc, xref_db, xref_db)
-        pub_id = self.ci.get_pub_id('null')
-        if feat not in self._featcvterm_cache or term not in self._featcvterm_cache[feat]:
-            cvt2feat = self.model.feature_cvterm()
-            cvt2feat.cvterm_id = term
-            cvt2feat.feature_id = feat
-            cvt2feat.pub_id = pub_id
-            self.session.add(cvt2feat)
-            if feat not in self._featcvterm_cache:
-                self._featcvterm_cache[feat] = []
-            self._featcvterm_cache[feat].append(term)
-
     def _setup_tables(self, module):
         if module == "interpro":
             self.ci.create_cvterm(term='analysis_interpro_xmloutput_hit', term_definition='Hit in the interpro XML output. Each hit belongs to a chado feature. This cvterm represents a hit in the output', cv_name='tripal', db_name='tripal')
@@ -1031,7 +854,6 @@ class LoadClient(Client):
                 self.model = self.ci.model
 
             if added_table:
-                # TODO test this
                 # add swissprot, trembl and co
                 res = self.session.query(self.model.db.db_id) \
                                   .filter(self.model.db.name.ilike('%swissprot%'))
