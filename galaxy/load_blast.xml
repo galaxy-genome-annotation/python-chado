@@ -8,6 +8,7 @@
 	<command detect_errors="aggressive">
 chakin load blast
 '$analysis_id'
+'$organism_id'
 '$input'
 
 #if $blastdb:
@@ -19,14 +20,17 @@ chakin load blast
 #if $blast_parameters:
   --blast_parameters '$blast_parameters'
 #end if
-#if $query_re:
-  --query_re '$query_re'
+#if $re_name:
+  --re_name '$re_name'
 #end if
 #if $query_type:
   --query_type '$query_type'
 #end if
-#if $query_uniquename:
-  $query_uniquename
+#if $match_on_name:
+  $match_on_name
+#end if
+#if $skip_missing:
+  $skip_missing
 #end if
 
 | jq -S . > $results
@@ -34,15 +38,17 @@ chakin load blast
 	<inputs>
     <!-- arguments -->
 	<param name="analysis_id" label="Analysis Id" argument="analysis_id" type="integer" value="0" help="Analysis ID" />
+	<param name="organism_id" label="Organism Id" argument="organism_id" type="integer" value="0" help="Organism ID" />
 	<param name="input" label="Input" argument="input" type="text" help="Path to the Blast XML file to load" />
 
     <!-- options -->
 	<param name="blastdb" label="Blastdb" argument="blastdb" type="text" help="Name of the database blasted against (must be in the Chado db table)" />
 	<param name="blastdb_id" label="Blastdb Id" argument="blastdb_id" type="text" help="ID of the database blasted against (must be in the Chado db table)" />
 	<param name="blast_parameters" label="Blast Parameters" argument="blast_parameters" type="text" help="Blast parameters used to produce these results" />
-	<param name="query_re" label="Query Re" argument="query_re" type="text" help="The regular expression that can uniquely identify the query name. This parameters is required if the feature name is not the first word in the blast query name." />
+	<param name="re_name" label="Re Name" argument="re_name" type="text" help="Regular expression to extract the feature name from the input file (first capturing group will be used)." />
 	<param name="query_type" label="Query Type" argument="query_type" type="text" help="The feature type (e.g. 'gene', 'mRNA', 'polypeptide', 'contig') of the query. It must be a valid Sequence Ontology term." />
-	<param name="query_uniquename" label="Query Uniquename" argument="query_uniquename" type="boolean" truevalue="--query_uniquename" falsevalue="" help="Use this if the --query-re regular expression matches unique names instead of names in the database." />
+	<param name="match_on_name" label="Match On Name" argument="match_on_name" type="boolean" truevalue="--match_on_name" falsevalue="" help="Match features using their name instead of their uniquename" />
+	<param name="skip_missing" label="Skip Missing" argument="skip_missing" type="boolean" truevalue="--skip_missing" falsevalue="" help="Skip lines with unknown features or GO id instead of aborting everything." />
 
 	</inputs>
 	<outputs>

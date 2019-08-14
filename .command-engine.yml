@@ -21,6 +21,7 @@ module:
             - 'dbport'
             - 'dbuser'
             - 'dbpass'
+            - 'dburl'
             - 'dbschema'
             - 'get_cvterm_id'
             - 'get_cvterm_name'

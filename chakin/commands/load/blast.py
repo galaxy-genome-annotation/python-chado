@@ -5,6 +5,7 @@ from chakin.decorators import custom_exception, dict_output
 
 @click.command('blast')
 @click.argument("analysis_id", type=int)
+@click.argument("organism_id", type=int)
 @click.argument("input", type=str)
 @click.option(
     "--blastdb",
@@ -22,8 +23,8 @@ from chakin.decorators import custom_exception, dict_output
     type=str
 )
 @click.option(
-    "--query_re",
-    help="The regular expression that can uniquely identify the query name. This parameters is required if the feature name is not the first word in the blast query name.",
+    "--re_name",
+    help="Regular expression to extract the feature name from the input file (first capturing group will be used).",
     type=str
 )
 @click.option(
@@ -34,18 +35,23 @@ from chakin.decorators import custom_exception, dict_output
     type=str
 )
 @click.option(
-    "--query_uniquename",
-    help="Use this if the --query-re regular expression matches unique names instead of names in the database.",
+    "--match_on_name",
+    help="Match features using their name instead of their uniquename",
+    is_flag=True
+)
+@click.option(
+    "--skip_missing",
+    help="Skip lines with unknown features or GO id instead of aborting everything.",
     is_flag=True
 )
 @pass_context
 @custom_exception
 @dict_output
-def cli(ctx, analysis_id, input, blastdb="", blastdb_id="", blast_parameters="", query_re="", query_type="polypeptide", query_uniquename=False):
+def cli(ctx, analysis_id, organism_id, input, blastdb="", blastdb_id="", blast_parameters="", re_name="", query_type="polypeptide", match_on_name=False, skip_missing=False):
     """Load a blast analysis, in the same way as does the tripal_analysis_blast module
 
 Output:
 
     Number of processed hits
     """
-    return ctx.gi.load.blast(analysis_id, input, blastdb=blastdb, blastdb_id=blastdb_id, blast_parameters=blast_parameters, query_re=query_re, query_type=query_type, query_uniquename=query_uniquename)
+    return ctx.gi.load.blast(analysis_id, organism_id, input, blastdb=blastdb, blastdb_id=blastdb_id, blast_parameters=blast_parameters, re_name=re_name, query_type=query_type, match_on_name=match_on_name, skip_missing=skip_missing)

@@ -5,6 +5,7 @@ from chakin.decorators import custom_exception, dict_output
 
 @click.command('interpro')
 @click.argument("analysis_id", type=int)
+@click.argument("organism_id", type=int)
 @click.argument("input", type=str)
 @click.option(
     "--parse_go",
@@ -12,8 +13,8 @@ from chakin.decorators import custom_exception, dict_output
     is_flag=True
 )
 @click.option(
-    "--query_re",
-    help="The regular expression that can uniquely identify the query name. This parameter is required if the feature name is not the first word in the blast query name.",
+    "--re_name",
+    help="Regular expression to extract the feature name from the input file (first capturing group will be used).",
     type=str
 )
 @click.option(
@@ -24,18 +25,23 @@ from chakin.decorators import custom_exception, dict_output
     type=str
 )
 @click.option(
-    "--query_uniquename",
-    help="Use this if the --query-re regular expression matches unique names instead of names in the database.",
+    "--match_on_name",
+    help="Match features using their name instead of their uniquename",
+    is_flag=True
+)
+@click.option(
+    "--skip_missing",
+    help="Skip lines with unknown features or GO id instead of aborting everything.",
     is_flag=True
 )
 @pass_context
 @custom_exception
 @dict_output
-def cli(ctx, analysis_id, input, parse_go=False, query_re="", query_type="polypeptide", query_uniquename=False):
-    """Load a blast analysis, in the same way as does the tripal_analysis_intepro module
+def cli(ctx, analysis_id, organism_id, input, parse_go=False, re_name="", query_type="polypeptide", match_on_name=False, skip_missing=False):
+    """Load an InterProScan analysis, in the same way as does the tripal_analysis_intepro module
 
 Output:
 
     Number of processed hits
     """
-    return ctx.gi.load.interpro(analysis_id, input, parse_go=parse_go, query_re=query_re, query_type=query_type, query_uniquename=query_uniquename)
+    return ctx.gi.load.interpro(analysis_id, organism_id, input, parse_go=parse_go, re_name=re_name, query_type=query_type, match_on_name=match_on_name, skip_missing=skip_missing)

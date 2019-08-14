@@ -10,7 +10,7 @@ This section is auto-generated from the help text for the chakin command
 
 **Usage**::
 
-    chakin load blast [OPTIONS] ANALYSIS_ID INPUT
+    chakin load blast [OPTIONS] ANALYSIS_ID ORGANISM_ID INPUT
 
 **Help**
 
@@ -30,15 +30,15 @@ Load a blast analysis, in the same way as does the tripal_analysis_blast module
       --blastdb_id TEXT        ID of the database blasted against (must be in the
                                Chado db table)
       --blast_parameters TEXT  Blast parameters used to produce these results
-      --query_re TEXT          The regular expression that can uniquely identify the
-                               query name. This parameters is required if the
-                               feature name is not the first word in the blast query
-                               name.
+      --re_name TEXT           Regular expression to extract the feature name from
+                               the input file (first capturing group will be used).
       --query_type TEXT        The feature type (e.g. 'gene', 'mRNA', 'polypeptide',
                                'contig') of the query. It must be a valid Sequence
                                Ontology term.  [default: polypeptide]
-      --query_uniquename       Use this if the --query-re regular expression matches
-                               unique names instead of names in the database.
+      --match_on_name          Match features using their name instead of their
+                               uniquename
+      --skip_missing           Skip lines with unknown features or GO id instead of
+                               aborting everything.
       -h, --help               Show this message and exit.
     
 
@@ -82,11 +82,11 @@ Load GO annotation from a tabular file, in the same way as does the tripal_analy
 
 **Usage**::
 
-    chakin load interpro [OPTIONS] ANALYSIS_ID INPUT
+    chakin load interpro [OPTIONS] ANALYSIS_ID ORGANISM_ID INPUT
 
 **Help**
 
-Load a blast analysis, in the same way as does the tripal_analysis_intepro module
+Load an InterProScan analysis, in the same way as does the tripal_analysis_intepro module
 
 
 **Output**
@@ -97,14 +97,14 @@ Load a blast analysis, in the same way as does the tripal_analysis_intepro modul
 **Options**::
 
 
-      --parse_go          Load GO annotation to the database
-      --query_re TEXT     The regular expression that can uniquely identify the
-                          query name. This parameter is required if the feature name
-                          is not the first word in the blast query name.
-      --query_type TEXT   The feature type (e.g. 'gene', 'mRNA', 'polypeptide',
-                          'contig') of the query. It must be a valid Sequence
-                          Ontology term.  [default: polypeptide]
-      --query_uniquename  Use this if the --query-re regular expression matches
-                          unique names instead of names in the database.
-      -h, --help          Show this message and exit.
+      --parse_go         Load GO annotation to the database
+      --re_name TEXT     Regular expression to extract the feature name from the
+                         input file (first capturing group will be used).
+      --query_type TEXT  The feature type (e.g. 'gene', 'mRNA', 'polypeptide',
+                         'contig') of the query. It must be a valid Sequence
+                         Ontology term.  [default: polypeptide]
+      --match_on_name    Match features using their name instead of their uniquename
+      --skip_missing     Skip lines with unknown features or GO id instead of
+                         aborting everything.
+      -h, --help         Show this message and exit.
     
