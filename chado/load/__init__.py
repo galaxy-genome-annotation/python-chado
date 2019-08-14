@@ -892,3 +892,23 @@ class LoadClient(Client):
                     blast_db_record.regex_hit_organism = ''
                     self.session.add(blast_db_record)
                     self.session.flush()
+
+    def _get_dbs(self):
+        """
+        Get all dbs
+
+        :rtype: list of dict
+        :return: Db information
+        """
+
+        res = self.session.query(self.model.db)
+
+        data = []
+        for db in res:
+            data.append({
+                'db_id': db.db_id,
+                'name': db.name,
+                'description': db.description,
+                'urlprefix': db.urlprefix,
+            })
+        return data

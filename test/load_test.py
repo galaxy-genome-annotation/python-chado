@@ -96,6 +96,18 @@ class LoadTest(ChadoTestCase):
         res = res.filter(self.ci.model.analysisfeatureprop.type_id == cvterm_id)
         assert res.count(), "Cvterm analysis_interpro_xmloutput_hit not found in table"
 
+    def test_get_dbs(self):
+
+        dbs = self.ci.load._get_dbs()
+
+        assert len(dbs) > 200
+
+        found_gb = False
+        for x in dbs:
+            if x['name'] == 'GenBank_protein':
+                found_gb = True
+        assert found_gb
+
     def setUp(self):
 
         self.ci = ci
