@@ -17,9 +17,6 @@ chakin load blast
 #if $blastdb_id:
   --blastdb_id '$blastdb_id'
 #end if
-#if $blast_parameters:
-  --blast_parameters '$blast_parameters'
-#end if
 #if $re_name:
   --re_name '$re_name'
 #end if
@@ -44,7 +41,6 @@ chakin load blast
     <!-- options -->
 	<param name="blastdb" label="Blastdb" argument="blastdb" type="text" help="Name of the database blasted against (must be in the Chado db table)" />
 	<param name="blastdb_id" label="Blastdb Id" argument="blastdb_id" type="text" help="ID of the database blasted against (must be in the Chado db table)" />
-	<param name="blast_parameters" label="Blast Parameters" argument="blast_parameters" type="text" help="Blast parameters used to produce these results" />
 	<param name="re_name" label="Re Name" argument="re_name" type="text" help="Regular expression to extract the feature name from the input file (first capturing group will be used)." />
 	<param name="query_type" label="Query Type" argument="query_type" type="text" help="The feature type (e.g. 'gene', 'mRNA', 'polypeptide', 'contig') of the query. It must be a valid Sequence Ontology term." />
 	<param name="match_on_name" label="Match On Name" argument="match_on_name" type="boolean" truevalue="--match_on_name" falsevalue="" help="Match features using their name instead of their uniquename" />

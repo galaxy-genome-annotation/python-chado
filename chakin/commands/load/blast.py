@@ -18,11 +18,6 @@ from chakin.decorators import custom_exception, dict_output
     type=str
 )
 @click.option(
-    "--blast_parameters",
-    help="Blast parameters used to produce these results",
-    type=str
-)
-@click.option(
     "--re_name",
     help="Regular expression to extract the feature name from the input file (first capturing group will be used).",
     type=str
@@ -47,11 +42,11 @@ from chakin.decorators import custom_exception, dict_output
 @pass_context
 @custom_exception
 @dict_output
-def cli(ctx, analysis_id, organism_id, input, blastdb="", blastdb_id="", blast_parameters="", re_name="", query_type="polypeptide", match_on_name=False, skip_missing=False):
+def cli(ctx, analysis_id, organism_id, input, blastdb="", blastdb_id="", re_name="", query_type="polypeptide", match_on_name=False, skip_missing=False):
     """Load a blast analysis, in the same way as does the tripal_analysis_blast module
 
 Output:
 
     Number of processed hits
     """
-    return ctx.gi.load.blast(analysis_id, organism_id, input, blastdb=blastdb, blastdb_id=blastdb_id, blast_parameters=blast_parameters, re_name=re_name, query_type=query_type, match_on_name=match_on_name, skip_missing=skip_missing)
+    return ctx.gi.load.blast(analysis_id, organism_id, input, blastdb=blastdb, blastdb_id=blastdb_id, re_name=re_name, query_type=query_type, match_on_name=match_on_name, skip_missing=skip_missing)

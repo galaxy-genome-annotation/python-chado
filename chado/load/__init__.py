@@ -36,8 +36,7 @@ class LoadClient(Client):
         Client.__init__(self, engine, metadata, session, ci)
 
     def blast(self, analysis_id, organism_id, input, blastdb=None, blastdb_id=None,
-              blast_parameters=None, re_name=None, query_type="polypeptide",
-              match_on_name=False, skip_missing=False):
+              re_name=None, query_type="polypeptide", match_on_name=False, skip_missing=False):
         """
         Load a blast analysis, in the same way as does the tripal_analysis_blast module
 
@@ -55,9 +54,6 @@ class LoadClient(Client):
 
         :type blastdb_id: str
         :param blastdb_id: ID of the database blasted against (must be in the Chado db table)
-
-        :type blast_parameters: str
-        :param blast_parameters: Blast parameters used to produce these results
 
         :type query_type: str
         :param query_type: The feature type (e.g. \'gene\', \'mRNA\', 'polypeptide', \'contig\') of the query. It must be a valid Sequence Ontology term.

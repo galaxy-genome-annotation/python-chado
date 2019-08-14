@@ -25,21 +25,19 @@ Load a blast analysis, in the same way as does the tripal_analysis_blast module
 **Options**::
 
 
-      --blastdb TEXT           Name of the database blasted against (must be in the
-                               Chado db table)
-      --blastdb_id TEXT        ID of the database blasted against (must be in the
-                               Chado db table)
-      --blast_parameters TEXT  Blast parameters used to produce these results
-      --re_name TEXT           Regular expression to extract the feature name from
-                               the input file (first capturing group will be used).
-      --query_type TEXT        The feature type (e.g. 'gene', 'mRNA', 'polypeptide',
-                               'contig') of the query. It must be a valid Sequence
-                               Ontology term.  [default: polypeptide]
-      --match_on_name          Match features using their name instead of their
-                               uniquename
-      --skip_missing           Skip lines with unknown features or GO id instead of
-                               aborting everything.
-      -h, --help               Show this message and exit.
+      --blastdb TEXT     Name of the database blasted against (must be in the Chado
+                         db table)
+      --blastdb_id TEXT  ID of the database blasted against (must be in the Chado db
+                         table)
+      --re_name TEXT     Regular expression to extract the feature name from the
+                         input file (first capturing group will be used).
+      --query_type TEXT  The feature type (e.g. 'gene', 'mRNA', 'polypeptide',
+                         'contig') of the query. It must be a valid Sequence
+                         Ontology term.  [default: polypeptide]
+      --match_on_name    Match features using their name instead of their uniquename
+      --skip_missing     Skip lines with unknown features or GO id instead of
+                         aborting everything.
+      -h, --help         Show this message and exit.
     
 
 ``go`` command
