@@ -14,6 +14,9 @@ chakin expression add_expression
 #if $separator:
   --separator '$separator'
 #end if
+#if $unit:
+  --unit '$unit'
+#end if
 
 | jq -S . > $results
 </command>
@@ -25,6 +28,7 @@ chakin expression add_expression
 
     <!-- options -->
 	<param name="separator" label="Separator" argument="separator" type="text" help="Separating character in the matrix file (ex : ','). Default character is tab." />
+	<param name="unit" label="Unit" argument="unit" type="text" help="The units associated with the loaded values (ie, FPKM, RPKM, raw counts)" />
 
 	</inputs>
 	<outputs>

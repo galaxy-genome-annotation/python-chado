@@ -3,7 +3,7 @@ from chakin.cli import pass_context, json_loads
 from chakin.decorators import custom_exception, dict_output
 
 
-@click.command('load_go')
+@click.command('go')
 @click.argument("input", type=str)
 @click.argument("organism_id", type=int)
 @click.argument("analysis_id", type=int)
@@ -47,10 +47,10 @@ from chakin.decorators import custom_exception, dict_output
 @custom_exception
 @dict_output
 def cli(ctx, input, organism_id, analysis_id, query_type="polypeptide", match_on_name=False, name_column=2, go_column=5, re_name="", skip_missing=False):
-    """Load GO annotation from a tabular file
+    """Load GO annotation from a tabular file, in the same way as does the tripal_analysis_go module
 
 Output:
 
     Number of inserted GO terms
     """
-    return ctx.gi.feature.load_go(input, organism_id, analysis_id, query_type=query_type, match_on_name=match_on_name, name_column=name_column, go_column=go_column, re_name=re_name, skip_missing=skip_missing)
+    return ctx.gi.load.go(input, organism_id, analysis_id, query_type=query_type, match_on_name=match_on_name, name_column=name_column, go_column=go_column, re_name=re_name, skip_missing=skip_missing)

@@ -1,6 +1,9 @@
 from __future__ import absolute_import
+
 import os
+
 from chado import ChadoInstance
+
 import yaml
 
 DEFAULT_CONFIG = {
@@ -28,7 +31,7 @@ def read_global_config():
         return DEFAULT_CONFIG
 
     with open(config_path) as f:
-        return yaml.load(f)
+        return yaml.safe_load(f)
 
 
 def _get_instance(instance_name=None):
@@ -51,7 +54,7 @@ def _get_instance(instance_name=None):
     return conf[instance_name]
 
 
-def get_instance(instance_name=None, offline=False, no_reflect=False):
+def get_instance(instance_name=None, offline=False, no_reflect=False, reflect_tripal_tables=False):
     conf = _get_instance(instance_name=instance_name)
     dburl = None
     if 'dburl' in conf:
@@ -64,4 +67,5 @@ def get_instance(instance_name=None, offline=False, no_reflect=False):
                          dbport=conf['dbport'],
                          dburl=dburl,
                          offline=offline,
-                         no_reflect=no_reflect)
+                         no_reflect=no_reflect,
+                         reflect_tripal_tables=reflect_tripal_tables)

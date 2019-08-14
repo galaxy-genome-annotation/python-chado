@@ -12,7 +12,7 @@ class GoTest(ChadoTestCase):
         self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], sequence_type='polypeptide')
 
         an_go = self._create_fake_an('GO')
-        self.ci.feature.load_go(input="./test-data/go.gaf", analysis_id=an_go['analysis_id'], organism_id=org['organism_id'])
+        self.ci.load.go(input="./test-data/go.gaf", analysis_id=an_go['analysis_id'], organism_id=org['organism_id'])
 
         feats = self.ci.feature.get_features(organism_id=org['organism_id'], name='Q02123|VNBP_POPMV', analysis_id=an['analysis_id'])
 
@@ -59,7 +59,7 @@ class GoTest(ChadoTestCase):
         self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], sequence_type='polypeptide')
 
         an_go = self._create_fake_an('GO')
-        self.ci.feature.load_go(input="./test-data/go.tsv", analysis_id=an_go['analysis_id'], organism_id=org['organism_id'], name_column=1, go_column=2, match_on_name=True, re_name='(.*)FOOBAR')
+        self.ci.load.go(input="./test-data/go.tsv", analysis_id=an_go['analysis_id'], organism_id=org['organism_id'], name_column=1, go_column=2, match_on_name=True, re_name='(.*)FOOBAR')
 
         feats = self.ci.feature.get_features(organism_id=org['organism_id'], name='Q02123|VNBP_POPMV', analysis_id=an['analysis_id'])
 
@@ -107,7 +107,7 @@ class GoTest(ChadoTestCase):
         self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], sequence_type='polypeptide')
 
         an_go = self._create_fake_an('GO')
-        self.ci.feature.load_go(input="./test-data/go.tsv", analysis_id=an_go['analysis_id'], organism_id=org['organism_id'], name_column=1, go_column=2)
+        self.ci.load.go(input="./test-data/go.tsv", analysis_id=an_go['analysis_id'], organism_id=org['organism_id'], name_column=1, go_column=2)
 
     @raises(Exception)
     def test_load_go_bad_query(self):
@@ -117,7 +117,7 @@ class GoTest(ChadoTestCase):
         self.ci.feature.load_fasta(fasta="./test-data/proteins.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'])
 
         an_go = self._create_fake_an('GO')
-        self.ci.feature.load_go(input="./test-data/go.gaf", analysis_id=an_go['analysis_id'], organism_id=org['organism_id'], query_type='foobar')
+        self.ci.load.go(input="./test-data/go.gaf", analysis_id=an_go['analysis_id'], organism_id=org['organism_id'], query_type='foobar')
 
     def setUp(self):
         self.ci = ci

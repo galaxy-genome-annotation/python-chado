@@ -89,7 +89,7 @@ class chakinCLI(click.MultiCommand):
         # We pre-calculate this so it works more nicely within packaged
         # versions of chakin. Please feel free to fix this?
 
-        commands = ['init', 'organism', 'export', 'util', 'analysis', 'feature', 'phylogeny']
+        commands = ['init', 'organism', 'export', 'util', 'analysis', 'feature', 'phylogeny', 'load', 'expression']
         return commands
 
     def get_command(self, ctx, name):
@@ -125,7 +125,7 @@ def chakin(ctx, instance, verbose, path=None):
     current_ctx = click.get_current_context()
     try:
         # TODO find a way to pass offline=True when running with -h option or without any subcommand
-        ctx.gi = get_instance(instance, offline=(current_ctx.invoked_subcommand in ['init', 'util']), no_reflect=(current_ctx.invoked_subcommand in ['analysis', 'organism']))
+        ctx.gi = get_instance(instance, offline=(current_ctx.invoked_subcommand in ['init', 'util']), no_reflect=(current_ctx.invoked_subcommand in ['analysis', 'organism']), reflect_tripal_tables=(current_ctx.invoked_subcommand == 'load'))
     except TypeError:
         pass
 

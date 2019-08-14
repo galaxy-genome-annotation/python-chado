@@ -14,6 +14,7 @@ describes these commands.
    commands/export.rst
    commands/expression.rst
    commands/feature.rst
+   commands/load.rst
    commands/organism.rst
    commands/phylogeny.rst
    commands/util.rst

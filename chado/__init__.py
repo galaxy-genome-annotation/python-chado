@@ -6,17 +6,20 @@ from __future__ import unicode_literals
 import re
 import warnings
 
+
 from chado.analysis import AnalysisClient
+from chado.exceptions import RecordNotFoundError
 from chado.export import ExportClient
 from chado.expression import ExpressionClient
 from chado.feature import FeatureClient
+from chado.load import LoadClient
 from chado.organism import OrganismClient
 from chado.phylogeny import PhylogenyClient
 from chado.util import UtilClient
 
 from future import standard_library
 
-from sqlalchemy import BigInteger, Column, ForeignKey, MetaData, Numeric, String, TIMESTAMP, Text, create_engine
+from sqlalchemy import BigInteger, Column, Float, ForeignKey, Integer, MetaData, Numeric, String, TIMESTAMP, Text, create_engine
 from sqlalchemy import event, exc as sa_exc
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.ext.declarative import declarative_base
@@ -25,17 +28,13 @@ from sqlalchemy.orm import relationship, sessionmaker
 standard_library.install_aliases()
 
 
-class RecordNotFoundError(Exception):
-    """Raised when a db select failed."""
-
-
 class ChadoModel(object):
     pass
 
 
 class ChadoInstance(object):
 
-    def __init__(self, dbhost="localhost", dbname="chado", dbuser="chado", dbpass="chado", dbschema="public", dbport=5432, dburl=None, offline=False, no_reflect=False, **kwargs):
+    def __init__(self, dbhost="localhost", dbname="chado", dbuser="chado", dbpass="chado", dbschema="public", dbport=5432, dburl=None, offline=False, no_reflect=False, reflect_tripal_tables=False, **kwargs):
         self.dbhost = dbhost
         self.dbname = dbname
         self.dbuser = dbuser
@@ -72,7 +71,7 @@ class ChadoInstance(object):
                 with warnings.catch_warnings():
                     # https://stackoverflow.com/a/5225951
                     warnings.simplefilter("ignore", category=sa_exc.SAWarning)
-                    self._reflect_tables()
+                    self._reflect_tables(reflect_tripal_tables=reflect_tripal_tables)
             self._mapped = True
 
         # Initialize Clients
@@ -82,16 +81,40 @@ class ChadoInstance(object):
         self.util = UtilClient(*args)
         self.analysis = AnalysisClient(*args)
         self.feature = FeatureClient(*args)
+        self.load = LoadClient(*args)
         self.phylogeny = PhylogenyClient(*args)
         self.expression = ExpressionClient(*args)
 
     def __str__(self):
         return '<ChadoInstance at %s>' % self.dbhost
 
-    def _reflect_tables(self):
+    def _reflect_tables(self, reflect_tripal_tables=False):
         Base = automap_base()
 
+        class Blast_hit_data(Base):
+            __tablename__ = 'blast_hit_data'
+            __table_args__ = {'extend_existing': True}  # Does not seems to work
+
+            analysisfeature_id = Column(Integer(), primary_key=True, nullable=False)
+            analysis_id = Column(Integer(), primary_key=True, nullable=False)
+            feature_id = Column(Integer(), primary_key=True, nullable=False)
+            db_id = Column(Integer(), primary_key=True, nullable=False)
+            hit_num = Column(Integer(), primary_key=True, nullable=False)
+            hit_description = Column(Text())
+            hit_name = Column(Text())
+            hit_url = Column(Text())
+            hit_description = Column(Text())
+            hit_organism = Column(Text())
+            blast_org_id = Column(Integer())
+            hit_accession = Column(Text())
+            hit_best_eval = Column(Float())
+            hit_best_score = Column(Float())
+            hit_pid = Column(Float())
+
         Base.prepare(self._engine, reflect=True, schema=self.dbschema)
+        if reflect_tripal_tables and self.dbschema != "public":
+            Base.prepare(self._engine, reflect=True, schema='public')
+        # Check for schema name instead of hardcoding?
         self.model = Base.classes
 
         # ambiguous relationships to same table

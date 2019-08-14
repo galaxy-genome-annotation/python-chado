@@ -1,12 +1,12 @@
 import click
-from chakin.commands.feature.delete_features import cli as func0
-from chakin.commands.feature.get_feature_analyses import cli as func1
-from chakin.commands.feature.get_feature_cvterms import cli as func2
-from chakin.commands.feature.get_features import cli as func3
-from chakin.commands.feature.load_fasta import cli as func4
-from chakin.commands.feature.load_featureprops import cli as func5
-from chakin.commands.feature.load_gff import cli as func6
-from chakin.commands.feature.load_go import cli as func7
+from chakin.commands.feature.delete_features import cli as delete_features
+from chakin.commands.feature.get_feature_analyses import cli as get_feature_analyses
+from chakin.commands.feature.get_feature_cvterms import cli as get_feature_cvterms
+from chakin.commands.feature.get_features import cli as get_features
+from chakin.commands.feature.load_fasta import cli as load_fasta
+from chakin.commands.feature.load_featureprops import cli as load_featureprops
+from chakin.commands.feature.load_gff import cli as load_gff
+from chakin.commands.feature.load_go import cli as load_go
 
 
 @click.group()
@@ -17,11 +17,11 @@ def cli():
     pass
 
 
-cli.add_command(func0)
-cli.add_command(func1)
-cli.add_command(func2)
-cli.add_command(func3)
-cli.add_command(func4)
-cli.add_command(func5)
-cli.add_command(func6)
-cli.add_command(func7)
+cli.add_command(delete_features)
+cli.add_command(get_feature_analyses)
+cli.add_command(get_feature_cvterms)
+cli.add_command(get_features)
+cli.add_command(load_fasta)
+cli.add_command(load_featureprops)
+cli.add_command(load_gff)
+cli.add_command(load_go)

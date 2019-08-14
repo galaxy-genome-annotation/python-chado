@@ -1,6 +1,6 @@
 import click
-from chakin.commands.util.dbshell import cli as func0
-from chakin.commands.util.launch_docker_image import cli as func1
+from chakin.commands.util.dbshell import cli as dbshell
+from chakin.commands.util.launch_docker_image import cli as launch_docker_image
 
 
 @click.group()
@@ -11,5 +11,5 @@ def cli():
     pass
 
 
-cli.add_command(func0)
-cli.add_command(func1)
+cli.add_command(dbshell)
+cli.add_command(launch_docker_image)
