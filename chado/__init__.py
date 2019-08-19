@@ -175,10 +175,20 @@ class ChadoInstance(object):
             significance = Column(Numeric())
             identity = Column(Numeric())
 
+        class Db(Base):
+            __tablename__ = "db"
+
+            db_id = Column(BigInteger(), primary_key=True, nullable=False)
+            name = Column(String(), nullable=False)
+            description = Column(String())
+            urlprefix = Column(String())
+            url = Column(String())
+
         self.model.analysis = Analysis
         self.model.analysisfeature = AnalysisFeature
         self.model.organism = Organism
         self.model.feature = Feature
+        self.model.db = Db
 
         # Inspired from https://bitbucket.org/zzzeek/sqlalchemy/wiki/UsageRecipes/ManyToManyOrphan
         # In chado, a feature can be part of multiple analysis, using the analysisfeature table
