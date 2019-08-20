@@ -153,7 +153,7 @@ class ExpressionClient(Client):
 
         return self.get_biomaterials(biomaterial_id=biomaterial_id)[0]
 
-    def add_expression(self, organism_id, analysis_id, file_path, separator="\t", unit=None):
+    def add_expression(self, organism_id, analysis_id, file_path, separator="\t", unit=None, query_type="mRNA", match_on_name=False, re_name=None, skip_missing=False):
         """
         Add an expression matrix file to the database
 
@@ -172,10 +172,27 @@ class ExpressionClient(Client):
         :type unit: str
         :param unit: The units associated with the loaded values (ie, FPKM, RPKM, raw counts)
 
+        :type query_type: str
+        :param query_type: The feature type (e.g. \'gene\', \'mRNA\', 'polypeptide', \'contig\') of the query. It must be a valid Sequence Ontology term.
+
+        :type match_on_name: bool
+        :param match_on_name: Match features using their name instead of their uniquename
+
+        :type re_name: str
+        :param re_name: Regular expression to extract the feature name from the input file (first capturing group will be used).
+
+        :type skip_missing: bool
+        :param skip_missing: Skip lines with unknown features or GO id instead of aborting everything.
+
         :rtype: str
         :return: Number of expression data loaded
 
         """
+        self._reset_cache()
+        seqterm = self.ci.get_cvterm_id(query_type, 'sequence')
+        self._init_feature_cache(organism_id, seqterm, match_on_name)
+        self._init_analysisfeature_cache(analysis_id)
+
         uniq_name = self._get_unique_name(organism_id, analysis_id)
         contact_id = self._create_generic_contact()
         arraydesign_id = self._create_generic_arraydesign(contact_id)
@@ -190,10 +207,12 @@ class ExpressionClient(Client):
         # Manage features
         num = 0
         for index, feature in enumerate(results["feature_list"]):
-            self._manage_feature_expression(feature, results["data"][index], quant_list, organism_id, analysis_id, arraydesign_id)
+            self._manage_feature_expression(feature, results["data"][index], quant_list, organism_id, analysis_id, arraydesign_id, query_type, re_name, skip_missing)
             num += len(results["data"][index])
 
         self.session.commit()
+
+        self._reset_cache()
 
         return "%s expression values added" % num
 
@@ -627,22 +646,6 @@ class ExpressionClient(Client):
 
         return quantification_id
 
-    def _set_analysis_feature(self, feature_id, analysis_id):
-        res = self.session.query(self.model.analysisfeature).filter_by(analysis_id=analysis_id, feature_id=feature_id)
-        analysisfeature_id = ""
-        if res.count():
-            analysisfeature_id = res.one().analysisfeature_id
-        if not analysisfeature_id:
-            analysisfeature = self.model.analysisfeature()
-            analysisfeature.analysis_id = analysis_id
-            analysisfeature.feature_id = feature_id
-            self.session.add(analysisfeature)
-            self.session.flush()
-            self.session.refresh(analysisfeature)
-            analysisfeature_id = analysisfeature.analysisfeature_id
-
-        return analysisfeature_id
-
     def _create_expression_element(self, feature_id, arraydesign_id):
         res = self.session.query(self.model.element).filter_by(arraydesign_id=arraydesign_id, feature_id=feature_id)
         element_id = ""
@@ -678,16 +681,12 @@ class ExpressionClient(Client):
 
         return elementresult_id
 
-    def _manage_feature_expression(self, feature_name, feature_expression_list, quantification_list, organism_id, analysis_id, arraydesign_id):
+    def _manage_feature_expression(self, feature_name, feature_expression_list, quantification_list, organism_id, analysis_id, arraydesign_id, query_type, re_name, skip_missing):
         # Get the feature ID
-        res = self.session.query(self.model.feature).filter_by(uniquename=feature_name)
-        if res.count():
-            feature_id = res.one().feature_id
-        else:
-            raise Exception("No feature found with the unique name '%s' . Make sure it exists beforehand" % feature_name)
+        feature_id = self._match_feature(feature_name, re_name, query_type, organism_id, skip_missing)
 
         element_id = self._create_expression_element(feature_id, arraydesign_id)
-        self._set_analysis_feature(feature_id, analysis_id)
+        self._add_analysis_feature(feature_id, analysis_id)
 
         # Iterate over quantification (one per biomaterial), and expression value for the selected feature
         for index, quantification_id in enumerate(quantification_list):

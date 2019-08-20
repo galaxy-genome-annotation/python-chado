@@ -93,6 +93,7 @@ $ chakin feature load_fasta \
     - added loading of Blast and InterProScan data
     - moved `chakin feature load_go` to `chakin load go`
     - fix sequence computing when landmark sequence is available in the db
+    - add more options to match features in expression matrix loader (query_type, match_on_name, re_name, skip_missing)
 
 - 2.2.6
     - fix requirement name for psycopg2 (name change for version >=2.8)
