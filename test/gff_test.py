@@ -934,6 +934,42 @@ class GFFTest(ChadoTestCase):
         assert pep_f.seqlen is None, "gff>fasta seq loaded correctly"
         assert pep_f.md5checksum == "d41d8cd98f00b204e9800998ecf8427e", "gff>fasta seq loaded correctly"
 
+    def test_load_gff_withexistinglandmarkonly(self):
+        org = self._create_fake_org()
+        an = self._create_fake_an()
+        an_gff = self._create_fake_an('gff')
+
+        self.ci.feature.load_fasta(fasta="./test-data/genome.fa", analysis_id=an['analysis_id'], organism_id=org['organism_id'], sequence_type='supercontig')
+        # No fasta => seq computed from alread loaded genome
+        self.ci.feature.load_gff(gff="./test-data/annot.gff", analysis_id=an_gff['analysis_id'], organism_id=org['organism_id'], landmark_type="supercontig")
+
+        # Check landmark
+        lm_f = self.ci.session.query(self.ci.model.feature) \
+            .filter_by(uniquename="scaffold00001") \
+            .one()
+
+        assert lm_f.residues is not None, "gff>fasta seq loaded correctly"
+        assert lm_f.seqlen is not None, "gff>fasta seq loaded correctly"
+        assert lm_f.md5checksum != "d41d8cd98f00b204e9800998ecf8427e", "gff>fasta seq loaded correctly"
+
+        # Check mrna
+        mrna_f = self.ci.session.query(self.ci.model.feature) \
+            .filter_by(uniquename="PAC:18136238") \
+            .one()
+
+        assert mrna_f.residues is not None, "gff>fasta seq loaded correctly"
+        assert mrna_f.seqlen is not None, "gff>fasta seq loaded correctly"
+        assert mrna_f.md5checksum != "d41d8cd98f00b204e9800998ecf8427e", "gff>fasta seq loaded correctly"
+
+        # Check pep
+        pep_f = self.ci.session.query(self.ci.model.feature) \
+            .filter_by(uniquename="PAC:18136238-protein") \
+            .one()
+
+        assert pep_f.residues is not None, "gff>fasta seq loaded correctly"
+        assert pep_f.seqlen is not None, "gff>fasta seq loaded correctly"
+        assert pep_f.md5checksum != "d41d8cd98f00b204e9800998ecf8427e", "gff>fasta seq loaded correctly"
+
     @raises(Exception)
     def test_load_gff_withoutlandmark(self):
         org = self._create_fake_org()

@@ -621,7 +621,7 @@ class FeatureClient(Client):
                 if rec.id in self._fasta_sequence_cache:
                     rec.seq = Seq.Seq(self._fasta_sequence_cache[rec.id])
                     del self._fasta_sequence_cache[rec.id]  # Save a little memory
-                elif len(rec.seq) > 0 and str(rec.seq)[0:10] != "??????????":
+                elif len(rec.seq) == 0 or str(rec.seq)[0:10] == "??????????":
                     seq_res = self.session.query(self.model.feature.residues) \
                         .filter(self.model.feature.uniquename == rec.id)
 
