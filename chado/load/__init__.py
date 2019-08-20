@@ -790,7 +790,7 @@ class LoadClient(Client):
             self.ci.create_cvterm(term='analysis_blast_output_iteration_hits', term_definition='Hits of a blast', cv_name='tripal', db_name='tripal')
             # Tables for blast
             added_table = False
-            if not hasattr(self.model, 'tripal_analysis_blast'):
+            if not self.engine.dialect.has_table(self.engine, 'tripal_analysis_blast', schema='public'):
                 tripal_analysis_blast_table = Table(
                     'tripal_analysis_blast', self.metadata,
                     Column('db_id', Integer, primary_key=True, nullable=False, default=0, index=True),
@@ -799,13 +799,13 @@ class LoadClient(Client):
                     Column('regex_hit_accession', String, nullable=True),
                     Column('regex_hit_organism', String, nullable=True),
                     Column('hit_organism', String, nullable=True),
-                    Column('genbank_style', Integer, primary_key=True, default=0),
+                    Column('genbank_style', Integer, default=0),
                     schema="public"
                 )
                 tripal_analysis_blast_table.create(self.engine)
                 added_table = True
 
-            if not hasattr(self.model, 'blast_organisms'):
+            if not self.engine.dialect.has_table(self.engine, 'blast_organisms', schema=self.ci.dbschema):
                 blast_organisms_table = Table(
                     'blast_organisms', self.metadata,
                     Column('blast_org_id', Integer, primary_key=True, nullable=False),
@@ -821,7 +821,7 @@ class LoadClient(Client):
                     self.ci._reflect_tables()
                     self.model = self.ci.model
 
-            if not hasattr(self.model, 'blast_hit_data'):
+            if not self.engine.dialect.has_table(self.engine, 'blast_hit_data', schema=self.ci.dbschema):
                 blast_hit_data_table = Table(
                     'blast_hit_data', self.metadata,
                     Column('analysisfeature_id', Integer, ForeignKey(self.model.analysisfeature.analysisfeature_id, ondelete="CASCADE"), nullable=False, index=True, primary_key=True),

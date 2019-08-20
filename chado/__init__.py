@@ -93,7 +93,7 @@ class ChadoInstance(object):
 
         class Blast_hit_data(Base):
             __tablename__ = 'blast_hit_data'
-            __table_args__ = {'extend_existing': True}  # Does not seems to work
+            __table_args__ = {'extend_existing': True}
 
             analysisfeature_id = Column(Integer(), primary_key=True, nullable=False)
             analysis_id = Column(Integer(), primary_key=True, nullable=False)
@@ -111,11 +111,25 @@ class ChadoInstance(object):
             hit_best_score = Column(Float())
             hit_pid = Column(Float())
 
+        class Tripal_analysis_blast(Base):
+            __tablename__ = 'tripal_analysis_blast'
+            __table_args__ = {'schema': 'public'}
+
+            db_id = Column(Integer(), primary_key=True, nullable=False, default=0, index=True)
+            regex_hit_id = Column(Text())
+            regex_hit_def = Column(Text())
+            regex_hit_accession = Column(Text())
+            regex_hit_organism = Column(Text())
+            hit_organism = Column(Text())
+            genbank_style = Column(Integer())
+
         Base.prepare(self._engine, reflect=True, schema=self.dbschema)
         if reflect_tripal_tables and self.dbschema != "public":
             Base.prepare(self._engine, reflect=True, schema='public')
         # Check for schema name instead of hardcoding?
         self.model = Base.classes
+        self.model.blast_hit_data = Blast_hit_data
+        self.model.tripal_analysis_blast = Tripal_analysis_blast
 
         # ambiguous relationships to same table
         self.model.feature_relationship.subject = relationship("feature", foreign_keys=[self.model.feature_relationship.subject_id], back_populates="subject_in_relationships")
