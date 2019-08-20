@@ -28,19 +28,19 @@ class ExpressionClient(Client):
         """
         List biomaterials in the database
 
-        :type organism_id: str
+        :type organism_id: int
         :param organism_id: Limit query to the selected organism
 
-        :type biomaterial_id: str
+        :type biomaterial_id: int
         :param biomaterial_id: Limit query to the selected biomaterial id
 
-        :type provider_id: str
+        :type provider_id: int
         :param provider_id: Limit query to the selected provider
 
         :type biomaterial_name: str
         :param biomaterial_name: Limit query to the selected biomaterial name
 
-        :type analysis_id: str
+        :type analysis_id: int
         :param analysis_id: Limit query to the selected analysis_id
 
         :rtype: list
@@ -87,7 +87,7 @@ class ExpressionClient(Client):
         :type biomaterial_name: str
         :param biomaterial_name: Biomaterial name
 
-        :type organism_id: str
+        :type organism_id: int
         :param organism_id: The id of the associated organism
 
         :type description: str
@@ -157,10 +157,10 @@ class ExpressionClient(Client):
         """
         Add an expression matrix file to the database
 
-        :type organism_id: str
+        :type organism_id: int
         :param organism_id: The id of the associated organism
 
-        :type analysis_id: str
+        :type analysis_id: int
         :param analysis_id: The id of the associated analysis
 
         :type file_path: str
@@ -226,10 +226,10 @@ class ExpressionClient(Client):
         :type ids: str
         :param ids: JSON list of biomaterial ids to delete.
 
-        :type organism_id: str
+        :type organism_id: int
         :param organism_id: Delete all biomaterial associated with this organism id.
 
-        :type analysis_id: str
+        :type analysis_id: int
         :param analysis_id: Delete all biomaterial associated with this analysis id.
 
         :rtype: str
@@ -623,7 +623,7 @@ class ExpressionClient(Client):
         channel_id = self._create_generic_channel()
         self._create_assay_biomaterial(assay_id, biomaterial_id, channel_id)
         # Try to add the unit to cvterm list
-        if(unit):
+        if (unit):
             try:
                 cvterm_id = self.ci.get_cvterm_id('unit_of_measure', 'sep')
             except chado.RecordNotFoundError:

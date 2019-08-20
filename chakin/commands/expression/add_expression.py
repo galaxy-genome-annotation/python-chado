@@ -4,8 +4,8 @@ from chakin.decorators import custom_exception, str_output
 
 
 @click.command('add_expression')
-@click.argument("organism_id", type=str)
-@click.argument("analysis_id", type=str)
+@click.argument("organism_id", type=int)
+@click.argument("analysis_id", type=int)
 @click.argument("file_path", type=str)
 @click.option(
     "--separator",

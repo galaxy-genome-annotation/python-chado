@@ -15,7 +15,7 @@ from chakin.decorators import custom_exception, dict_output
 @click.option(
     "--blastdb_id",
     help="ID of the database blasted against (must be in the Chado db table)",
-    type=str
+    type=int
 )
 @click.option(
     "--re_name",

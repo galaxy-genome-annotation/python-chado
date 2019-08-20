@@ -29,8 +29,8 @@ chakin expression delete_biomaterials
     <!-- options -->
 	<param name="names" label="Names" argument="names" type="text" help="JSON list of biomaterial names to delete." />
 	<param name="ids" label="Ids" argument="ids" type="text" help="JSON list of biomaterial ids to delete." />
-	<param name="organism_id" label="Organism Id" argument="organism_id" type="text" help="Delete all biomaterial associated with this organism id." />
-	<param name="analysis_id" label="Analysis Id" argument="analysis_id" type="text" help="Delete all biomaterial associated with this analysis id." />
+	<param name="organism_id" label="Organism Id" argument="organism_id" type="integer" value="0" help="Delete all biomaterial associated with this organism id." />
+	<param name="analysis_id" label="Analysis Id" argument="analysis_id" type="integer" value="0" help="Delete all biomaterial associated with this analysis id." />
 
 	</inputs>
 	<outputs>

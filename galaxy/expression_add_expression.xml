@@ -34,8 +34,8 @@ chakin expression add_expression
 </command>
 	<inputs>
     <!-- arguments -->
-	<param name="organism_id" label="Organism Id" argument="organism_id" type="text" help="The id of the associated organism" />
-	<param name="analysis_id" label="Analysis Id" argument="analysis_id" type="text" help="The id of the associated analysis" />
+	<param name="organism_id" label="Organism Id" argument="organism_id" type="integer" value="0" help="The id of the associated organism" />
+	<param name="analysis_id" label="Analysis Id" argument="analysis_id" type="integer" value="0" help="The id of the associated analysis" />
 	<param name="file_path" label="File Path" argument="file_path" type="text" help="File path" />
 
     <!-- options -->

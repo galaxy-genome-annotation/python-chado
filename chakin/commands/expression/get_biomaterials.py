@@ -7,17 +7,17 @@ from chakin.decorators import custom_exception, list_output
 @click.option(
     "--provider_id",
     help="Limit query to the selected provider",
-    type=str
+    type=int
 )
 @click.option(
     "--biomaterial_id",
     help="Limit query to the selected biomaterial id",
-    type=str
+    type=int
 )
 @click.option(
     "--organism_id",
     help="Limit query to the selected organism",
-    type=str
+    type=int
 )
 @click.option(
     "--biomaterial_name",
@@ -27,7 +27,7 @@ from chakin.decorators import custom_exception, list_output
 @click.option(
     "--analysis_id",
     help="Limit query to the selected analysis_id",
-    type=str
+    type=int
 )
 @pass_context
 @custom_exception

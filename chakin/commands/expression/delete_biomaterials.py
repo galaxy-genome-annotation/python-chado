@@ -17,12 +17,12 @@ from chakin.decorators import custom_exception, str_output
 @click.option(
     "--organism_id",
     help="Delete all biomaterial associated with this organism id.",
-    type=str
+    type=int
 )
 @click.option(
     "--analysis_id",
     help="Delete all biomaterial associated with this analysis id.",
-    type=str
+    type=int
 )
 @pass_context
 @custom_exception

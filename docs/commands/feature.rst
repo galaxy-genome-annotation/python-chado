@@ -25,11 +25,11 @@ Get all or some features
 **Options**::
 
 
-      --organism_id TEXT  organism_id filter
-      --analysis_id TEXT  analysis_id filter
-      --name TEXT         name filter
-      --uniquename TEXT   uniquename filter
-      -h, --help          Show this message and exit.
+      --organism_id INTEGER  organism_id filter
+      --analysis_id INTEGER  analysis_id filter
+      --name TEXT            name filter
+      --uniquename TEXT      uniquename filter
+      -h, --help             Show this message and exit.
     
 
 ``get_feature_analyses`` command
@@ -98,11 +98,11 @@ Get all or some features
 **Options**::
 
 
-      --organism_id TEXT  organism_id filter
-      --analysis_id TEXT  analysis_id filter
-      --name TEXT         name filter
-      --uniquename TEXT   uniquename filter
-      -h, --help          Show this message and exit.
+      --organism_id INTEGER  organism_id filter
+      --analysis_id INTEGER  analysis_id filter
+      --name TEXT            name filter
+      --uniquename TEXT      uniquename filter
+      -h, --help             Show this message and exit.
     
 
 ``load_fasta`` command

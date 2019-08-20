@@ -4,7 +4,7 @@ from chakin.decorators import custom_exception, list_output
 
 
 @click.command('get_feature_cvterms')
-@click.argument("feature_id", type=str)
+@click.argument("feature_id", type=int)
 @pass_context
 @custom_exception
 @list_output

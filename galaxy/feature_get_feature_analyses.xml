@@ -14,7 +14,7 @@ chakin feature get_feature_analyses
 </command>
 	<inputs>
     <!-- arguments -->
-	<param name="feature_id" label="Feature Id" argument="feature_id" type="text" help="Id of the feature" />
+	<param name="feature_id" label="Feature Id" argument="feature_id" type="integer" value="0" help="Id of the feature" />
 
     <!-- options -->
 

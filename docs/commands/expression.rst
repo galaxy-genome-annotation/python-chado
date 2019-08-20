@@ -140,11 +140,13 @@ Will delete biomaterials based on selector. Only one selector will be used.
 **Options**::
 
 
-      --names TEXT        JSON list of biomaterial names to delete.
-      --ids TEXT          JSON list of biomaterial ids to delete.
-      --organism_id TEXT  Delete all biomaterial associated with this organism id.
-      --analysis_id TEXT  Delete all biomaterial associated with this analysis id.
-      -h, --help          Show this message and exit.
+      --names TEXT           JSON list of biomaterial names to delete.
+      --ids TEXT             JSON list of biomaterial ids to delete.
+      --organism_id INTEGER  Delete all biomaterial associated with this organism
+                             id.
+      --analysis_id INTEGER  Delete all biomaterial associated with this analysis
+                             id.
+      -h, --help             Show this message and exit.
     
 
 ``get_biomaterials`` command
@@ -167,10 +169,10 @@ List biomaterials in the database
 **Options**::
 
 
-      --provider_id TEXT       Limit query to the selected provider
-      --biomaterial_id TEXT    Limit query to the selected biomaterial id
-      --organism_id TEXT       Limit query to the selected organism
-      --biomaterial_name TEXT  Limit query to the selected biomaterial name
-      --analysis_id TEXT       Limit query to the selected analysis_id
-      -h, --help               Show this message and exit.
+      --provider_id INTEGER     Limit query to the selected provider
+      --biomaterial_id INTEGER  Limit query to the selected biomaterial id
+      --organism_id INTEGER     Limit query to the selected organism
+      --biomaterial_name TEXT   Limit query to the selected biomaterial name
+      --analysis_id INTEGER     Limit query to the selected analysis_id
+      -h, --help                Show this message and exit.
     

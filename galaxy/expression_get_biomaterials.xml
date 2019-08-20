@@ -30,11 +30,11 @@ chakin expression get_biomaterials
     <!-- arguments -->
 
     <!-- options -->
-	<param name="provider_id" label="Provider Id" argument="provider_id" type="text" help="Limit query to the selected provider" />
-	<param name="biomaterial_id" label="Biomaterial Id" argument="biomaterial_id" type="text" help="Limit query to the selected biomaterial id" />
-	<param name="organism_id" label="Organism Id" argument="organism_id" type="text" help="Limit query to the selected organism" />
+	<param name="provider_id" label="Provider Id" argument="provider_id" type="integer" value="0" help="Limit query to the selected provider" />
+	<param name="biomaterial_id" label="Biomaterial Id" argument="biomaterial_id" type="integer" value="0" help="Limit query to the selected biomaterial id" />
+	<param name="organism_id" label="Organism Id" argument="organism_id" type="integer" value="0" help="Limit query to the selected organism" />
 	<param name="biomaterial_name" label="Biomaterial Name" argument="biomaterial_name" type="text" help="Limit query to the selected biomaterial name" />
-	<param name="analysis_id" label="Analysis Id" argument="analysis_id" type="text" help="Limit query to the selected analysis_id" />
+	<param name="analysis_id" label="Analysis Id" argument="analysis_id" type="integer" value="0" help="Limit query to the selected analysis_id" />
 
 	</inputs>
 	<outputs>

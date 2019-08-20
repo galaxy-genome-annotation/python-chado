@@ -5,7 +5,7 @@ from chakin.decorators import custom_exception, dict_output
 
 @click.command('add_biomaterial')
 @click.argument("biomaterial_name", type=str)
-@click.argument("organism_id", type=str)
+@click.argument("organism_id", type=int)
 @click.option(
     "--description",
     help="Description of the biomaterial",

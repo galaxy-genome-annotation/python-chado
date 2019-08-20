@@ -7,12 +7,12 @@ from chakin.decorators import custom_exception, list_output
 @click.option(
     "--organism_id",
     help="organism_id filter",
-    type=str
+    type=int
 )
 @click.option(
     "--analysis_id",
     help="analysis_id filter",
-    type=str
+    type=int
 )
 @click.option(
     "--name",

@@ -27,8 +27,8 @@ chakin feature delete_features
     <!-- arguments -->
 
     <!-- options -->
-	<param name="organism_id" label="Organism Id" argument="organism_id" type="text" help="organism_id filter" />
-	<param name="analysis_id" label="Analysis Id" argument="analysis_id" type="text" help="analysis_id filter" />
+	<param name="organism_id" label="Organism Id" argument="organism_id" type="integer" value="0" help="organism_id filter" />
+	<param name="analysis_id" label="Analysis Id" argument="analysis_id" type="integer" value="0" help="analysis_id filter" />
 	<param name="name" label="Name" argument="name" type="text" help="name filter" />
 	<param name="uniquename" label="Uniquename" argument="uniquename" type="text" help="uniquename filter" />
 

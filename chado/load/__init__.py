@@ -52,7 +52,7 @@ class LoadClient(Client):
         :type blastdb: str
         :param blastdb: Name of the database blasted against (must be in the Chado db table)
 
-        :type blastdb_id: str
+        :type blastdb_id: int
         :param blastdb_id: ID of the database blasted against (must be in the Chado db table)
 
         :type query_type: str

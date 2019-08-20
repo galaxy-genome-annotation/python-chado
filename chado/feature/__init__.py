@@ -43,10 +43,10 @@ class FeatureClient(Client):
         """
         Get all or some features
 
-        :type organism_id: str
+        :type organism_id: int
         :param organism_id: organism_id filter
 
-        :type analysis_id: str
+        :type analysis_id: int
         :param analysis_id: analysis_id filter
 
         :type name: str
@@ -94,7 +94,7 @@ class FeatureClient(Client):
         """
         Get cvterms associated with a feature
 
-        :type feature_id: str
+        :type feature_id: int
         :param feature_id: Id of the feature
 
         :rtype: list
@@ -128,7 +128,7 @@ class FeatureClient(Client):
         """
         Get analyses associated with a feature
 
-        :type feature_id: str
+        :type feature_id: int
         :param feature_id: Id of the feature
 
         :rtype: list
@@ -190,10 +190,10 @@ class FeatureClient(Client):
         """
         Get all or some features
 
-        :type organism_id: str
+        :type organism_id: int
         :param organism_id: organism_id filter
 
-        :type analysis_id: str
+        :type analysis_id: int
         :param analysis_id: analysis_id filter
 
         :type name: str

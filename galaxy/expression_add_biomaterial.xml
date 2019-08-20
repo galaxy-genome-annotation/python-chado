@@ -34,7 +34,7 @@ chakin expression add_biomaterial
 	<inputs>
     <!-- arguments -->
 	<param name="biomaterial_name" label="Biomaterial Name" argument="biomaterial_name" type="text" help="Biomaterial name" />
-	<param name="organism_id" label="Organism Id" argument="organism_id" type="text" help="The id of the associated organism" />
+	<param name="organism_id" label="Organism Id" argument="organism_id" type="integer" value="0" help="The id of the associated organism" />
 
     <!-- options -->
 	<param name="description" label="Description" argument="description" type="text" help="Description of the biomaterial" />
