@@ -54,11 +54,19 @@ Add an expression matrix file to the database
 **Options**::
 
 
-      --separator TEXT  Separating character in the matrix file (ex : ','). Default
-                        character is tab.  [default:        ]
-      --unit TEXT       The units associated with the loaded values (ie, FPKM, RPKM,
-                        raw counts)
-      -h, --help        Show this message and exit.
+      --separator TEXT   Separating character in the matrix file (ex : ','). Default
+                         character is tab.  [default:        ]
+      --unit TEXT        The units associated with the loaded values (ie, FPKM,
+                         RPKM, raw counts)
+      --query_type TEXT  The feature type (e.g. 'gene', 'mRNA', 'polypeptide',
+                         'contig') of the query. It must be a valid Sequence
+                         Ontology term.  [default: mRNA]
+      --match_on_name    Match features using their name instead of their uniquename
+      --re_name TEXT     Regular expression to extract the feature name from the
+                         input file (first capturing group will be used).
+      --skip_missing     Skip lines with unknown features or GO id instead of
+                         aborting everything.
+      -h, --help         Show this message and exit.
     
 
 ``delete_all_biomaterials`` command

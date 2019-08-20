@@ -17,6 +17,18 @@ chakin expression add_expression
 #if $unit:
   --unit '$unit'
 #end if
+#if $query_type:
+  --query_type '$query_type'
+#end if
+#if $match_on_name:
+  $match_on_name
+#end if
+#if $re_name:
+  --re_name '$re_name'
+#end if
+#if $skip_missing:
+  $skip_missing
+#end if
 
 | jq -S . > $results
 </command>
@@ -29,6 +41,10 @@ chakin expression add_expression
     <!-- options -->
 	<param name="separator" label="Separator" argument="separator" type="text" help="Separating character in the matrix file (ex : ','). Default character is tab." />
 	<param name="unit" label="Unit" argument="unit" type="text" help="The units associated with the loaded values (ie, FPKM, RPKM, raw counts)" />
+	<param name="query_type" label="Query Type" argument="query_type" type="text" help="The feature type (e.g. 'gene', 'mRNA', 'polypeptide', 'contig') of the query. It must be a valid Sequence Ontology term." />
+	<param name="match_on_name" label="Match On Name" argument="match_on_name" type="boolean" truevalue="--match_on_name" falsevalue="" help="Match features using their name instead of their uniquename" />
+	<param name="re_name" label="Re Name" argument="re_name" type="text" help="Regular expression to extract the feature name from the input file (first capturing group will be used)." />
+	<param name="skip_missing" label="Skip Missing" argument="skip_missing" type="boolean" truevalue="--skip_missing" falsevalue="" help="Skip lines with unknown features or GO id instead of aborting everything." />
 
 	</inputs>
 	<outputs>
