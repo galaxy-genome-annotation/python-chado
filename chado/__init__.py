@@ -24,6 +24,7 @@ from sqlalchemy import event, exc as sa_exc
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.pool import NullPool
 
 standard_library.install_aliases()
 
@@ -34,7 +35,8 @@ class ChadoModel(object):
 
 class ChadoInstance(object):
 
-    def __init__(self, dbhost="localhost", dbname="chado", dbuser="chado", dbpass="chado", dbschema="public", dbport=5432, dburl=None, offline=False, no_reflect=False, reflect_tripal_tables=False, **kwargs):
+    def __init__(self, dbhost="localhost", dbname="chado", dbuser="chado", dbpass="chado", dbschema="public", dbport=5432, dburl=None, offline=False,
+                 no_reflect=False, reflect_tripal_tables=False, pool_connections=True, **kwargs):
         self.dbhost = dbhost
         self.dbname = dbname
         self.dbuser = dbuser
@@ -47,9 +49,17 @@ class ChadoInstance(object):
             if '@[' in self.dburl:
                 # the url given by pglite is not in the correct format for sqlalchmemy
                 self.dburl = re.sub(r"postgres://(.+)@\[(.+)\]/(.+)", r"postgres://\1@/\3?host=\2", self.dburl)
-            self._engine = create_engine('%s' % (self.dburl))
+            engine_url = self.dburl
         else:
-            self._engine = create_engine('postgresql://%s:%s@%s:%s/%s' % (self.dbuser, self.dbpass, self.dbhost, self.dbport, self.dbname))
+            engine_url = 'postgresql://%s:%s@%s:%s/%s' % (self.dbuser, self.dbpass, self.dbhost, self.dbport, self.dbname)
+
+        if pool_connections:
+            self._engine = create_engine(engine_url)
+        else:
+            # Prevent SQLAlchemy to make a connection pool.
+            # Useful for galaxy dynamic options as otherwise it triggers "sorry, too many clients already" errors after a while
+            self._engine = create_engine(engine_url, poolclass=NullPool)
+
         self._metadata = MetaData(self._engine, schema=self.dbschema)
         Session = sessionmaker(bind=self._engine)
         self.session = Session()
