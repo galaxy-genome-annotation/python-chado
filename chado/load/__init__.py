@@ -89,13 +89,16 @@ class LoadClient(Client):
         if not res.count():
             raise Exception("Analysis with the id {} was not found".format(analysis_id))
 
-        # Cache all possibly existing features
+        # Cache many things to speed up loading
         self._reset_cache()
         seqterm = self.ci.get_cvterm_id(query_type, 'sequence')
         self._init_feature_cache(organism_id, seqterm, match_on_name)
 
-        # Cache analysisfeature content for given analysis_id
         self._init_analysisfeature_cache(analysis_id)
+
+        self._init_analysisprop_cache()
+
+        self._hit_details_cache = None
 
         if not os.path.exists(input):
             raise Exception("{} was not found".format(input))
@@ -103,6 +106,9 @@ class LoadClient(Client):
         self._setup_tables("blast")
 
         count_ins = self._parse_blast_xml(analysis_id, blastdb_id, input, re_name, query_type, True, organism_id, skip_missing)
+
+        blastdb_ap = self.ci.get_cvterm_id('analysis_blast_blastdb', 'tripal')
+        self._add_analysisprop(analysis_id, type_id=blastdb_ap, value=blastdb_id)
 
         self.session.commit()
 
@@ -666,22 +672,31 @@ class LoadClient(Client):
     def _get_hits_details(self, xml_content, blast_db, feature_id, blast_analysis):
         hits_details = []
 
-        is_genbank = ""
-        regex_hit_id = ""
-        regex_hit_def = ""
-        regex_hit_organism = ""
-        regex_hit_accession = ""
-        db_organism = ""
+        if self._hit_details_cache is None:
+            self._hit_details_cache = {}
+            self._hit_details_cache[blast_db.db_id] = {}
+            self._hit_details_cache[blast_db.db_id]['is_genbank'] = ""
+            self._hit_details_cache[blast_db.db_id]['regex_hit_id'] = ""
+            self._hit_details_cache[blast_db.db_id]['regex_hit_def'] = ""
+            self._hit_details_cache[blast_db.db_id]['regex_hit_organism'] = ""
+            self._hit_details_cache[blast_db.db_id]['regex_hit_accession'] = ""
+            self._hit_details_cache[blast_db.db_id]['db_organism'] = ""
+            parser_query = self.session.query(self.model.tripal_analysis_blast).filter_by(db_id=blast_db.db_id)
+            if parser_query.count():
+                parser = parser_query.one()
+                self._hit_details_cache[blast_db.db_id]['is_genbank'] = parser.genbank_style
+                self._hit_details_cache[blast_db.db_id]['regex_hit_id'] = parser.regex_hit_id
+                self._hit_details_cache[blast_db.db_id]['regex_hit_def'] = parser.regex_hit_def
+                self._hit_details_cache[blast_db.db_id]['regex_hit_organism'] = parser.regex_hit_organism
+                self._hit_details_cache[blast_db.db_id]['regex_hit_accession'] = parser.regex_hit_accession
+                self._hit_details_cache[blast_db.db_id]['db_organism'] = parser.hit_organism
 
-        parser_query = self.session.query(self.model.tripal_analysis_blast).filter_by(db_id=blast_db.db_id)
-        if parser_query.count():
-            parser = parser_query.one()
-            is_genbank = parser.genbank_style
-            regex_hit_id = parser.regex_hit_id
-            regex_hit_def = parser.regex_hit_def
-            regex_hit_organism = parser.regex_hit_organism
-            regex_hit_accession = parser.regex_hit_accession
-            db_organism = parser.hit_organism
+        is_genbank = self._hit_details_cache[blast_db.db_id]['is_genbank']
+        regex_hit_id = self._hit_details_cache[blast_db.db_id]['regex_hit_id']
+        regex_hit_def = self._hit_details_cache[blast_db.db_id]['regex_hit_def']
+        regex_hit_organism = self._hit_details_cache[blast_db.db_id]['regex_hit_organism']
+        regex_hit_accession = self._hit_details_cache[blast_db.db_id]['regex_hit_accession']
+        db_organism = self._hit_details_cache[blast_db.db_id]['db_organism']
 
         # Regex in Python do not take "/"
         if not regex_hit_id:
@@ -892,6 +907,11 @@ class LoadClient(Client):
                     blast_db_record.regex_hit_organism = ''
                     self.session.add(blast_db_record)
                     self.session.flush()
+
+            try:
+                self.ci.get_cvterm_id('analysis_blast_blastdb', 'tripal')
+            except chado.RecordNotFoundError:
+                self.ci.create_cvterm('analysis_blast_blastdb', 'tripal', 'tripal')
 
     def _get_dbs(self):
         """

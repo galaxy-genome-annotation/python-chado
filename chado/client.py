@@ -45,6 +45,7 @@ class Client(object):
         self._featcvterm_cache = None
         self._featured_dirty_rels = None
         self._analysisfeature_cache = None
+        self._analysisprop_cache = None
 
         self.cache_existing = True
 
@@ -146,6 +147,22 @@ class Client(object):
                     if x.rank > self._analysisfeature_cache[x.feature_id]['props'][x.type_id]:
                         self._analysisfeature_cache[x.feature_id]['props'][x.type_id] = x.rank
 
+    def _init_analysisprop_cache(self, force=False):
+
+        if self._analysisprop_cache is not None and force:
+            self._analysisprop_cache = None
+
+        if self._analysisprop_cache is None:
+            self._analysisprop_cache = {}
+            res = self.session.query(self.model.analysisprop.analysis_id, self.model.analysisprop.type_id, self.model.analysisprop.rank)
+            for x in res:
+                if x.analysis_id not in self._analysisprop_cache:
+                    self._analysisprop_cache[x.analysis_id] = {}
+                if x.type_id not in self._analysisprop_cache[x.analysis_id]:
+                    self._analysisprop_cache[x.analysis_id][x.type_id] = 0
+                if x.rank > self._analysisprop_cache[x.analysis_id][x.type_id]:
+                    self._analysisprop_cache[x.analysis_id][x.type_id] = x.rank
+
     def _add_analysis_feature(self, feature_id, analysis_id, type_id=None, value=None):
 
         if feature_id not in self._analysisfeature_cache:
@@ -178,6 +195,26 @@ class Client(object):
             self._analysisfeature_cache[feature_id]['props'][type_id] = rank
 
         return analysisfeature_id
+
+    def _add_analysisprop(self, analysis_id, type_id, value):
+        rank = 0
+        if analysis_id not in self._analysisprop_cache:
+            self._analysisprop_cache[analysis_id] = {}
+
+        if type_id in self._analysisprop_cache[analysis_id]:
+            rank = self._analysisprop_cache[analysis_id][type_id] + 1
+
+        analysis_prop = self.model.analysisprop()
+        analysis_prop.analysis_id = analysis_id
+        analysis_prop.type_id = type_id
+        analysis_prop.value = value
+        analysis_prop.rank = rank
+        self.session.add(analysis_prop)
+        self.session.flush()
+
+        self._analysisprop_cache[analysis_id][type_id] = rank
+
+        return analysis_prop
 
     def _init_featureloc_cache(self, organism_id, force=False):
 
