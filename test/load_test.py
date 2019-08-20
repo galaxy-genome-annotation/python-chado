@@ -34,6 +34,18 @@ class LoadTest(ChadoTestCase):
         res = res.filter(self.ci.model.analysisfeatureprop.type_id == cvterm_id)
         assert res.count(), "Cvterm is not matching analysis_blast_output_iteration_hits"
 
+        res = self.ci.session.query(self.ci.model.analysisprop) \
+            .filter(self.ci.model.analysisprop.analysis_id == an_blast_id)
+
+        assert res.count() == 1, "Expected one result in analysisprop table for this analysis"
+        ap = res[0]
+        assert ap.rank == 0
+
+        res = self.ci.session.query(self.ci.model.db.db_id) \
+            .filter(self.ci.model.db.name == "swissprot:display")
+
+        assert int(ap.value) == int(res[0][0])
+
         # Insert a second time to see how analysisfeatureprop are loaded
         test = self.ci.load.blast(an_blast_id, org['organism_id'], blast_file_path, blastdb="swissprot:display", query_type="mRNA", match_on_name=True)
         assert test['inserted'] == 1, test
