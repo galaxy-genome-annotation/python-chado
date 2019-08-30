@@ -217,6 +217,7 @@ class ChadoInstance(object):
         # Inspired from https://bitbucket.org/zzzeek/sqlalchemy/wiki/UsageRecipes/ManyToManyOrphan
         # In chado, a feature can be part of multiple analysis, using the analysisfeature table
         # With the following code, when we delete an analysis, it also deletes all features that were only part of this single analysis
+        # FIXME This is slow for analysis with many features, it runs 1 delete query per feature
         @event.listens_for(self.session, 'after_flush')
         def delete_feature_orphans(session, ctx):
             # List all features that were attached to a deleted analysis
