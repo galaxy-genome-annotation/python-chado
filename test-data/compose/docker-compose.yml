@@ -1,0 +1,20 @@
+version: '2'
+services:
+
+    tripal:
+        image: quay.io/galaxy-genome-annotation/tripal
+        links:
+            - tripaldb:postgres
+        environment:
+            MEMORY_LIMIT: 512M
+            TRIPAL_GIT_CLONE_MODULES: ""
+            TRIPAL_DOWNLOAD_MODULES: ""
+            TRIPAL_ENABLE_MODULES: ""
+
+    tripaldb:
+        image: quay.io/galaxy-genome-annotation/chado:1.31-jenkins26-pg9.5
+        ports:
+            - "5433:5432"
+        environment:
+            - POSTGRES_PASSWORD=postgres
+            - INSTALL_CHADO_SCHEMA=0

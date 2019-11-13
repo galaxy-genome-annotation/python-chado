@@ -87,6 +87,9 @@ $ chakin feature load_fasta \
 
 ## History
 
+- 2.3.1
+    - Fix data loading in Tripal database
+
 - 2.3.0
     - Fix non working --re_parent option in fasta loader
     - allow connection using a preformatted url (needed by galaxy tools using pgutil)

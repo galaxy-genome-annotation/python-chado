@@ -136,20 +136,21 @@ class ChadoInstance(object):
         Base.prepare(self._engine, reflect=True, schema=self.dbschema)
         if reflect_tripal_tables and self.dbschema != "public":
             Base.prepare(self._engine, reflect=True, schema='public')
+
         # Check for schema name instead of hardcoding?
         self.model = Base.classes
         self.model.blast_hit_data = Blast_hit_data
         self.model.tripal_analysis_blast = Tripal_analysis_blast
 
         # ambiguous relationships to same table
-        self.model.feature_relationship.subject = relationship("feature", foreign_keys=[self.model.feature_relationship.subject_id], back_populates="subject_in_relationships")
-        self.model.feature.subject_in_relationships = relationship("feature_relationship", foreign_keys=[self.model.feature_relationship.subject_id])
-        self.model.feature_relationship.object = relationship("feature", foreign_keys=[self.model.feature_relationship.object_id], back_populates="object_in_relationships")
-        self.model.feature.object_in_relationships = relationship("feature_relationship", foreign_keys=[self.model.feature_relationship.object_id])
+        self.model.feature_relationship.subject = relationship(self.model.feature, foreign_keys=[self.model.feature_relationship.subject_id], back_populates="subject_in_relationships")
+        self.model.feature.subject_in_relationships = relationship(self.model.feature_relationship, foreign_keys=[self.model.feature_relationship.subject_id])
+        self.model.feature_relationship.object = relationship(self.model.feature, foreign_keys=[self.model.feature_relationship.object_id], back_populates="object_in_relationships")
+        self.model.feature.object_in_relationships = relationship(self.model.feature_relationship, foreign_keys=[self.model.feature_relationship.object_id])
 
-        self.model.featureloc.feature = relationship("feature", foreign_keys=[self.model.featureloc.feature_id], back_populates="featureloc_collection")
-        self.model.feature.featureloc_collection = relationship("featureloc", foreign_keys=[self.model.featureloc.feature_id], back_populates="feature")
-        self.model.featureloc.srcfeature = relationship("feature", foreign_keys=[self.model.featureloc.srcfeature_id])
+        self.model.featureloc.feature = relationship(self.model.feature, foreign_keys=[self.model.featureloc.feature_id], back_populates="featureloc_collection")
+        self.model.feature.featureloc_collection = relationship(self.model.featureloc, foreign_keys=[self.model.featureloc.feature_id], back_populates="feature")
+        self.model.featureloc.srcfeature = relationship(self.model.feature, foreign_keys=[self.model.featureloc.srcfeature_id])
 
     def _reflect_tables_subset(self):
 
