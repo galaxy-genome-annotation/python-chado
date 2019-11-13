@@ -1,4 +1,4 @@
-from . import ChadoTestCase, ci
+from . import ChadoTestCase, ci_reflect_tripal
 
 
 class LoadTest(ChadoTestCase):
@@ -122,16 +122,16 @@ class LoadTest(ChadoTestCase):
 
     def setUp(self):
 
-        self.ci = ci
-        ci.feature.delete_features()
-        ci.organism.delete_organisms()
-        ci.analysis.delete_analyses()
+        self.ci = ci_reflect_tripal
+        self.ci.feature.delete_features()
+        self.ci.organism.delete_organisms()
+        self.ci.analysis.delete_analyses()
 
-        ci.session.commit()
+        self.ci.session.commit()
 
     def tearDown(self):
-        ci.feature.delete_features()
-        ci.organism.delete_organisms()
-        ci.analysis.delete_analyses()
+        self.ci.feature.delete_features()
+        self.ci.organism.delete_organisms()
+        self.ci.analysis.delete_analyses()
 
-        ci.session.commit()
+        self.ci.session.commit()

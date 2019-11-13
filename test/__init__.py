@@ -6,10 +6,13 @@ ci = get_instance('local')
 
 ci_no_reflect = get_instance('local', no_reflect=True)
 
+ci_reflect_tripal = get_instance('local', reflect_tripal_tables=True)
+
 
 def setup_package():
     global ci
     global ci_no_reflect
+    global ci_reflect_tripal
 
 
 class ChadoTestCase(unittest.TestCase):

@@ -1,6 +1,6 @@
 from nose.tools import raises
 
-from . import ChadoTestCase, ci
+from . import ChadoTestCase, ci_reflect_tripal
 
 
 class GoTest(ChadoTestCase):
@@ -120,7 +120,7 @@ class GoTest(ChadoTestCase):
         self.ci.load.go(input="./test-data/go.gaf", analysis_id=an_go['analysis_id'], organism_id=org['organism_id'], query_type='foobar')
 
     def setUp(self):
-        self.ci = ci
+        self.ci = ci_reflect_tripal
         self.ci.organism.delete_organisms()
         self.ci.analysis.delete_analyses()
         self.ci.feature.delete_features()
