@@ -36,6 +36,19 @@ jobs:
         - sleep 300 # Wait for the container to be ready
       script:
         - python setup.py nosetests
+    - stage: test
+      python: '3.5'
+      env:
+        - TRIPAL=1
+      install:
+        - pip install -U pip setuptools nose
+        - python setup.py install
+        - export CHAKIN_GLOBAL_CONFIG_PATH=`pwd`/test-data/compose/chakin-compose.yml
+        - sudo service postgresql stop
+        - cd test-data/compose && docker-compose up -d && cd ../../
+        - sleep 300 # Wait for the container to be ready
+      script:
+        - python setup.py nosetests
     - stage: deploy
       install: skip
       script: echo "Deploying to Pypi"
