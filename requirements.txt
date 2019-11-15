@@ -1,7 +1,7 @@
 sqlalchemy
 psycopg2-binary
 biopython
-bcbio-gff==0.6.4
+bcbio-gff
 wrapt
 click
 pyyaml
