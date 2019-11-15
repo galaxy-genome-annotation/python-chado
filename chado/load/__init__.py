@@ -341,7 +341,7 @@ class LoadClient(Client):
 
                     if parse_go and go_db_id:
                         self._load_go_terms(ipr_array["goterms"], feature_id, analysis_id, go_db_id, skip_missing)
-            return total_count
+        return total_count
 
     def _parse_interpro_xml4(self, analysis_id, organism_id, xml, interpro_file, parse_go, re_name, query_type, skip_missing):
         # If there is an EBI header then we need to skip that
