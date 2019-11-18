@@ -89,6 +89,7 @@ $ chakin feature load_fasta \
 
 - 2.3.2
     - Fix interproscan loader only loading the first result of XML v5
+    - Fix interproscan loader failing to load IPR by name
 
 - 2.3.1
     - Fix data loading in Tripal database

@@ -275,6 +275,7 @@ class LoadClient(Client):
         # Cache analysisfeature content for given analysis_id
         self._init_analysisfeature_cache(analysis_id)
         self._init_featcvterm_cache()
+        self._init_interpro_cache()
 
         # Cache all existing cvterms from GO cv
         db = 'GO'
@@ -501,13 +502,19 @@ class LoadClient(Client):
                 # load the IPR terms that way, we need to just add them
                 # as we encounter them. If the term already exists
                 # we do not want to update it.
-                cvterm_id = self.ci.create_cvterm(ipr_term['ipr_name'], 'INTERPRO', 'INTERPRO', term_definition=ipr_term['ipr_desc'], accession=ipr_id)
-                if not cvterm_id:
-                    if skip_missing:
-                        warn('Could not find cvterm %s %s, skipping it', ipr_id, ipr_term['ipr_name'])
-                        continue
-                    else:
-                        raise Exception('Could not find cvterm %s %s' % ipr_id, ipr_term['ipr_name'])
+
+                # Check using IPRnumber (in case ipr_name changed at some point in time)
+                if ipr_id in self._interpro_cache:
+                    cvterm_id = self._interpro_cache[ipr_id]
+                else:
+                    cvterm_id = self.ci.create_cvterm(ipr_term['ipr_name'], 'INTERPRO', 'INTERPRO', term_definition=ipr_term['ipr_desc'], accession=ipr_id)
+                    if not cvterm_id:
+                        if skip_missing:
+                            warn('Could not find cvterm %s %s, skipping it', ipr_id, ipr_term['ipr_name'])
+                            continue
+                        else:
+                            raise Exception('Could not find cvterm %s %s' % ipr_id, ipr_term['ipr_name'])
+                    self._interpro_cache[ipr_id] = cvterm_id
 
                 # Insert IPR terms into the feature_cvterm table
                 # the default pub_id of 1 (NULL) is used. if the cvterm already exists then just skip adding it

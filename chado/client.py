@@ -46,6 +46,7 @@ class Client(object):
         self._featured_dirty_rels = None
         self._analysisfeature_cache = None
         self._analysisprop_cache = None
+        self._interpro_cache = None
 
         self.cache_existing = True
 
@@ -336,3 +337,18 @@ class Client(object):
             if feat not in self._featcvterm_cache:
                 self._featcvterm_cache[feat] = []
             self._featcvterm_cache[feat].append(cvterm_id)
+
+    def _init_interpro_cache(self, force=False):
+
+        if self._interpro_cache is not None and force:
+            self._interpro_cache = None
+
+        if self._interpro_cache is None:
+            self._interpro_cache = {}
+            if self.cache_existing:
+                res = self.session.query(self.model.dbxref.accession, self.model.cvterm.cvterm_id) \
+                    .join(self.model.db, self.model.db.db_id == self.model.dbxref.db_id) \
+                    .filter(self.model.db.name == "INTERPRO") \
+                    .join(self.model.cvterm, self.model.dbxref.dbxref_id == self.model.cvterm.dbxref_id)
+
+                self._interpro_cache = {x.accession: x.cvterm_id for x in res}
