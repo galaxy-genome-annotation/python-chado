@@ -605,7 +605,6 @@ class LoadClient(Client):
             raise Exception("Cannot find cvterm id for query type {}".format(query_type))
 
         for child in iteration:
-            feature_id = None
             if child.tag == 'Iteration_query-def':
                 iteration_tags_xml += "  <{}>{}</{}>\n".format(child.tag, child.text, child.tag)
                 try:
@@ -614,9 +613,11 @@ class LoadClient(Client):
                     first_word = re.search(r'^(.*?)\s.*$', child.text)
                     if first_word:
                         feature_id = self._match_feature(first_word.group(1), re_name, query_type, organism_id, skip_missing)
+                if feature_id is None:
+                    continue
 
             elif child.tag == 'Iteration_hits':
-                if skip_missing and feature_id is None:
+                if feature_id is None:
                     continue
 
                 xml_content = "<Iteration>\n{}    <{}>\n".format(iteration_tags_xml, child.tag)
