@@ -87,6 +87,9 @@ $ chakin feature load_fasta \
 
 ## History
 
+- 2.3.3
+    - Fix skip_missing option for blast loader
+
 - 2.3.2
     - Fix interproscan loader only loading the first result of XML v5
     - Fix interproscan loader failing to load IPR by name
