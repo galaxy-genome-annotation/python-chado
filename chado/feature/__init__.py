@@ -542,7 +542,7 @@ class FeatureClient(Client):
             raise Exception("Could not find organism with id '{}'".format(organism_id))
 
         if protein_id_attr and re_protein:
-            raise Exception("--protein_id_attr and --re_protein cannot be used at the same time.".format(organism_id))
+            raise Exception("--protein_id_attr and --re_protein cannot be used at the same time.")
 
         self.cache_existing = not add_only
 
