@@ -604,21 +604,28 @@ class LoadClient(Client):
         if not entity_cv_term_id:
             raise Exception("Cannot find cvterm id for query type {}".format(query_type))
 
+        feature_id = None
+        feature_txt_id = None
+
         for child in iteration:
             if child.tag == 'Iteration_query-def':
                 iteration_tags_xml += "  <{}>{}</{}>\n".format(child.tag, child.text, child.tag)
+                feature_txt_id = child.text
                 try:
                     feature_id = self._match_feature(child.text, re_name, query_type, organism_id, skip_missing=False)  # we need to have an exception if it fails
                 except RecordNotFoundError:
                     first_word = re.search(r'^(.*?)\s.*$', child.text)
                     if first_word:
                         feature_id = self._match_feature(first_word.group(1), re_name, query_type, organism_id, skip_missing)
-                if feature_id is None:
-                    continue
 
             elif child.tag == 'Iteration_hits':
                 if feature_id is None:
-                    continue
+                    if feature_txt_id is None:
+                        raise Exception("No <Iteration_query-def> tag found before <Iteration_hits>, malformed xml while reading: %s" % child)
+                    elif skip_missing:
+                        continue
+                    else:
+                        raise Exception("Could not find a feature with id %s" % feature_txt_id)
 
                 xml_content = "<Iteration>\n{}    <{}>\n".format(iteration_tags_xml, child.tag)
                 for hit in child:
