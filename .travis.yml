@@ -5,7 +5,7 @@ services:
   - docker
 
 python:
-  - '2.7'
+  - '3.6'
 
 jobs:
   include:
@@ -15,7 +15,7 @@ jobs:
       script:
         - flake8 chado test --ignore=E501
     - stage: test
-      python: '2.7'
+      python: '3.6'
       install:
         - pip install -U pip setuptools nose
         - python setup.py install
@@ -26,18 +26,7 @@ jobs:
       script:
         - python setup.py nosetests
     - stage: test
-      python: '3.5'
-      install:
-        - pip install -U pip setuptools nose
-        - python setup.py install
-        - export CHAKIN_GLOBAL_CONFIG_PATH=`pwd`/test-data/chakin.yml
-        - sudo service postgresql stop
-        - chakin util launch_docker_image --background --no_yeast
-        - sleep 300 # Wait for the container to be ready
-      script:
-        - python setup.py nosetests
-    - stage: test
-      python: '3.5'
+      python: '3.6'
       env:
         - TRIPAL=1
       install:
