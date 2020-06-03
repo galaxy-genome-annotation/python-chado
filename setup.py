@@ -6,10 +6,10 @@ with open('requirements.txt') as f:
 
 setup(
     name="chado",
-    version='2.3.2',
+    version='2.3.3',
     description="Chado library",
     author="Anthony Bretaudeau",
-    author_email="anthony.bretaudeau@inra.fr",
+    author_email="anthony.bretaudeau@inrae.fr",
     url="https://github.com/galaxy-genome-annotation/python-chado",
     install_requires=requires,
     packages=find_packages(),
