@@ -1,6 +1,6 @@
 sqlalchemy
 psycopg2-binary
-biopython
+biopython>=1.78
 bcbio-gff
 wrapt
 click
