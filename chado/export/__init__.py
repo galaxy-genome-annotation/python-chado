@@ -12,7 +12,6 @@ from builtins import open
 from BCBio import GFF
 
 from Bio import SeqIO
-from Bio.Alphabet import IUPAC
 from Bio.Seq import Seq
 from Bio.SeqFeature import FeatureLocation as BioFeatureLocation
 from Bio.SeqFeature import SeqFeature
@@ -85,7 +84,7 @@ class ExportClient(Client):
 
         for org in res:
             # TODO: can we do this properly?
-            seq = Seq("A" * 1, IUPAC.unambiguous_dna)
+            seq = Seq("A" * 1)
 
             # Annotation features
             features = self.session.query(self.model.feature, self.model.featureloc) \
@@ -230,7 +229,7 @@ class ExportClient(Client):
 
         sys.stderr.write("Processing %s sequences\n" % res.count())
         for org in res:
-            seq = Seq('', IUPAC.unambiguous_dna)
+            seq = Seq('')
 
             record_features = []
             features = self.ci.session.query(self.model.feature, self.model.featureloc) \
@@ -245,7 +244,7 @@ class ExportClient(Client):
                 # Sequence containing feature
                 if feature.residues:
                     # This seems bad? What if multiple things have seqs?
-                    seq = Seq(feature.residues, IUPAC.unambiguous_dna)
+                    seq = Seq(feature.residues)
                 else:
                     qualifiers = {
                         self.ci.get_cvterm_name(prop.type_id): prop.value for prop in
