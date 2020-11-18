@@ -265,6 +265,7 @@ class ExportClient(Client):
                 seq, id=org.common_name,
                 name=org.common_name,
                 description="%s %s" % (org.genus, org.species),
+                annotations={"molecule_type": "DNA"},
             )
             record.features = record_features
 
