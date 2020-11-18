@@ -87,6 +87,10 @@ $ chakin feature load_fasta \
 
 ## History
 
+- 2.3.4
+    - Now requires biopython >=1.78
+    - Fixes biopython sequence usage in recent biopython
+
 - 2.3.3
     - Now requires python >= 3.6
     - Better error reporting for blast loader
