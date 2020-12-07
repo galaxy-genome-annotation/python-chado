@@ -3,6 +3,6 @@ psycopg2-binary
 biopython>=1.78
 bcbio-gff
 wrapt
-click
+click <8
 pyyaml
 future
