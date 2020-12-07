@@ -3,6 +3,8 @@
 # Consider there's only one docker running
 DOCKER_ID=`docker ps --format={{.Names}} | head -n1`
 
+echo "Watching docker id $DOCKER_ID"
+
 for ((i=0;i<100;i++))
 do
     DB_CONNECTABLE=$(docker logs $DOCKER_ID | grep -q 02-search.sh >/dev/null 2>&1; echo "$?")
