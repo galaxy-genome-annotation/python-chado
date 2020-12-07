@@ -1,8 +1,11 @@
 #!/bin/bash
 
+# Consider there's only one docker running
+DOCKER_ID=`docker ps --format={{.Names}} | head -n1`
+
 for ((i=0;i<100;i++))
 do
-    DB_CONNECTABLE=$(nc -z localhost 5432 >/dev/null 2>&1; echo "$?")
+    DB_CONNECTABLE=$(docker logs $DOCKER_ID | grep -q 02-search.sh >/dev/null 2>&1; echo "$?")
         if [[ $DB_CONNECTABLE -eq 0 ]]; then
                 break
         fi
@@ -11,5 +14,6 @@ done
 
 if ! [[ $DB_CONNECTABLE -eq 0 ]]; then
         echo "Cannot connect to database"
+        docker logs $DOCKER_ID
     exit "${DB_CONNECTABLE}"
 fi
