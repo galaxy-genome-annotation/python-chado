@@ -33,7 +33,9 @@ jobs:
     - name: Launch containers
       run: |
         export CHAKIN_GLOBAL_CONFIG_PATH=`pwd`/test-data/chakin.yml
+        echo "Launching test Chado DB"
         chakin util launch_docker_image --background --no_yeast
+        echo "Waiting while test Chado DB is starting up"
         sleep 300 # Wait for the container to be ready
     - name: Run tests
       env:
