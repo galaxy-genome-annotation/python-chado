@@ -125,6 +125,7 @@ def chakin(ctx, instance, verbose, path=None):
     current_ctx = click.get_current_context()
     try:
         # TODO find a way to pass offline=True when running with -h option or without any subcommand
+        error("current_ctx.invoked_subcommand is %s" % current_ctx.invoked_subcommand)
         ctx.gi = get_instance(instance, offline=(current_ctx.invoked_subcommand in ['init', 'util']), no_reflect=(current_ctx.invoked_subcommand in ['analysis', 'organism']), reflect_tripal_tables=(current_ctx.invoked_subcommand == 'load'))
     except TypeError:
         pass
