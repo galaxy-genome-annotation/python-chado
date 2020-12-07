@@ -14,6 +14,8 @@ do
     sleep 3
 done
 
+sleep 10
+
 if ! [[ $DB_CONNECTABLE -eq 0 ]]; then
         echo "Cannot connect to database"
         docker logs $DOCKER_ID
