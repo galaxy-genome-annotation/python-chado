@@ -46,6 +46,7 @@ jobs:
 
   pypi:
     runs-on: ubuntu-latest
+    needs: [lint, py_test]
     name: Deploy release to Pypi
     steps:
     - name: Checkout

@@ -87,6 +87,9 @@ $ chakin feature load_fasta \
 
 ## History
 
+- 2.3.5
+    - Fix has_table() calls with recent sqlalchemy versions
+
 - 2.3.4
     - Now requires biopython >=1.78
     - Fixes biopython sequence usage in recent biopython

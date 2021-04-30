@@ -5,6 +5,8 @@ from recommonmark.parser import CommonMarkParser
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'chado'))
 
+project = "Python-chado"
+
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
 master_doc = 'index'
 
