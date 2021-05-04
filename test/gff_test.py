@@ -1640,13 +1640,11 @@ class GFFTest(ChadoTestCase):
 
         terms = {cvt.cvterm.name: cvt.cvterm.dbxref.db_id for cvt in derivesfrom[0].feature_cvterm_collection}
 
-        assert len(terms) == 3, "gff>ontology_term loaded correctly"
+        assert len(terms) == 2, "gff>ontology_term loaded correctly"
         assert '000001' in terms, "gff>ontology_term loaded correctly"
         assert '00002' in terms, "gff>ontology_term loaded correctly"
-        assert 'cation transport' in terms, "gff>ontology_term loaded correctly"
         assert terms['000001'] == dbs['GO'], "gff>ontology_term loaded correctly"
         assert terms['00002'] == dbs['GO'], "gff>ontology_term loaded correctly"
-        assert terms['cation transport'] == dbs['GO'], "gff>ontology_term loaded correctly"
 
         # Target location
         assert len(derivesfrom[0].featureloc_collection) == 2, "gff>target loc ok"
