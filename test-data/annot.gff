@@ -169,4 +169,4 @@ scaffold00001	phytozome6	CDS	4061250	4061345	.	+	0	Parent=PAC:18136225;PACid=181
 scaffold00001	phytozome6	CDS	4061417	4061500	.	+	0	Parent=PAC:18136225;PACid=18136225
 scaffold00001	phytozome6	CDS	4061617	4061719	.	+	0	Parent=PAC:18136225;PACid=18136225
 scaffold00001	phytozome6	CDS	4061823	4061905	.	+	2	Parent=PAC:18136225;PACid=18136225
-scaffold00001	phytozome6	three_prime_UTR	4061906	4062210	.	+	.	ID="some_special_cds";Parent=PAC:18136225;PACid=18136225;Derives_from=PAC:18136217;Ontology_term=GO:000001,GO:00002;Target=scaffold00001 120 320 -
+scaffold00001	phytozome6	three_prime_UTR	4061906	4062210	.	+	.	ID="some_special_cds";Parent=PAC:18136225;PACid=18136225;Derives_from=PAC:18136217;Ontology_term=GO:000001,GO:00002,GO:0006812;Target=scaffold00001 120 320 -

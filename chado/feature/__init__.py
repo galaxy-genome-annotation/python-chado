@@ -567,6 +567,10 @@ class FeatureClient(Client):
             if lm.feature_id not in self._landmark_cache[lm.uniquename]:
                 self._landmark_cache[lm.uniquename].append(lm.feature_id)
 
+        # Preload GO terms
+        db = 'GO'
+        self.ci._preload_dbxref2cvterms(db)
+
         examiner = GFF.GFFExaminer()
         gff_handle = open(gff)
         gff_limits = examiner.available_limits(gff_handle)
