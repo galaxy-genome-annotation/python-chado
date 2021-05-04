@@ -87,6 +87,9 @@ $ chakin feature load_fasta \
 
 ## History
 
+- 2.3.6
+    - Fix loading of GO terms from GFF
+
 - 2.3.5
     - Fix has_table() calls with recent sqlalchemy versions
 
