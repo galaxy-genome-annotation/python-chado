@@ -87,6 +87,9 @@ $ chakin feature load_fasta \
 
 ## History
 
+- 2.3.7
+    - Fix loading of expression data when first column header is not empty
+
 - 2.3.6
     - Fix loading of GO terms from GFF
 
