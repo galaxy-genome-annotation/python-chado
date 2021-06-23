@@ -584,10 +584,11 @@ class ExpressionClient(Client):
             with open(file_path) as f:
                 reader = csv.reader(f, delimiter=separator)
                 # Get headers (biomat list)
-                # TODO : python2 compat (reader.next())
-                biomaterial__full_list = next(reader)
+                biomaterial_full_list = next(reader)
+                # Remove first col (=transcript ids)
+                biomaterial_full_list = biomaterial_full_list[1:]
                 # Cleanup empty strings
-                biomaterial_list = [x for x in biomaterial__full_list if x]
+                biomaterial_list = [x for x in biomaterial_full_list if x]
                 expected_len = len(biomaterial_list)
                 for line in reader:
                     # Get feature name

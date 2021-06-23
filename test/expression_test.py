@@ -76,6 +76,28 @@ class ExpressionTest(ChadoTestCase):
 
         assert elements.count() == 24
 
+    def test_add_expression_title(self):
+
+        # Setup testing data
+        # Expression file
+        expression_file_path = "./test-data/expression_title.matrix"
+
+        org = self._create_fake_org()
+        an = self._create_fake_an()
+
+        # Feature file (fasta)
+        feature_file_path = "./test-data/proteins.fa"
+        self.ci.feature.load_fasta(fasta=feature_file_path, analysis_id=an['analysis_id'], organism_id=org['organism_id'], sequence_type='mRNA')
+        self.ci.expression.add_expression(org['organism_id'], an['analysis_id'], expression_file_path, separator="\t")
+
+        biomat_list = self.ci.expression.get_biomaterials()
+        assert len(biomat_list) == 8, "Unexpected number of biomaterials created"
+
+        elements = self.ci.session.query(self.ci.model.element.arraydesign_id, self.ci.model.elementresult.quantification_id, self.ci.model.elementresult.signal) \
+            .join(self.ci.model.elementresult, self.ci.model.element.element_id == self.ci.model.elementresult.element_id)
+
+        assert elements.count() == 24
+
     def setUp(self):
 
         self.ci = ci
