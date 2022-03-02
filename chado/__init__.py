@@ -54,7 +54,11 @@ class ChadoInstance(object):
             engine_url = 'postgresql://%s:%s@%s:%s/%s' % (self.dbuser, self.dbpass, self.dbhost, self.dbport, self.dbname)
 
         if pool_connections:
-            self._engine = create_engine(engine_url)
+            self._engine = create_engine(engine_url, pool_pre_ping=True, connect_args={
+                "keepalives": 1,
+                "keepalives_idle": 30,
+                "keepalives_interval": 10,
+            })
         else:
             # Prevent SQLAlchemy to make a connection pool.
             # Useful for galaxy dynamic options as otherwise it triggers "sorry, too many clients already" errors after a while
