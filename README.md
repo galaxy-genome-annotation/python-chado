@@ -88,7 +88,7 @@ $ chakin feature load_fasta \
 ## History
 
 - 2.3.8
-    - Fix connection closed error when loading big interproscan
+    - Fix connection closed error when loading big interproscan files
 
 - 2.3.7
     - Fix loading of expression data when first column header is not empty
