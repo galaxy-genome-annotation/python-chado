@@ -6,7 +6,7 @@ with open('requirements.txt') as f:
 
 setup(
     name="chado",
-    version='2.3.7',
+    version='2.3.8',
     description="Chado library",
     author="Anthony Bretaudeau",
     author_email="anthony.bretaudeau@inrae.fr",
@@ -25,10 +25,5 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Topic :: Scientific/Engineering",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
     ])
