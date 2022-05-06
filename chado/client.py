@@ -112,16 +112,27 @@ class Client(object):
     def _match_feature(self, feature_id, re_name, query_type, organism_id, skip_missing=False):
 
         seqterm = self.ci.get_cvterm_id(query_type, 'sequence')
-        feature_id = unquote(feature_id)
 
         if re_name:
             re_res = re.search(re_name, feature_id)
             if re_res:
                 feature_id = re_res.group(1)
+            else:
+                re_res = re.search(re_name, unquote(feature_id))
+                if re_res:
+                    feature_id = re_res.group(1)
 
         cache_id = (feature_id, organism_id, seqterm)
 
         if cache_id not in self._feature_cache:
+            # Check after decoding
+            cache_id = (unquote(feature_id), organism_id, seqterm)
+            if cache_id not in self._feature_cache:
+                if skip_missing:
+                    warn('Could not find feature with name "%s", skipping it', feature_id)
+                    return None
+                else:
+                    raise RecordNotFoundError('Could not find feature with name "%s"' % feature_id)
             if skip_missing:
                 warn('Could not find feature with name "%s", skipping it', feature_id)
                 return None
