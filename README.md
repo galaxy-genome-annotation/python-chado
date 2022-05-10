@@ -87,6 +87,9 @@ $ chakin feature load_fasta \
 
 ## History
 
+- 2.3.9
+    - URL decode GFF ids when loading blast/interpro/others
+
 - 2.3.8
     - Fix connection closed error when loading big interproscan files
 

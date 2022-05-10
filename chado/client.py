@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import re
+from urllib.parse import unquote
 
 from chado.exceptions import RecordNotFoundError
 
@@ -116,15 +117,22 @@ class Client(object):
             re_res = re.search(re_name, feature_id)
             if re_res:
                 feature_id = re_res.group(1)
+            else:
+                re_res = re.search(re_name, unquote(feature_id))
+                if re_res:
+                    feature_id = re_res.group(1)
 
         cache_id = (feature_id, organism_id, seqterm)
 
         if cache_id not in self._feature_cache:
-            if skip_missing:
-                warn('Could not find feature with name "%s", skipping it', feature_id)
-                return None
-            else:
-                raise RecordNotFoundError('Could not find feature with name "%s"' % feature_id)
+            # Check after decoding
+            cache_id = (unquote(feature_id), organism_id, seqterm)
+            if cache_id not in self._feature_cache:
+                if skip_missing:
+                    warn('Could not find feature with name "%s", skipping it', feature_id)
+                    return None
+                else:
+                    raise RecordNotFoundError('Could not find feature with name "%s"' % feature_id)
 
         return self._feature_cache[cache_id]['feature_id']
 
