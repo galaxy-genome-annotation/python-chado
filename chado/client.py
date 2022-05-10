@@ -133,11 +133,6 @@ class Client(object):
                     return None
                 else:
                     raise RecordNotFoundError('Could not find feature with name "%s"' % feature_id)
-            if skip_missing:
-                warn('Could not find feature with name "%s", skipping it', feature_id)
-                return None
-            else:
-                raise RecordNotFoundError('Could not find feature with name "%s"' % feature_id)
 
         return self._feature_cache[cache_id]['feature_id']
 
